@@ -498,4 +498,7 @@ def test_unwired_curator_op_dispatch_path() -> None:
     request = SkillsRequest(SkillsOp.CURATOR_STATUS, root=Path("/nonexistent"))
     result = agent.execute(request)
     assert result.ok is False
-    assert "Skills root does not exist" in result.message
+    assert (
+        "Skills telemetry capability is not configured" in result.message
+        or "Skills root does not exist" in result.message
+    )

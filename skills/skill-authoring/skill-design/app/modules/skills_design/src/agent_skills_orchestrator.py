@@ -17,7 +17,9 @@ imports the sibling tree and never dispatches ``SkillsOp.TRACES``.
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Sequence
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import cast
 
@@ -33,8 +35,8 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
 )
+from shared.src.skills_design.taxonomy_skills_constant import ARCHIVE_DIRNAME
 from shared.src.skills_design.taxonomy_skills_curator_config_vo import (
-    CuratorConfig,
     load_curator_config,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
@@ -96,10 +98,10 @@ class SkillsAgent(ISkillsAggregate):
         self._mover = mover
         self._archiver = archiver
         self._creator = creator
-        self._telemetry = telemetry or SkillsCuratorTelemetry()
-        self._lifecycle = lifecycle or SkillsCuratorLifecycle()
-        self._backup = backup or SkillsCuratorBackup()
-        self._ledger = ledger or SkillsCuratorLedger()
+        self._telemetry = telemetry
+        self._lifecycle = lifecycle
+        self._backup = backup
+        self._ledger = ledger
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -418,34 +420,13 @@ class SkillsAgent(ISkillsAggregate):
             config = load_curator_config(SkillsRoot(root))
         except OSError as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        new_config = CuratorConfig(
-            enabled=config.enabled,
-            interval_hours=config.interval_hours,
-            min_idle_hours=config.min_idle_hours,
-            stale_after_days=config.stale_after_days,
-            archive_after_days=config.archive_after_days,
-            consolidate=config.consolidate,
-            backup_enabled=config.backup_enabled,
-            backup_keep=config.backup_keep,
-            archive_ttl_days=config.archive_ttl_days,
-            pause=pause,
-        )
+        new_dict = asdict(replace(config, pause=pause))
         try:
-            atomic_write_json(config_path, {
-                "enabled": new_config.enabled,
-                "interval_hours": new_config.interval_hours,
-                "min_idle_hours": new_config.min_idle_hours,
-                "stale_after_days": new_config.stale_after_days,
-                "archive_after_days": new_config.archive_after_days,
-                "consolidate": new_config.consolidate,
-                "backup_enabled": new_config.backup_enabled,
-                "backup_keep": new_config.backup_keep,
-                "archive_ttl_days": new_config.archive_ttl_days,
-                "pause": new_config.pause,
-            })
+            atomic_write_json(config_path, new_dict)
         except OSError as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        return SkillsResult(ok=True, op=op, message=f"pause={pause}")
+        action = "paused" if pause else "resumed"
+        return SkillsResult(ok=True, op=op, message=f"curator {action}")
 
     def _execute_curator_pin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """CURATOR_PIN: set pinned=True on *skill* sidecar."""
@@ -463,36 +444,66 @@ class SkillsAgent(ISkillsAggregate):
         """CURATOR_UNLOCK: set locked=False on *skill* sidecar."""
         return self._flip_sidecar_bool(request, "locked", False, op)
 
-    def _flip_sidecar_bool(self, request: SkillsRequest, field: str, value: bool, op: SkillsOp) -> SkillsResult:
-        """Flip a bool field on a skill's ``.usage.json`` sidecar via telemetry read + atomic write."""
-        root = self._root(request)
-        telemetry = self._require(self._telemetry, "telemetry")
-        skill_dir = self._find_skill_dir(str(request.query), root)
+    def _flip_sidecar_bool(
+        self, request: SkillsRequest, field: str, value: bool, op: SkillsOp
+    ) -> SkillsResult:
+        """Flip a bool field on a skill's ``.usage.json`` sidecar via atomic write."""
+        self._require(self._telemetry, "telemetry")
+        if not request.query or str(request.query).strip() in ("", "None"):
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message="Skill name required",
+            )
+        skill_name = str(request.query).strip()
+        root = Path(self._root(request))
+        skill_dir = self._find_skill_dir(skill_name, root)
         if skill_dir is None:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"Skill not found: {request.query}")
-        path = skill_dir / ".usage.json"
-        try:
-            report = telemetry.curated_report(root)
-        except OSError as failure:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        row = next((r for r in report if r.get("name") == str(request.query)), None)
-        if row is None:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"No telemetry row for: {request.query}")
-        record = dict(row)
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message=f"Skill not found: {skill_name}",
+            )
+        sidecar_path = skill_dir / ".usage.json"
+        if not sidecar_path.is_file() and self._telemetry:
+            self._telemetry.seed_record_if_missing(skill_name, SkillsRoot(root))
+
+        if sidecar_path.is_file():
+            try:
+                record = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError, json.JSONDecodeError):
+                record = {}
+        else:
+            record = {}
         record[field] = value
         try:
-            atomic_write_json(path, record)
+            atomic_write_json(sidecar_path, record)
         except OSError as failure:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        return SkillsResult(ok=True, op=op, message=f"{field}={value} for {request.query}")
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message=str(failure),
+            )
+        return SkillsResult(ok=True, op=op, message=f"{field}={value} for {skill_name}")
 
     def _execute_curator_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """CURATOR_ARCHIVE: lifecycle.archive(skill, root)."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
+        if not request.query or str(request.query).strip() in ("", "None"):
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message="Skill name required",
+            )
+        skill_name = str(request.query).strip()
         try:
-            result = lifecycle.archive(str(request.query), root)
-        except OSError as failure:
+            result = lifecycle.archive(skill_name, root)
+        except (OSError, SkillsError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
@@ -500,51 +511,87 @@ class SkillsAgent(ISkillsAggregate):
         """CURATOR_RESTORE: lifecycle.restore(skill, root)."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
+        if not request.query or str(request.query).strip() in ("", "None"):
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message="Skill name required",
+            )
+        skill_name = str(request.query).strip()
         try:
-            result = lifecycle.restore(str(request.query), root)
-        except OSError as failure:
+            result = lifecycle.restore(skill_name, root)
+        except (OSError, SkillsError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
     def _execute_curator_prune(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_PRUNE: lifecycle.prune(root) — hard-delete stale past cutoff."""
+        """CURATOR_PRUNE: lifecycle.prune(root, days, dry_run) — bulk-archive idle skills."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
+        days = int(request.flags["days"]) if "days" in request.flags else None
+        dry_run = bool(request.flags.get("dry_run", False) or request.flags.get("dry-run", False))
         try:
-            report = lifecycle.prune(root)
-        except OSError as failure:
+            report = lifecycle.prune(root=root, days=days, dry_run=dry_run)
+        except (OSError, ValueError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=report.get("pruned", ()), message=str(report))
 
     def _execute_curator_purge(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_PURGE: lifecycle.purge(skill, root) — hard-delete skill dir + sidecar + blobs."""
+        """CURATOR_PURGE: lifecycle.purge(skill, root, dry_run) — delete archived skills."""
         lifecycle = self._require(self._lifecycle, "lifecycle")
         root = self._root(request)
+        query = str(request.query).strip() if request.query else ""
+        skill_name = query if query and query != "None" else None
+        dry_run = bool(request.flags.get("dry_run", False) or request.flags.get("dry-run", False))
         try:
-            result = lifecycle.purge(str(request.query), root)
-        except OSError as failure:
+            result = lifecycle.purge(skill=skill_name, root=root, dry_run=dry_run)
+        except (OSError, ValueError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
     def _execute_curator_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_ADOPT: seed baseline record + mark created_by="agent"."""
-        telemetry = self._require(self._telemetry, "telemetry")
-        root = self._root(request)
+        """CURATOR_ADOPT: mark skill as agent-managed (created_by="agent")."""
+        self._require(self._telemetry, "telemetry")
+        if not request.query or str(request.query).strip() in ("", "None"):
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message="Skill name required",
+            )
+        skill_name = str(request.query).strip()
+        root = Path(self._root(request))
+        skill_dir = self._find_skill_dir(skill_name, root)
+        if skill_dir is None:
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message=f"Skill not found: {skill_name}",
+            )
+        sidecar_path = skill_dir / ".usage.json"
+        if not sidecar_path.is_file() and self._telemetry:
+            self._telemetry.seed_record_if_missing(skill_name, SkillsRoot(root))
+
+        if sidecar_path.is_file():
+            try:
+                record = json.loads(sidecar_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError, json.JSONDecodeError):
+                record = {}
+        else:
+            record = {}
+        record["created_by"] = "agent"
         try:
-            telemetry.seed_record_if_missing(str(request.query), root)
-            skill_dir = self._find_skill_dir(str(request.query), root)
-            if skill_dir is None:
-                return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"Skill not found: {request.query}")
-            path = skill_dir / ".usage.json"
-            record = telemetry.curated_report(root)
-            row = next((r for r in record if r.get("name") == str(request.query)), None)
-            if row is None:
-                return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=f"No telemetry row for: {request.query}")
-            row["created_by"] = "agent"
-            atomic_write_json(path, row)
+            atomic_write_json(sidecar_path, record)
         except OSError as failure:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        return SkillsResult(ok=True, op=op, message=f"adopted {request.query}")
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message=str(failure),
+            )
+        return SkillsResult(ok=True, op=op, message=f"adopted {skill_name}")
 
     def _execute_curator_backup(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """CURATOR_BACKUP: backup.create_snapshot(root) -> snapshot path."""
@@ -584,36 +631,70 @@ class SkillsAgent(ISkillsAggregate):
         return SkillsResult(ok=True, op=op, records=rows, message=f"{len(rows)} ledger entry(ies)")
 
     def _execute_curator_list_unmanaged(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_LIST_UNMANAGED: rows with no sidecar OR created_by != 'agent'."""
-        telemetry = self._require(self._telemetry, "telemetry")
-        root = self._root(request)
-        try:
-            rows = telemetry.curated_report(root)
-        except OSError as failure:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        unmanaged = [r for r in rows if r.get("created_by") != "agent"]
+        """CURATOR_LIST_UNMANAGED: skills with no sidecar OR created_by != 'agent'."""
+        self._require(self._telemetry, "telemetry")
+        root = Path(self._root(request))
+        if not root.is_dir():
+            return SkillsResult(ok=True, op=op, records=(), message="0 unmanaged")
+        unmanaged: list[dict] = []
+        for cat_dir in root.iterdir():
+            if not cat_dir.is_dir() or cat_dir.name.startswith((".", "_")):
+                continue
+            for skill_dir in cat_dir.iterdir():
+                if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
+                    continue
+                sidecar = skill_dir / ".usage.json"
+                if not sidecar.is_file():
+                    unmanaged.append({"name": skill_dir.name, "category": cat_dir.name, "created_by": "unmanaged"})
+                else:
+                    try:
+                        rec = json.loads(sidecar.read_text(encoding="utf-8"))
+                    except (OSError, ValueError, json.JSONDecodeError):
+                        rec = {}
+                    if rec.get("created_by") != "agent":
+                        unmanaged.append({"name": skill_dir.name, "category": cat_dir.name, "created_by": rec.get("created_by", "unmanaged")})
         return SkillsResult(ok=True, op=op, records=unmanaged, message=f"{len(unmanaged)} unmanaged")
 
     def _execute_curator_list_archived(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """CURATOR_LIST_ARCHIVED: rows where state == 'archived'."""
-        telemetry = self._require(self._telemetry, "telemetry")
-        root = self._root(request)
-        try:
-            rows = telemetry.curated_report(root)
-        except OSError as failure:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        archived = [r for r in rows if r.get("state") == "archived"]
+        """CURATOR_LIST_ARCHIVED: skills currently in _archive/."""
+        self._require(self._lifecycle, "lifecycle")
+        root = Path(self._root(request))
+        arch_dir = root / ARCHIVE_DIRNAME
+        if not arch_dir.is_dir():
+            return SkillsResult(ok=True, op=op, records=(), message="0 archived")
+        archived: list[dict] = []
+        for cat_dir in arch_dir.iterdir():
+            if not cat_dir.is_dir() or cat_dir.name.startswith("."):
+                continue
+            for skill_dir in cat_dir.iterdir():
+                if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
+                    continue
+                sidecar = skill_dir / ".usage.json"
+                rec = {}
+                if sidecar.is_file():
+                    try:
+                        rec = json.loads(sidecar.read_text(encoding="utf-8"))
+                    except (OSError, ValueError, json.JSONDecodeError):
+                        rec = {}
+                archived.append({
+                    "name": skill_dir.name,
+                    "category": cat_dir.name,
+                    "state": "archived",
+                    "archived_at": rec.get("archived_at"),
+                })
         return SkillsResult(ok=True, op=op, records=archived, message=f"{len(archived)} archived")
 
-    def _find_skill_dir(self, skill: str, root: Path) -> Path | None:
+    def _find_skill_dir(self, skill: str, root: Path, in_archive: bool = False) -> Path | None:
         """Find a skill directory under *root* by name (any category)."""
-        if not root.is_dir():
+        base = root / ARCHIVE_DIRNAME if in_archive else root
+        if not base.is_dir():
             return None
-        for child in root.iterdir():
-            if child.is_dir():
-                candidate = child / skill
-                if candidate.is_dir() and (candidate / "SKILL.md").exists():
-                    return candidate
+        for child in base.iterdir():
+            if not child.is_dir() or (not in_archive and child.name.startswith((".", "_"))):
+                continue
+            candidate = child / skill
+            if candidate.is_dir() and (candidate / "SKILL.md").exists():
+                return candidate
         return None
 
     def _root(self, request: SkillsRequest) -> SkillsRoot:

@@ -5,183 +5,222 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 from shared.src.skills_design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.skills_design.taxonomy_skills_response import SkillsResult
+from shared.src.skills_design.taxonomy_skills_response import (
+    SkillsExitCode,
+    SkillsResult,
+)
 
+from skills_design.src.agent_skills_orchestrator import SkillsAgent
+from skills_design.src.capabilities_skills_curator_backup import SkillsCuratorBackup
+from skills_design.src.capabilities_skills_curator_ledger import SkillsCuratorLedger
+from skills_design.src.capabilities_skills_curator_lifecycle import (
+    SkillsCuratorLifecycle,
+)
+from skills_design.src.capabilities_skills_curator_telemetry import (
+    SkillsCuratorTelemetry,
+)
+from skills_design.src.capabilities_skills_lister import SkillsLister
+from skills_design.src.capabilities_skills_reader import SkillsPackReader
 from skills_design.src.root_skills_container import default_aggregate
 from skills_design.tests.fixture_skills import clean_tree
 
-ALL_CURATOR_OPS = [
-    SkillsOp.CURATOR_STATUS,
-    SkillsOp.CURATOR_USAGE,
-    SkillsOp.CURATOR_RUN,
-    SkillsOp.CURATOR_PAUSE,
-    SkillsOp.CURATOR_RESUME,
-    SkillsOp.CURATOR_PIN,
-    SkillsOp.CURATOR_UNPIN,
-    SkillsOp.CURATOR_LOCK,
-    SkillsOp.CURATOR_UNLOCK,
-    SkillsOp.CURATOR_ARCHIVE,
-    SkillsOp.CURATOR_RESTORE,
-    SkillsOp.CURATOR_PRUNE,
-    SkillsOp.CURATOR_PURGE,
-    SkillsOp.CURATOR_ADOPT,
-    SkillsOp.CURATOR_BACKUP,
-    SkillsOp.CURATOR_ROLLBACK,
-    SkillsOp.CURATOR_LEDGER,
-    SkillsOp.CURATOR_LIST_UNMANAGED,
-    SkillsOp.CURATOR_LIST_ARCHIVED,
-]
 
-# Ops that need a skill query to work (skill-not-found is an ok result,
-# just not a crash).
-OPS_NEED_SKILL = {
-    SkillsOp.CURATOR_PIN,
-    SkillsOp.CURATOR_UNPIN,
-    SkillsOp.CURATOR_LOCK,
-    SkillsOp.CURATOR_UNLOCK,
-    SkillsOp.CURATOR_ARCHIVE,
-    SkillsOp.CURATOR_RESTORE,
-    SkillsOp.CURATOR_PURGE,
-    SkillsOp.CURATOR_ADOPT,
-    SkillsOp.CURATOR_ROLLBACK,
-}
+def _setup_pack_with_skill(tmp_path: Path, skill_name: str = "alpha") -> Path:
+    root = clean_tree(tmp_path)
+    skill_dir = root / "cat" / skill_name
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    (skill_dir / "SKILL.md").write_text("# Skill\n", encoding="utf-8")
+    return root
 
 
-def _execute(root: Path, op: SkillsOp, query: str = "") -> SkillsResult:
+def _execute(
+    root: Path, op: SkillsOp, query: str = "", flags: dict | None = None
+) -> SkillsResult:
     agent = default_aggregate(default_root=root)
-    req = SkillsRequest(op=op, query=query, root=SkillsRoot(root))
+    req = SkillsRequest(
+        op=op, query=query, root=SkillsRoot(root), flags=flags or {}
+    )
     return agent.execute(req)
 
 
 # ─── default_aggregate wires all 4 curator capabilities ────────────
 
-def test_default_aggregate_wires_all_curator_capabilities() -> None:
-    tmp = Path(__file__).parent / "tmp_wiring_aggregate"
-    import tempfile
-
-    tmp = Path(tempfile.mkdtemp())
-    root = clean_tree(tmp)
+def test_default_aggregate_wires_all_curator_capabilities(tmp_path: Path) -> None:
+    root = clean_tree(tmp_path)
     agent = default_aggregate(default_root=root)
-    assert agent._telemetry is not None
-    assert agent._lifecycle is not None
-    assert agent._backup is not None
-    assert agent._ledger is not None
+    assert isinstance(agent, SkillsAgent)
+    assert isinstance(agent._telemetry, SkillsCuratorTelemetry)
+    assert isinstance(agent._lifecycle, SkillsCuratorLifecycle)
+    assert isinstance(agent._backup, SkillsCuratorBackup)
+    assert isinstance(agent._ledger, SkillsCuratorLedger)
 
 
-# ─── All 19 curator ops return SkillsResult (no crash) ─────────────
+# ─── Negative tests: unwired capabilities and missing query ──────────
 
-@pytest.mark.parametrize("op", ALL_CURATOR_OPS)
-def test_every_curator_op_returns_SkillsResult(op: SkillsOp) -> None:
-    import tempfile
-
-    tmp = Path(tempfile.mkdtemp())
-    root = clean_tree(tmp)
-    query = "alpha" if op in OPS_NEED_SKILL else ""
-    result = _execute(root, op, query)
-    assert isinstance(result, SkillsResult)
-    assert result.ok in (True, False)
-    assert result.op == op
+def test_unwired_curator_capabilities_fail() -> None:
+    agent = SkillsAgent(lister=SkillsLister(), reader=SkillsPackReader())
+    req = SkillsRequest(op=SkillsOp.CURATOR_STATUS, root=SkillsRoot("."))
+    result = agent.execute(req)
+    assert result.ok is False
+    assert result.exit_code == SkillsExitCode.USAGE_ERROR
 
 
-# ─── CURATOR_ARCHIVE / CURATOR_RESTORE end-to-end ──────────────────
+def test_curator_pin_missing_query_fails(tmp_path: Path) -> None:
+    root = clean_tree(tmp_path)
+    result = _execute(root, SkillsOp.CURATOR_PIN, query="")
+    assert result.ok is False
+    assert result.exit_code == SkillsExitCode.ISSUES_FOUND
+    assert "Skill name required" in result.message
 
-def test_curator_archive_restore_e2e() -> None:
-    import tempfile
 
-    tmp = Path(tempfile.mkdtemp())
-    root = clean_tree(tmp)
-    agent = default_aggregate(default_root=root)
+def test_curator_pin_unknown_skill_fails(tmp_path: Path) -> None:
+    root = clean_tree(tmp_path)
+    result = _execute(root, SkillsOp.CURATOR_PIN, query="unknown_skill")
+    assert result.ok is False
+    assert result.exit_code == SkillsExitCode.ISSUES_FOUND
+    assert "Skill not found" in result.message
 
-    # archive alpha
-    result = agent.execute(SkillsRequest(op=SkillsOp.CURATOR_ARCHIVE, query="alpha", root=SkillsRoot(root), apply=True))
-    assert isinstance(result, SkillsResult)
-    assert result.ok in (True, False)
 
-    # sidecar should exist now (telemetry record)
+# ─── Functional test: PIN / UNPIN / LOCK / UNLOCK ────────────────────
+
+def test_curator_pin_unpin_mutates_sidecar(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
     sidecar = root / "cat" / "alpha" / ".usage.json"
-    # archive moves to _archive; sidecar lives in the moved dir or was in the source
-    archive_sidecar = root / "_archive" / "cat" / "alpha" / ".usage.json"
-    assert sidecar.exists() or archive_sidecar.exists()
 
-    # archive dir should contain alpha
+    res_pin = _execute(root, SkillsOp.CURATOR_PIN, query="alpha")
+    assert res_pin.ok is True
+    assert res_pin.exit_code == SkillsExitCode.CLEAN
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["pinned"] is True
+
+    res_unpin = _execute(root, SkillsOp.CURATOR_UNPIN, query="alpha")
+    assert res_unpin.ok is True
+    assert res_unpin.exit_code == SkillsExitCode.CLEAN
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["pinned"] is False
+
+
+def test_curator_lock_unlock_mutates_sidecar(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
+    sidecar = root / "cat" / "alpha" / ".usage.json"
+
+    res_lock = _execute(root, SkillsOp.CURATOR_LOCK, query="alpha")
+    assert res_lock.ok is True
+    assert res_lock.exit_code == SkillsExitCode.CLEAN
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["locked"] is True
+
+    res_unlock = _execute(root, SkillsOp.CURATOR_UNLOCK, query="alpha")
+    assert res_unlock.ok is True
+    assert res_unlock.exit_code == SkillsExitCode.CLEAN
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["locked"] is False
+
+
+# ─── Functional test: ADOPT ──────────────────────────────────────────
+
+def test_curator_adopt_marks_agent_managed(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
+    sidecar = root / "cat" / "alpha" / ".usage.json"
+    sidecar.write_text(json.dumps({"created_by": "user"}), encoding="utf-8")
+
+    result = _execute(root, SkillsOp.CURATOR_ADOPT, query="alpha")
+    assert result.ok is True
+    assert result.exit_code == SkillsExitCode.CLEAN
+    assert json.loads(sidecar.read_text(encoding="utf-8"))["created_by"] == "agent"
+
+
+# ─── Functional test: LIST_UNMANAGED and LIST_ARCHIVED ───────────────
+
+def test_curator_list_unmanaged_does_not_mutate_disk(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "beta")
+    sidecar = root / "cat" / "beta" / ".usage.json"
+    assert not sidecar.exists()
+
+    result = _execute(root, SkillsOp.CURATOR_LIST_UNMANAGED)
+    assert result.ok is True
+    assert result.exit_code == SkillsExitCode.CLEAN
+    assert any(r.get("name") == "beta" for r in result.records)
+    # Crucial: list-unmanaged must not seed .usage.json on disk!
+    assert not sidecar.exists()
+
+
+def test_curator_list_archived_finds_archived_skills(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "gamma")
+    _execute(root, SkillsOp.CURATOR_ARCHIVE, query="gamma")
+
+    result = _execute(root, SkillsOp.CURATOR_LIST_ARCHIVED)
+    assert result.ok is True
+    assert result.exit_code == SkillsExitCode.CLEAN
+    assert any(r.get("name") == "gamma" for r in result.records)
+
+
+# ─── CURATOR_ARCHIVE + CURATOR_RESTORE round-trip ────────────────────
+
+def test_curator_archive_restore_round_trip(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
     archive_dir = root / "_archive" / "cat" / "alpha"
-    assert archive_dir.exists()
-    assert (archive_dir / "SKILL.md").exists()
 
-    # restore alpha
-    result2 = agent.execute(SkillsRequest(op=SkillsOp.CURATOR_RESTORE, query="alpha", root=SkillsRoot(root), apply=True))
-    assert isinstance(result2, SkillsResult)
-    assert result2.ok in (True, False)
+    res_archive = _execute(root, SkillsOp.CURATOR_ARCHIVE, query="alpha")
+    assert res_archive.ok is True
+    assert res_archive.exit_code == SkillsExitCode.CLEAN
+    assert archive_dir.is_dir()
+    assert not (root / "cat" / "alpha").exists()
 
-    # skill back in place
+    res_restore = _execute(root, SkillsOp.CURATOR_RESTORE, query="alpha")
+    assert res_restore.ok is True
+    assert res_restore.exit_code == SkillsExitCode.CLEAN
     assert (root / "cat" / "alpha" / "SKILL.md").exists()
     assert not archive_dir.exists()
 
 
 # ─── CURATOR_BACKUP produces snapshot ──────────────────────────────
 
-def test_curator_backup_creates_snapshot() -> None:
-    import tempfile
-
-    tmp = Path(tempfile.mkdtemp())
-    root = clean_tree(tmp)
+def test_curator_backup_creates_snapshot(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
     result = _execute(root, SkillsOp.CURATOR_BACKUP)
-    assert isinstance(result, SkillsResult)
-    assert result.ok in (True, False)
+    assert result.ok is True
+    assert result.exit_code == SkillsExitCode.CLEAN
 
     backup_root = root / ".curator_backups"
     assert backup_root.is_dir()
-    snapshots = [d for d in backup_root.iterdir() if d.is_dir()]
+    snapshots = [d for d in backup_root.iterdir() if d.is_dir() and d.name != "blobs"]
     assert len(snapshots) >= 1
     snap = snapshots[0]
     assert (snap / "manifest.json").exists()
     assert (snap / "skills.tar.gz").exists()
 
 
-# ─── CURATOR_LEDGER empty pack returns empty; after append returns entry ──
-def test_curator_ledger_empty_and_after_append() -> None:
-    import tempfile
+# ─── CURATOR_LEDGER ─────────────────────────────────────────────────
 
-    tmp = Path(tempfile.mkdtemp())
-    root = clean_tree(tmp)
+def test_curator_ledger_empty_and_after_append(tmp_path: Path) -> None:
+    root = clean_tree(tmp_path)
 
-    # empty pack: valid empty result
     result = _execute(root, SkillsOp.CURATOR_LEDGER)
-    assert isinstance(result, SkillsResult)
-    assert result.ok in (True, False)
-
-    # append via ledger capability directly, then route CURATOR_LEDGER
-    from skills_design.src.capabilities_skills_curator_ledger import SkillsCuratorLedger
+    assert result.ok is True
+    assert result.exit_code == SkillsExitCode.CLEAN
+    assert result.records == ()
 
     ledger = SkillsCuratorLedger()
     entry = {"id": "t1", "actor": "user", "action": "append", "skill": "alpha"}
-    ledger.ledger_read(root)  # ensure file exists
+    ledger.ledger_read(root)
     ledger.ledger_append(root, entry)
 
     result2 = _execute(root, SkillsOp.CURATOR_LEDGER)
-    assert isinstance(result2, SkillsResult)
-    assert result2.ok in (True, False)
-    if result2.records:
-        assert any(e.get("id") == "t1" for e in result2.records)
+    assert result2.ok is True
+    assert result2.exit_code == SkillsExitCode.CLEAN
+    assert any(e.get("id") == "t1" for e in result2.records)
 
 
 # ─── CURATOR_PAUSE / CURATOR_RESUME round-trip ─────────────────────
 
-def test_curator_pause_resume_round_trip() -> None:
-    import tempfile
-
-    tmp = Path(tempfile.mkdtemp())
-    root = clean_tree(tmp)
+def test_curator_pause_resume_round_trip(tmp_path: Path) -> None:
+    root = clean_tree(tmp_path)
 
     result_pause = _execute(root, SkillsOp.CURATOR_PAUSE)
-    assert isinstance(result_pause, SkillsResult)
-    assert result_pause.ok in (True, False)
+    assert result_pause.ok is True
+    assert result_pause.exit_code == SkillsExitCode.CLEAN
 
     config_path = root / ".curator_config.json"
     assert config_path.exists()
@@ -189,8 +228,41 @@ def test_curator_pause_resume_round_trip() -> None:
     assert data.get("pause") is True
 
     result_resume = _execute(root, SkillsOp.CURATOR_RESUME)
-    assert isinstance(result_resume, SkillsResult)
-    assert result_resume.ok in (True, False)
+    assert result_resume.ok is True
+    assert result_resume.exit_code == SkillsExitCode.CLEAN
 
     data2 = json.loads(config_path.read_text(encoding="utf-8"))
     assert data2.get("pause") is False
+
+
+# ─── CURATOR_STATUS / USAGE / RUN / PRUNE / PURGE ───────────────────
+
+def test_curator_status_and_usage(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
+    res_status = _execute(root, SkillsOp.CURATOR_STATUS)
+    assert res_status.ok is True
+    assert res_status.exit_code == SkillsExitCode.CLEAN
+
+    res_usage = _execute(root, SkillsOp.CURATOR_USAGE)
+    assert res_usage.ok is True
+    assert res_usage.exit_code == SkillsExitCode.CLEAN
+
+
+def test_curator_run(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
+    result = _execute(root, SkillsOp.CURATOR_RUN)
+    assert result.ok is True
+    assert result.exit_code == SkillsExitCode.CLEAN
+
+
+def test_curator_prune_and_purge(tmp_path: Path) -> None:
+    root = _setup_pack_with_skill(tmp_path, "alpha")
+    res_prune = _execute(root, SkillsOp.CURATOR_PRUNE, flags={"days": 30})
+    assert res_prune.ok is True
+    assert res_prune.exit_code == SkillsExitCode.CLEAN
+
+    # archive alpha first then purge
+    _execute(root, SkillsOp.CURATOR_ARCHIVE, query="alpha")
+    res_purge = _execute(root, SkillsOp.CURATOR_PURGE, query="alpha")
+    assert res_purge.ok is True
+    assert res_purge.exit_code == SkillsExitCode.CLEAN
