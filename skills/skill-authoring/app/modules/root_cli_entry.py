@@ -21,7 +21,7 @@ from shared.src.skills_design.utility_path_bootstrap import _REPO_ROOT
 _ = _REPO_ROOT
 
 from cli.src.surface_skills_command import cmd_skills
-from skills_design.src.root_skills_container import default_aggregate
+from root_skills_container import default_aggregate
 
 
 def main(argv: list[str] | None = None) -> int:

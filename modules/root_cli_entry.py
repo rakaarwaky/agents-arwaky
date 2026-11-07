@@ -14,7 +14,7 @@ The only differences are the import swaps to the AES modules:
                    _find_* helpers (original tools/lib/tool_resolver.py
                    bodies as-is, import-swapped)
   - doc_pack        -> modules.shared.src.utility_doc_pack
-  - skill_pack      -> skills_design.src.capabilities_skills_lister (colocated under skills/skill-authoring/skill-design/modules)
+  - skill_pack      -> modules.shared.src.skills_design (colocated under skills/skill-authoring/app/modules)
   - paths.repo_root -> modules.shared.src.utility_paths
 
 Delegated actions (skill/connect/disconnect/daemon/service/backup)
@@ -42,8 +42,9 @@ from modules.shared.src.common.utility_process_runner import run_cmd as _run_cmd
 ROOT = repo_root()
 
 # The skills feature lives in TWO fully independent standalone packages
-# (AES702, no shared layer): skills/skill-authoring/skill-design/modules/
-# exposes the top-level `skills_design` package,
+# (AES702, no shared layer): skills/skill-authoring/app/modules/
+# exposes the design/discovery/governance/maintenance/observability/storage
+# modules (each with its own agent),
 # skills/skill-authoring/skill-traces/modules/ the `skills_traces` package.
 # Each owns its own copies of the contract/taxonomy modules it needs; there
 # is no cross-tree import. This entry point adds both namespace roots so
@@ -609,7 +610,7 @@ def cmd_skills(argv: list[str]) -> int:
     from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
-    from skills_design.src.root_skills_container import default_aggregate
+    from skills/skill-authoring/app/modules/root_skills_container import default_aggregate
 
     aggregate = default_aggregate()
     return _skills_surface(list(argv), aggregate)

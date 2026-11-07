@@ -1,3 +1,0 @@
----
-description: A clean category
----
