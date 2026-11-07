@@ -7,10 +7,11 @@ exact message strings ``validate`` emits. It also carries the discovery
 score scale, the rule-doc summaries/citations, and the lifecycle state
 and config-file constants.
 
-Lifted verbatim from ``librarian.py``. Nothing in this module
-is re-derivable from elsewhere: every consumer (the validator
-capability and the skill-rules reference doc) must read these constants
-rather than restate them.
+Provenance: these values originated in the retired ``librarian.py``
+(which no longer exists); this module is now the single executable
+source of truth. Nothing in it is re-derivable from elsewhere: every
+consumer (the validator capability and the skill-rules reference doc)
+must read these constants rather than restate them.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
-# Verbatim from ``librarian.py``.
+# Originally ``librarian.py`` (retired); now this module is the SSOT.
 MAX_DESCRIPTION_LEN: Final = 1024
 
 # ─── Naming budget ─────────────────────────────────────────────────────
@@ -31,10 +32,10 @@ NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
 
 # ── Layout invariants ─────────────────────────────────────────────────
 
-#: Category description file name, verbatim from ``librarian.py``.
+#: Category description file name (provenance: retired ``librarian.py``).
 CATEGORY_DESCRIPTION_FILENAME: Final = "DESCRIPTION.md"
 
-#: Category directories the walker skips, verbatim from ``librarian.py``.
+#: Category directories the walker skips (provenance: retired ``librarian.py``).
 IGNORED_CATEGORY_DIRS: Final = frozenset(
     {".git", ".hg", ".svn", "__pycache__", "_archive"}
 )

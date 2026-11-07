@@ -6,11 +6,11 @@ and the weed / repair report generators. These were split out of the
 retired ``capabilities_skills_mutator`` so each mutation capability can
 depend on the shared kernel without a sibling import.
 
-The skill-tree walkers this file needs are inlined here (private) so the
-module stays self-contained: utility files must not import one another
-(AES201). The public kernel modules ``utility_skills_markdown`` /
-``utility_skills_tree`` keep their own copies for the capabilities that
-consume them.
+The skill-tree walkers and parsers this file needs live in
+``utility_skills_core`` -- the single documented AES201 exception.
+AES201 forbids utility files importing one another; this module imports
+from the core module (not from a sibling utility) so the dependency
+graph stays acyclic.
 """
 from __future__ import annotations
 
@@ -18,17 +18,6 @@ import json
 import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
-from types import ModuleType
-
-try:
-    import fcntl
-except ImportError:  # pragma: no cover - Windows has no fcntl
-    fcntl = None
-
-try:
-    import msvcrt
-except ImportError:  # pragma: no cover - POSIX has no msvcrt
-    msvcrt = None
 
 from shared.src.skills_design.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
@@ -38,10 +27,6 @@ from shared.src.skills_design.taxonomy_skills_constant import (
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
-)
-from shared.src.skills_design.taxonomy_skills_entity import (
-    CategorySummary,
-    SkillEntry,
 )
 from shared.src.skills_design.taxonomy_skills_error import (
     CategoryNameError,
@@ -54,189 +39,28 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     MutationStep,
 )
 
-# ─── Inlined tree walkers (private; utility files stay independent, AES201) ──
-
-yaml: ModuleType | None = None
-try:
-    import yaml as _yaml
-
-    yaml = _yaml
-except ImportError:  # pragma: no cover - exercised by the S8 test
-    yaml = None
-
-
-def _clean_one_line(value: object) -> str:
-    """Collapse whitespace to single spaces and strip the edges."""
-    return " ".join(str(value).split()).strip()
-
-
-def _yaml_quote(value: object) -> str:
-    """Quote a YAML scalar the way the original ``librarian.py`` did."""
-    return json.dumps(str(value), ensure_ascii=False)
-
-
-def _category_dirs(skills_root: Path) -> Iterator[Path]:
-    """Yield category directories, skipping hidden/ignored names.
-
-    Raises ``SkillsRootError`` when the root is missing or is not a
-    directory: a capability must not terminate the process, so the
-    legacy ``SystemExit(1)`` becomes the typed usage error (exit 2).
-    """
-    if not skills_root.is_dir():
-        raise SkillsRootError(f"Skills root does not exist: {skills_root}")
-
-    for path in sorted(skills_root.iterdir()):
-        if path.is_symlink() or not path.is_dir():
-            continue
-        if path.name.startswith("."):
-            continue
-        if path.name in IGNORED_CATEGORY_DIRS:
-            continue
-        yield path
-
-
-def _parse_frontmatter(path: Path) -> dict[str, object]:
-    """Parse YAML frontmatter from ``path``; returns {} when absent/broken.
-
-    Optional PyYAML pass, then a minimal single-line ``key: value``
-    fallback. The fallback is load-bearing: CI installs ``pyyaml`` but
-    ``pyproject.toml`` declares no dependencies, so a host without it
-    must still parse the pack.
-    """
-    try:
-        text = path.read_text(encoding="utf-8-sig", errors="replace")
-    except OSError:
-        return {}
-
-    stripped = text.lstrip()
-    if not stripped.startswith("---"):
-        return {}
-
-    parts = stripped.split("---", 2)
-    if len(parts) < 3:
-        return {}
-
-    fm_text = parts[1]
-
-    if yaml is not None:
-        try:
-            parsed = yaml.safe_load(fm_text)
-            if isinstance(parsed, dict):
-                return parsed
-        except yaml.YAMLError:
-            # Broken frontmatter degrades to the fallback parser below.
-            pass
-
-    data: dict[str, object] = {}
-    for line in fm_text.splitlines():
-        if not line.strip():
-            continue
-        if line != line.lstrip():
-            continue
-        if ":" not in line:
-            continue
-
-        key, value = line.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-
-        if not key or value in {"", "|", ">", "|-", ">-"}:
-            continue
-        if value.startswith(("[", "{", "- ")):
-            continue
-
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
-            value = value[1:-1]
-
-        data[key] = value
-
-    return data
-
+import shared.src.skills_design.utility_skills_core as _core
 
 def _assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker."""
-    declared = set()
-    for category in _category_dirs(skills_root):
+    declared: set[str] = set()
+    for category in _core.category_dirs(skills_root):
         marker = category / ASSETS_MARKER_FILENAME
         if not marker.is_file():
             continue
-        frontmatter = _parse_frontmatter(marker)
+        frontmatter = _core.parse_frontmatter(marker)
         if frontmatter.get("kind") == "assets":
             declared.add(category.name)
     return declared
 
 
-def _skill_entries(skills_root: Path) -> list[SkillEntry]:
-    """All discoverable skills: ``category/*/SKILL.md`` with frontmatter."""
-    entries = []
-
-    for category in _category_dirs(skills_root):
-        for skill_md in sorted(category.glob("*/SKILL.md")):
-            skill_dir = skill_md.parent
-            frontmatter = _parse_frontmatter(skill_md)
-
-            entries.append(
-                SkillEntry(
-                    skill=skill_dir.name,
-                    frontmatter_name=_clean_one_line(
-                        frontmatter.get("name", skill_dir.name)
-                    ),
-                    category=category.name,
-                    description=_clean_one_line(frontmatter.get("description", "")),
-                    when_to_use=_clean_one_line(frontmatter.get("when-to-use", "")),
-                    path=f"{category.name}/{skill_dir.name}",
-                )
-            )
-
-    return entries
+# ─── Inlined tree walkers (private; utility files stay independent, AES201) ──
 
 
-def _category_summaries(
-    entries: Iterable[SkillEntry], skills_root: Path
-) -> list[CategorySummary]:
-    """Per-category description state and skill counts.
 
-    ``entries`` is materialized once because it is re-iterated per
-    category; a generator passed here would be consumed by the first
-    category and silently zero every later category's count.
-    """
-    entries = list(entries)
-    summaries = []
-
-    for category in _category_dirs(skills_root):
-        desc_file = category / CATEGORY_DESCRIPTION_FILENAME
-        description = ""
-        exists = desc_file.exists()
-
-        if exists:
-            frontmatter = _parse_frontmatter(desc_file)
-            description = _clean_one_line(frontmatter.get("description", ""))
-
-        skill_count = sum(1 for entry in entries if entry.category == category.name)
-
-        summaries.append(
-            CategorySummary(
-                category=category.name,
-                description=description,
-                description_file_exists=exists,
-                skill_count=skill_count,
-            )
-        )
-
-    return summaries
-
-__all__ = [
-    "archive_root",
-    "assert_within_root",
-    "atomic_write_json",
-    "missing_category_descriptions",
-    "name_mismatch_repairs",
-    "plan_repair",
-    "plan_weed",
-    "resolve_skill_dir",
-    "validate_category_name",
-    "write_category_description",
-]
+def _yaml_quote(value: object) -> str:
+    """Quote a YAML scalar the way the original ``librarian.py`` did."""
+    return json.dumps(str(value), ensure_ascii=False)
 
 
 def archive_root(skills_root: Path) -> Path:
@@ -274,7 +98,7 @@ def name_mismatch_repairs(skills_root: Path) -> list[tuple[Path, str]]:
     """The ``(skill_md, expected_name)`` pairs a repair would rewrite."""
     pairs: list[tuple[Path, str]] = []
 
-    for entry in _skill_entries(skills_root):
+    for entry in _core.skill_entries(skills_root):
         if entry.frontmatter_name != entry.skill:
             pairs.append((skills_root / entry.path / "SKILL.md", entry.skill))
 
@@ -290,7 +114,7 @@ def missing_category_descriptions(skills_root: Path) -> list[Path]:
     assets = _assets_container(skills_root)
     return [
         category / CATEGORY_DESCRIPTION_FILENAME
-        for category in _category_dirs(skills_root)
+        for category in _core.category_dirs(skills_root)
         if not (category / CATEGORY_DESCRIPTION_FILENAME).exists()
         and category.name not in assets
     ]
@@ -324,7 +148,7 @@ def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
             candidates.append(skills_root / p)
 
         if len(p.parts) == 1:
-            for category in _category_dirs(skills_root):
+            for category in _core.category_dirs(skills_root):
                 candidates.append(category / p)
 
         candidates.append(Path.cwd() / p)
@@ -343,8 +167,8 @@ def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
 def plan_weed(root: Path) -> MutationPlan:
     """The weeding report body, without the ``Weeding report:`` header."""
     skills_root = root
-    entries = _skill_entries(skills_root)
-    summaries = _category_summaries(entries, skills_root)
+    entries = _core.skill_entries(skills_root)
+    summaries = _core.category_summaries(entries, skills_root)
     assets = _assets_container(skills_root)
 
     name_map: dict[str, list[str]] = {}
@@ -438,7 +262,7 @@ def atomic_write_json(path: Path, payload: object) -> None:
         tmp = path.with_name(path.name + ".tmp")
         try:
             with tmp.open("w", encoding="utf-8") as handle:
-                _lock(handle)
+                _core.cross_process_lock(handle)
                 json.dump(payload, handle, ensure_ascii=False)
                 handle.flush()
                 os.fsync(handle.fileno())
@@ -451,10 +275,3 @@ def atomic_write_json(path: Path, payload: object) -> None:
     else:
         raise OSError(f"Cannot write JSON outside a directory: {path.parent}")
 
-def _lock(handle) -> None:
-    """Take an exclusive, blocking lock on the open file handle."""
-    if fcntl is not None:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-    elif msvcrt is not None:
-        handle.flush()
-        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1 << 31 - 1)

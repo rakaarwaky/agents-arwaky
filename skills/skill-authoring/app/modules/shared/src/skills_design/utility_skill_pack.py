@@ -35,23 +35,27 @@ def default_pack_root() -> Path:
 def parse_skill_frontmatter(skill_md: Path) -> tuple[str, str]:
     """Return ``(name, description)`` from a SKILL.md, falling back to the dir."""
     fallback_name = skill_md.parent.name
-    name = extract_skill_name(skill_md)
-    description = ""
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
     except OSError:
-        return (name or fallback_name, description)
-    if text.startswith("---\n"):
-        end = text.find("\n---", 4)
-        if end != -1:
-            for line in text[4:end].splitlines():
-                if line.startswith("description:"):
-                    description = line.split(":", 1)[1].strip().strip("\"'")
+        return (fallback_name, "")
+
+    m = re.search(r"^---\s*\n(.*?)\n---", text, re.DOTALL)
+    name = fallback_name
+    description = ""
+    if m:
+        fm = m.group(1)
+        nm = re.search(r'^name:\s*["\']?(.+?)["\']?\s*$', fm, re.MULTILINE)
+        if nm:
+            name = nm.group(1).strip()
+        desc = re.search(r'^description:\s*(.+)$', fm, re.MULTILINE)
+        if desc:
+            description = desc.group(1).strip().strip("\"'")
     return (name, description)
 
 
 def iter_skill_mds(pack_root: Path) -> list[Path]:
-    """Yield each ``SKILL.md`` in the pack, sorted by path.
+    """Return each ``SKILL.md`` in the pack as a sorted list, by path.
 
     Category discovery walks the skills root directly: symlinked, hidden,
     and ignored category directories are skipped, so the read walker and

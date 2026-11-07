@@ -20,16 +20,6 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
-try:
-    import fcntl
-except ImportError:  # pragma: no cover - Windows has no fcntl
-    fcntl = None
-
-try:
-    import msvcrt
-except ImportError:  # pragma: no cover - POSIX has no msvcrt
-    msvcrt = None
-
 from shared.src.skills_design.utility_skill_pack import iter_skill_mds
 from shared.src.skills_design.utility_skills_mutation import (
     archive_root,
@@ -123,10 +113,6 @@ _CACHE_MARKERS: frozenset[str] = frozenset({"__pycache__"})
 
 
 def _now_iso() -> str:
-    return datetime.now(UTC).isoformat()
-
-
-def _iso_now() -> str:
     return datetime.now(UTC).isoformat()
 
 
@@ -287,7 +273,7 @@ def _read_sidecar(path: Path) -> dict:
 
 
 def _baseline_record() -> dict:
-    now = _iso_now()
+    now = _now_iso()
     return {
         "state": DEFAULT_STATE,
         "pinned": False,
@@ -315,21 +301,20 @@ def _lock_path(usage_path: Path) -> Path:
     return usage_path.parent / ".usage.json.lock"
 
 def _lock_file(handle: Any) -> None:
-    if fcntl is not None:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-    elif msvcrt is not None:
-        handle.flush()
-        msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1 << 31 - 1)
+    _core.cross_process_lock(handle)
 
 def _unlock_file(handle: Any) -> None:
-    if fcntl is not None:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-    elif msvcrt is not None:
-        try:
-            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1 << 31 - 1)
-        except OSError:
-            pass
+    try:
+        import fcntl as _fcntl
 
+        _fcntl.flock(handle.fileno(), _fcntl.LOCK_UN)
+    except ImportError:
+        try:
+            import msvcrt as _msvcrt
+
+            _msvcrt.locking(handle.fileno(), _msvcrt.LK_UNLCK, (1 << 31) - 1)
+        except ImportError:
+            pass
 def _with_lock(path: Path, fn: Any) -> None:
     try:
         handle = _lock_path(path).open("a+", encoding="utf-8")
