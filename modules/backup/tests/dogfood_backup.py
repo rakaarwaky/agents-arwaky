@@ -42,6 +42,8 @@ def test_dogfood_backup_all_registered_tools_to_local_destination(
 
     data = tmp_path / "data"
     for subdir in TOOL_DATA.values():
+        if subdir == "skills":
+            continue
         tool_dir = data / subdir
         tool_dir.mkdir(parents=True)
         (tool_dir / "state.txt").write_text(subdir, encoding="utf-8")
@@ -52,7 +54,10 @@ def test_dogfood_backup_all_registered_tools_to_local_destination(
     result = backup_module.backup_tool_result("all", str(store))
 
     assert result.success is True
-    assert len(list(store.glob("*.tar.gz"))) == len(TOOL_DATA)
+    # The skills tool writes a curated snapshot dir under <store>/.curator_backups/
+    # instead of a flat tarball, so count only the legacy tool archives here.
+    legacy_tool_count = len(TOOL_DATA) - 1
+    assert len(list(store.glob("*.tar.gz"))) == legacy_tool_count
     for archive in store.glob("*.tar.gz"):
         with tarfile.open(archive, "r:gz") as tar:
             assert len(tar.getmembers()) == 2

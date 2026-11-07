@@ -13,9 +13,17 @@ import threading
 from datetime import UTC, datetime
 from pathlib import Path
 
+from modules.backup.src.backup_core import (
+    BACKUP_DIRNAME,
+    TARBALL_NAME,
+    _new_snapshot_name,
+    utc_iso_stamp,
+    write_snapshot,
+)
 from modules.shared.src.backup.contract_backup_protocol import IBackupControlProtocol
 from modules.shared.src.backup.taxonomy_backup_constant import (
     BACKUP_STORE,
+    REPO_ROOT,
     TOOL_DATA,
 )
 from modules.shared.src.backup.taxonomy_backup_vo import (
@@ -173,6 +181,9 @@ def backup_tool_result(tool: str, dest: str = "") -> BackupResult:
             message=message,
         )
 
+    if tool == "skills":
+        return _backup_skills(dest)
+
     subdir = TOOL_DATA.get(tool, tool)
     src = data_home() / subdir
     if not src.exists():
@@ -203,6 +214,58 @@ def backup_tool_result(tool: str, dest: str = "") -> BackupResult:
         return BackupResult(False, tool, str(archive), message)
     log_ok(f"{tool} backed up locally.")
     return BackupResult(True, tool, str(archive), "local backup completed")
+
+
+def _backup_skills(dest: str = "") -> BackupResult:
+    """Back up the skill pack using the curator snapshot standard.
+
+    Snapshots are written to ``.curator_backups`` under the resolved skills
+    root (``skills/`` in the repository) by default. When a *dest* is
+    supplied the snapshot dir lands inside that destination while still
+    following the shared backup-core integrity contract (SHA-256 digest
+    per file, safe extraction, retention pruning).
+    """
+    skills_root = REPO_ROOT / "skills"
+    if not skills_root.is_dir():
+        message = f"No skills pack found at {skills_root}; nothing to back up."
+        print(f"  ⚠ {message}")
+        return BackupResult(True, "skills", "", message)
+
+    if dest:
+        dest_path = Path(dest).expanduser()
+        try:
+            dest_path.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            message = f"Could not create backup destination {dest_path}: {exc}"
+            print(f"  ✗ {message}", file=sys.stderr)
+            return BackupResult(False, "skills", "", message)
+        snapshot_root = dest_path / BACKUP_DIRNAME
+    else:
+        snapshot_root = skills_root / BACKUP_DIRNAME
+
+    base = utc_iso_stamp()
+    existing = {p.name for p in snapshot_root.iterdir() if p.is_dir()} if snapshot_root.is_dir() else set()
+    snap_dir = snapshot_root / _new_snapshot_name(base, existing)
+
+    excluded = frozenset(
+        {
+            BACKUP_DIRNAME,
+            ".git",
+            "venv",
+            "node_modules",
+            "__pycache__",
+        }
+    )
+    log_info(f"Backing up skills pack -> {snap_dir}")
+    try:
+        write_snapshot(skills_root, snap_dir, excluded)
+    except (OSError, tarfile.TarError) as exc:
+        message = f"Could not create skills snapshot {snap_dir}: {exc}"
+        print(f"  ✗ {message}", file=sys.stderr)
+        return BackupResult(False, "skills", str(snap_dir / TARBALL_NAME), message)
+
+    log_ok("Skills pack backed up with curator integrity manifest.")
+    return BackupResult(True, "skills", str(snap_dir / TARBALL_NAME), "curator-style snapshot completed")
 
 
 def backup_tool(tool: str, dest: str = "") -> int:
