@@ -22,8 +22,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.common.utility_skills_mutation import plan_weed
-from shared.src.common.utility_skills_tree import (
+from shared.src.skills_design.utility_skills_mutation import plan_weed
+from shared.src.skills_design.utility_skills_tree import (
     assets_container,
     category_dirs,
     category_summaries,

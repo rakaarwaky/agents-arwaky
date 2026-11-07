@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import pytest
-from shared.src.common.utility_skills_mutation import plan_repair, plan_weed
+from shared.src.skills_design.utility_skills_mutation import plan_repair, plan_weed
 from shared.src.skills_design.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
@@ -228,7 +228,7 @@ def test_weed_reports_duplicates(tmp_path: Path) -> None:
 
 def test_parse_frontmatter_falls_back_without_pyyaml(tmp_path: Path, monkeypatch) -> None:
     """S8: the optional-PyYAML fallback keeps parsing the pack."""
-    import shared.src.common.utility_skills_tree as tree
+    import shared.src.skills_design.utility_skills_tree as tree
 
     skill_md = tmp_path / "SKILL.md"
     skill_md.write_text(
@@ -244,7 +244,7 @@ def test_parse_frontmatter_falls_back_without_pyyaml(tmp_path: Path, monkeypatch
 
 def test_os_walk_does_not_follow_symlinked_directories(tmp_path: Path) -> None:
     """S6: a symlink loop cannot hang or duplicate a recursive scan."""
-    from shared.src.common.utility_skills_tree import iter_files
+    from shared.src.skills_design.utility_skills_tree import iter_files
 
     root = tmp_path / "root"
     (root / "a").mkdir(parents=True)

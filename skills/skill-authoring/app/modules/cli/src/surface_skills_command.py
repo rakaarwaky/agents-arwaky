@@ -39,7 +39,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from shared.src.common.utility_logging_setup import (
+from shared.src.skills_design.utility_logging_setup import (
     BOLD,
     CYAN,
     RESET,

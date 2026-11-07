@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from pathlib import Path
 
-from shared.src.common.utility_skills_tree import skill_entries
+from shared.src.skills_design.utility_skills_tree import skill_entries
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,

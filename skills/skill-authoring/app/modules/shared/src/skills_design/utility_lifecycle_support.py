@@ -30,8 +30,8 @@ try:
 except ImportError:  # pragma: no cover - POSIX has no msvcrt
     msvcrt = None
 
-from shared.src.common.utility_skill_pack import iter_skill_mds
-from shared.src.common.utility_skills_mutation import (
+from shared.src.skills_design.utility_skill_pack import iter_skill_mds
+from shared.src.skills_design.utility_skills_mutation import (
     archive_root,
     assert_within_root,
     atomic_write_json,

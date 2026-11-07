@@ -220,15 +220,6 @@ def rule(rule_id: str) -> Rule:
     return _RULES_BY_ID[rule_id]
 
 
-def is_valid_skill_name(name: str) -> bool:
-    """The name-format predicate the validator applies to directory names.
-
-    Verbatim compound condition from ``librarian.py``: ``NAME_RE`` match AND
-    no double hyphen AND 2-64 chars.
-    """
-    return bool(NAME_RE.match(name)) and "--" not in name and NAME_MIN <= len(name) <= NAME_MAX
-
-
 def issue_message(issue_type: IssueType, **fields: Any) -> str:
     """Render the verbatim message for an issue type with the given fields."""
     return ISSUE_MESSAGES[issue_type].format(**fields)
@@ -514,7 +505,7 @@ def load_lifecycle_config(pack_root: SkillsRoot | None = None) -> LifecycleConfi
     """Read lifecycle config, falling back to defaults."""
     # Imported lazily: ``utility_skill_pack`` imports ``extract_skill_name``
     # from this module, so a module-level import here would cycle.
-    from shared.src.common.utility_skill_pack import default_pack_root
+    from shared.src.skills_design.utility_skill_pack import default_pack_root
 
     defaults = LifecycleConfig()
     root = Path(pack_root) if pack_root is not None else default_pack_root()

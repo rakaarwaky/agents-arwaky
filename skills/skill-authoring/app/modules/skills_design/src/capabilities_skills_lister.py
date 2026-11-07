@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.common.utility_skill_pack import (
+from shared.src.skills_design.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
     parse_skill_frontmatter,

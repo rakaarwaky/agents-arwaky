@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from shared.src.common.utility_skills_tree import category_summaries, skill_entries
+from shared.src.skills_design.utility_skills_tree import category_summaries, skill_entries
 
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.tests.fixture_skills import as_root, crafted_tree

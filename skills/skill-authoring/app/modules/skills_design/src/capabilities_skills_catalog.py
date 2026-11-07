@@ -19,8 +19,8 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.common.utility_skills_markdown import clean_one_line
-from shared.src.common.utility_skills_tree import (
+from shared.src.skills_design.utility_skills_markdown import clean_one_line
+from shared.src.skills_design.utility_skills_tree import (
     category_summaries,
     skill_entries,
 )

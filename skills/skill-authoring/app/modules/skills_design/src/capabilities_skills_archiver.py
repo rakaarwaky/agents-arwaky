@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.common.utility_skills_mutation import (
+from shared.src.skills_design.utility_skills_mutation import (
     archive_root,
     assert_within_root,
     resolve_skill_dir,

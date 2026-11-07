@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from shared.src.common.utility_skills_tree import (
+from shared.src.skills_design.utility_skills_tree import (
     assets_container,
     category_summaries,
     skill_entries,
@@ -275,8 +275,8 @@ def test_skill_content_is_a_newtype_of_str() -> None:
 def test_two_walkers_agree_on_the_live_pack() -> None:
     """R5 cross-check: the read walker and the authoring walker see the
     same skill set, so drift fails a test instead of shipping silently."""
-    from shared.src.common.utility_skill_pack import iter_skill_mds
-    from shared.src.common.utility_skills_tree import skill_entries
+    from shared.src.skills_design.utility_skill_pack import iter_skill_mds
+    from shared.src.skills_design.utility_skills_tree import skill_entries
 
     pack = default_pack_root()
     read_walk = {

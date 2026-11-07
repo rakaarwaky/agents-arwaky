@@ -1,8 +1,6 @@
 """UI helpers: colors/banner/log (Python).
 
-Skill-design independent copy (AES702): skill-design owns its own
-``shared.src.common`` tree, so it carries its own logging helpers rather
-than importing skill-traces'. No cross-skill import.
+Skill-design owns its own utility tree, so it carries its own logging helpers rather than importing skill-traces'. No cross-skill import.
 Moved as-is from tools/lib/ui.py (logging domain)."""
 from __future__ import annotations
 

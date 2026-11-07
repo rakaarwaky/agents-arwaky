@@ -6,7 +6,7 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
-from shared.src.common.utility_lifecycle_support import DEFAULT_STATE, FIELDS
+from shared.src.skills_design.utility_lifecycle_support import DEFAULT_STATE, FIELDS
 
 from skills_design.src.capabilities_skills_telemetry import SkillsTelemetry
 from skills_design.tests.fixture_skills import as_root
