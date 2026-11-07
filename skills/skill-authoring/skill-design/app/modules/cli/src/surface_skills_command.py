@@ -85,6 +85,9 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_read(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
+    if sub == "curator":
+        from cli.src.surface_skills_curator_command import cmd_skills_curator
+        return cmd_skills_curator(rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
     _print_usage()
     return _EXIT_USAGE
@@ -107,6 +110,9 @@ def _print_usage() -> None:
     )
     info(
         f"{BOLD()}sdc archive <name> [--apply]{RESET()}     Archive a skill into _archive/"
+    )
+    info(
+        f"{BOLD()}sdc curator <verb> [args]{RESET()}        Hermes curator commands (status, usage, run, ...)"
     )
     info(
         f"{BOLD()}sdc create <kind> <name> [--category C] [--apply]{RESET()}  "
