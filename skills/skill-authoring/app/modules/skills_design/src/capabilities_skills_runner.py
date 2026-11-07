@@ -7,6 +7,7 @@ lifecycle config.
 from __future__ import annotations
 
 from dataclasses import asdict, replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from shared.src.common.utility_skill_pack import default_pack_root, iter_skill_mds
@@ -16,16 +17,20 @@ from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
 )
 from shared.src.skills_design.taxonomy_skills_lifecycle_vo import LIFECYCLE_STATES
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-
-from skills_design.src.common_lifecycle_support import (
+from shared.src.skills_design.utility_lifecycle_support import (
     ACTIVE,
     ARCHIVED,
+    DEFAULT_STATE,
     STALE,
+    _baseline_record,
+    _cron_referenced,
+    _normalize,
     _now_iso,
     _parse_iso,
     _read_sidecar,
     _usage_path,
     _with_lock,
+    find_skill_dir,
 )
 
 __all__ = ["SkillsRunner"]
@@ -39,9 +44,7 @@ class SkillsRunner:
         config = load_lifecycle_config(pack_root)
         if getattr(config, "pause", False):
             return {"applied": [], "skipped": [], "state_counts": {}, "paused": True}
-        now = __import__("datetime").datetime.now(__import__("datetime").UTC)
-        from datetime import timedelta
-
+        now = datetime.now(UTC)
         stale_cutoff = now - timedelta(days=config.stale_after_days)
         archive_cutoff = now - timedelta(days=config.archive_after_days)
         applied: list[dict] = []
@@ -50,10 +53,8 @@ class SkillsRunner:
 
         for skill_md in iter_skill_mds(pack_root):
             name = skill_md.parent.name
+            self._seed_record_if_missing(name, pack_root)
             record = _read_sidecar(_usage_path(skill_md.parent))
-            if not record:
-                skipped.append({"skill": name, "reason": "no-record"})
-                continue
             state = record.get("state", ACTIVE)
             if state not in LIFECYCLE_STATES:
                 state = ACTIVE
@@ -64,6 +65,9 @@ class SkillsRunner:
                 continue
             if record.get("locked", False):
                 skipped.append({"skill": name, "reason": "locked"})
+                continue
+            if _cron_referenced(pack_root, name):
+                skipped.append({"skill": name, "reason": "cron"})
                 continue
 
             anchor = _parse_iso(record.get("last_activity_at"))
@@ -79,7 +83,7 @@ class SkillsRunner:
 
             window_start = _parse_iso(record.get("activity_window_start"))
             if state == STALE and window_start is not None and window_start > stale_cutoff:
-                self._set_state(name, pack_root, ACTIVE)
+                self._reanchor_clock(name, pack_root)
                 counts[STALE] -= 1
                 counts[ACTIVE] += 1
                 applied.append({"skill": name, "from": STALE, "to": ACTIVE})
@@ -110,6 +114,43 @@ class SkillsRunner:
         atomic_write_json(config_path, new_dict)
         return {"paused": False}
 
+    def _seed_record_if_missing(self, skill: str, pack_root: Path) -> None:
+        skill_dir = find_skill_dir(skill, pack_root)
+        if skill_dir is None:
+            return
+        path = _usage_path(skill_dir)
+
+        def work() -> None:
+            if _read_sidecar(path):
+                return
+            try:
+                atomic_write_json(path, _baseline_record())
+            except OSError:
+                pass
+
+        _with_lock(path, work)
+
+    def _reanchor_clock(self, skill: str, pack_root: Path) -> None:
+        skill_dir = find_skill_dir(skill, pack_root)
+        if skill_dir is None:
+            return
+        path = _usage_path(skill_dir)
+
+        def work() -> None:
+            record = _read_sidecar(path)
+            record = _normalize(record) if record else _baseline_record()
+            now = _now_iso()
+            record["last_activity_at"] = now
+            record["activity_window_start"] = now
+            if not record.get("pinned", False):
+                record["state"] = DEFAULT_STATE
+            try:
+                atomic_write_json(path, record)
+            except OSError:
+                pass
+
+        _with_lock(path, work)
+
     def _set_state(
         self,
         skill: str,
@@ -118,8 +159,6 @@ class SkillsRunner:
         *,
         archived_at: str | None = None,
     ) -> None:
-        from skills_design.src.skills_lifecycle_core import find_skill_dir
-
         skill_dir = find_skill_dir(skill, pack_root)
         if skill_dir is None:
             return

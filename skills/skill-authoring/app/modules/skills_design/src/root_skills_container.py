@@ -45,18 +45,28 @@ from shared.src.skills_design.taxonomy_skills_vo import (
 )
 
 from skills_design.src.agent_skills_orchestrator import SkillsAgent
+from skills_design.src.capabilities_skills_adopter import SkillsAdopter
 from skills_design.src.capabilities_skills_archiver import SkillsArchiver
+from skills_design.src.capabilities_skills_backup import SkillsBackup
 from skills_design.src.capabilities_skills_catalog import SkillsCatalog
 from skills_design.src.capabilities_skills_creator import SkillsCreator
 from skills_design.src.capabilities_skills_discover import (
     SkillsBm25fRanker,
     SkillsDiscover,
 )
-from skills_design.src.capabilities_skills_lifecycle import SkillsLifecycle
+from skills_design.src.capabilities_skills_ledger import SkillsLedger
 from skills_design.src.capabilities_skills_linter import SkillsLinter
 from skills_design.src.capabilities_skills_lister import SkillsLister
+from skills_design.src.capabilities_skills_locker import SkillsLocker
 from skills_design.src.capabilities_skills_mover import SkillsMover
+from skills_design.src.capabilities_skills_piner import SkillsPiner
+from skills_design.src.capabilities_skills_prune import SkillsPrune
+from skills_design.src.capabilities_skills_purge import SkillsPurge
 from skills_design.src.capabilities_skills_reader import SkillsPackReader
+from skills_design.src.capabilities_skills_restore import SkillsRestore
+from skills_design.src.capabilities_skills_rollback import SkillsRollback
+from skills_design.src.capabilities_skills_runner import SkillsRunner
+from skills_design.src.capabilities_skills_telemetry import SkillsTelemetry
 
 __all__ = [
     "SkillsFacade",
@@ -75,7 +85,17 @@ def default_aggregate(
     mover: ISkillsMoverProtocol | None = None,
     archiver: ISkillsArchiverProtocol | None = None,
     creator: ISkillsCreatorProtocol | None = None,
-    lifecycle: SkillsLifecycle | None = None,
+    telemetry: SkillsTelemetry | None = None,
+    runner: SkillsRunner | None = None,
+    piner: SkillsPiner | None = None,
+    locker: SkillsLocker | None = None,
+    adopter: SkillsAdopter | None = None,
+    restore: SkillsRestore | None = None,
+    prune: SkillsPrune | None = None,
+    purge: SkillsPurge | None = None,
+    backup: SkillsBackup | None = None,
+    rollback: SkillsRollback | None = None,
+    ledger: SkillsLedger | None = None,
     default_root: Path | None = None,
 ) -> ISkillsAggregate:
     """Return an agent bound to the repo's ``skills/`` pack (or overrides).
@@ -87,7 +107,9 @@ def default_aggregate(
     wired_catalog = catalog or SkillsCatalog()
     wired_linter = linter or SkillsLinter()
     wired_ranker = ranker or SkillsBm25fRanker()
-    wired_lifecycle = lifecycle or SkillsLifecycle()
+    wired_telemetry = telemetry or SkillsTelemetry()
+    wired_backup = backup or SkillsBackup()
+    wired_restore = restore or SkillsRestore(reanchor=wired_telemetry.reanchor_clock)
     return SkillsAgent(
         lister or SkillsLister(root),
         reader or SkillsPackReader(root),
@@ -95,9 +117,19 @@ def default_aggregate(
         catalog=wired_catalog,
         discover=discover or SkillsDiscover(wired_catalog, ranker=wired_ranker),
         mover=mover or SkillsMover(),
-        archiver=archiver or SkillsArchiver(lifecycle=wired_lifecycle),
+        archiver=archiver or SkillsArchiver(restore=wired_restore),
         creator=creator or SkillsCreator(),
-        lifecycle=wired_lifecycle,
+        telemetry=wired_telemetry,
+        runner=runner or SkillsRunner(),
+        piner=piner or SkillsPiner(),
+        locker=locker or SkillsLocker(),
+        adopter=adopter or SkillsAdopter(),
+        restore=wired_restore,
+        prune=prune or SkillsPrune(),
+        purge=purge or SkillsPurge(),
+        backup=wired_backup,
+        rollback=rollback or SkillsRollback(wired_backup),
+        ledger=ledger or SkillsLedger(),
         default_root=root,
     )
 

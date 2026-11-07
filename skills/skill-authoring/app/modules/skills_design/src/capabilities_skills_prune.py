@@ -14,8 +14,14 @@ from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
-from skills_design.src.common_lifecycle_support import ACTIVE, _cron_referenced, _parse_iso
-from skills_design.src.skills_lifecycle_core import archive_skill, find_skill_dir, read_record
+from shared.src.skills_design.utility_lifecycle_support import (
+    ACTIVE,
+    _cron_referenced,
+    _parse_iso,
+    archive_skill,
+    find_skill_dir,
+    read_record,
+)
 
 __all__ = ["SkillsPrune"]
 

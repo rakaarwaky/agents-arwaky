@@ -21,7 +21,7 @@ from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
 )
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
-from skills_design.src.common_lifecycle_support import (
+from shared.src.skills_design.utility_lifecycle_support import (
     BLOBS_DIRNAME,
     DEFAULT_LEDGER_ACTOR,
     DEFAULT_LEDGER_COMPACT_DAYS,

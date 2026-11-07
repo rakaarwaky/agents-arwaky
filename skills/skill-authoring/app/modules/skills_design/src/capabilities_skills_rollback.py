@@ -1,7 +1,8 @@
 """Skill rollback capability (AES capabilities layer).
 
 Restores the pack tree from a stored snapshot, staging the live tree so
-the operation is reversible.
+the operation is reversible. The backup capability is ctor-injected; this
+module never imports a sibling capability.
 """
 
 from __future__ import annotations
@@ -11,11 +12,13 @@ import logging
 import shutil
 import tarfile
 from pathlib import Path
+from typing import Any
 
-from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
-
-from skills_design.src.capabilities_skills_backup import SkillsBackup
-from skills_design.src.common_lifecycle_support import (
+from shared.src.skills_design.taxonomy_skills_error import (
+    MutationConflictError,
+    SkillsUsageError,
+)
+from shared.src.skills_design.utility_lifecycle_support import (
     BACKUP_DIRNAME,
     MANIFEST_NAME,
     TARBALL_NAME,
@@ -31,11 +34,11 @@ __all__ = ["SkillsRollback"]
 class SkillsRollback:
     """Rollback capability: restore the pack tree from a snapshot."""
 
-    def __init__(self, backup: SkillsBackup | None = None) -> None:
-        self._backup = backup if backup is not None else SkillsBackup()
+    def __init__(self, backup: Any) -> None:
+        self._backup = backup
 
     def rollback(self, root: Path, id_: str | None = None) -> dict:
-        skills_root = self._backup._require_root(root)
+        skills_root = self._backup.resolve_root(root)
         target = self._resolve_snapshot(skills_root, id_)
         target_name = target.name
 
@@ -80,20 +83,29 @@ class SkillsRollback:
             except Exception:
                 logger.exception("unstage failed; keeping the staged entries")
             unrestored = skills_root / f".rollback-unrestored-{target_name}"
+            if unrestored.exists():
+                shutil.rmtree(unrestored)
             shutil.move(str(staging), str(unrestored))
-            raise
+            raise MutationConflictError(
+                f"rollback to snapshot {target_name!r} failed; "
+                f"staged tree preserved under .rollback-unrestored-{target_name}"
+            ) from None
 
-        try:
-            shutil.rmtree(staging)
-        except OSError:
-            pass
+        for entry in sorted(staging.iterdir()):
+            if (skills_root / entry.name).exists():
+                continue
+            shutil.move(str(entry), str(skills_root / entry.name))
 
-        return {"rolled_back": True, "from_snapshot": target_name}
+        return {
+            "snapshot": target_name,
+            "staging": str(staging),
+            "restored": True,
+        }
 
     # ─── internals ─────────────────────────────────────────────
 
     def _resolve_snapshot(self, skills_root: Path, id_: str | None) -> Path:
-        backup_root = self._backup._backup_root(skills_root)
+        backup_root = self._backup.backup_root(skills_root)
         if id_ is None:
             snaps = [p for p in backup_root.iterdir() if p.is_dir()]
             if not snaps:

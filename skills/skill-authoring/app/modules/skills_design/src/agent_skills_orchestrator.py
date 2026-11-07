@@ -19,11 +19,9 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, replace
 from pathlib import Path
 from typing import cast
 
-from shared.src.common.utility_skills_mutation import atomic_write_json
 from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.skills_design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
@@ -36,9 +34,6 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsReaderProtocol,
 )
 from shared.src.skills_design.taxonomy_skills_constant import ARCHIVE_DIRNAME
-from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
-    load_lifecycle_config,
-)
 from shared.src.skills_design.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
@@ -59,9 +54,17 @@ from shared.src.skills_design.taxonomy_skills_vo import (
     SkillRecord,
 )
 
-from skills_design.src.capabilities_skills_lifecycle import (
-    SkillsLifecycle,
-)
+from skills_design.src.capabilities_skills_adopter import SkillsAdopter
+from skills_design.src.capabilities_skills_backup import SkillsBackup
+from skills_design.src.capabilities_skills_ledger import SkillsLedger
+from skills_design.src.capabilities_skills_locker import SkillsLocker
+from skills_design.src.capabilities_skills_piner import SkillsPiner
+from skills_design.src.capabilities_skills_prune import SkillsPrune
+from skills_design.src.capabilities_skills_purge import SkillsPurge
+from skills_design.src.capabilities_skills_restore import SkillsRestore
+from skills_design.src.capabilities_skills_rollback import SkillsRollback
+from skills_design.src.capabilities_skills_runner import SkillsRunner
+from skills_design.src.capabilities_skills_telemetry import SkillsTelemetry
 
 
 # ─── Block 1: Class Definition & Constructor ──────────────
@@ -79,7 +82,17 @@ class SkillsAgent(ISkillsAggregate):
         mover: ISkillsMoverProtocol | None = None,
         archiver: ISkillsArchiverProtocol | None = None,
         creator: ISkillsCreatorProtocol | None = None,
-        lifecycle: SkillsLifecycle | None = None,
+        telemetry: SkillsTelemetry | None = None,
+        runner: SkillsRunner | None = None,
+        piner: SkillsPiner | None = None,
+        locker: SkillsLocker | None = None,
+        adopter: SkillsAdopter | None = None,
+        restore: SkillsRestore | None = None,
+        prune: SkillsPrune | None = None,
+        purge: SkillsPurge | None = None,
+        backup: SkillsBackup | None = None,
+        rollback: SkillsRollback | None = None,
+        ledger: SkillsLedger | None = None,
         default_root: Path | None = None,
     ) -> None:
         self._lister = lister
@@ -90,10 +103,26 @@ class SkillsAgent(ISkillsAggregate):
         self._mover = mover
         self._archiver = archiver
         self._creator = creator
-        self._lifecycle = lifecycle if lifecycle is not None else SkillsLifecycle()
-        self._telemetry = self._lifecycle
-        self._backup = self._lifecycle
-        self._ledger = self._lifecycle
+
+        wired_telemetry = telemetry if telemetry is not None else SkillsTelemetry()
+        wired_backup = backup if backup is not None else SkillsBackup()
+        self._telemetry = wired_telemetry
+        self._runner = runner if runner is not None else SkillsRunner()
+        self._piner = piner if piner is not None else SkillsPiner()
+        self._locker = locker if locker is not None else SkillsLocker()
+        self._adopter = adopter if adopter is not None else SkillsAdopter()
+        self._restore = (
+            restore
+            if restore is not None
+            else SkillsRestore(reanchor=wired_telemetry.reanchor_clock)
+        )
+        self._prune = prune if prune is not None else SkillsPrune()
+        self._purge = purge if purge is not None else SkillsPurge()
+        self._backup = wired_backup
+        self._rollback = (
+            rollback if rollback is not None else SkillsRollback(wired_backup)
+        )
+        self._ledger = ledger if ledger is not None else SkillsLedger()
         self._default_root = default_root
 
     # ─── Block 2: Aggregate Method Implementation ────────────
@@ -386,60 +415,66 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_run(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """RUN: apply automatic transitions per pass."""
-        lifecycle = self._require(self._lifecycle, "lifecycle")
+        runner = self._require(self._runner, "runner")
         root = self._root(request)
         try:
-            report = lifecycle.apply_automatic_transitions(root)
+            report = runner.apply_automatic_transitions(root)
         except OSError as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=report.get("applied", ()), message=str(report))
 
     def _execute_pause(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """PAUSE: set pause=True in config."""
+        runner = self._require(self._runner, "runner")
         root = self._root(request)
-        return self._flip_lifecycle_config(root, True, op)
+        try:
+            runner.pause(root)
+        except OSError as failure:
+            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
+        return SkillsResult(ok=True, op=op, message="lifecycle paused")
 
     def _execute_resume(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """RESUME: set pause=False in config."""
+        runner = self._require(self._runner, "runner")
         root = self._root(request)
-        return self._flip_lifecycle_config(root, False, op)
-
-    def _flip_lifecycle_config(self, root: Path, pause: bool, op: SkillsOp) -> SkillsResult:
-        """Flip the pause flag in ``<pack_root>/.lifecycle_config.json`` atomically."""
-        config_path = root / ".lifecycle_config.json"
         try:
-            config = load_lifecycle_config(SkillsRoot(root))
+            runner.resume(root)
         except OSError as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        new_dict = asdict(replace(config, pause=pause))
-        try:
-            atomic_write_json(config_path, new_dict)
-        except OSError as failure:
-            return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
-        action = "paused" if pause else "resumed"
-        return SkillsResult(ok=True, op=op, message=f"lifecycle {action}")
+        return SkillsResult(ok=True, op=op, message="lifecycle resumed")
 
     def _execute_pin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """PIN: set pinned=True on *skill* sidecar."""
-        return self._flip_sidecar_bool(request, "pinned", True, op)
+        piner = self._require(self._piner, "piner")
+        return self._mutate_skill(request, op, piner, "pin", "pinned", True)
 
     def _execute_unpin(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """UNPIN: set pinned=False on *skill* sidecar."""
-        return self._flip_sidecar_bool(request, "pinned", False, op)
+        piner = self._require(self._piner, "piner")
+        return self._mutate_skill(request, op, piner, "unpin", "pinned", False)
 
     def _execute_lock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """LOCK: set locked=True on *skill* sidecar."""
-        return self._flip_sidecar_bool(request, "locked", True, op)
+        locker = self._require(self._locker, "locker")
+        return self._mutate_skill(request, op, locker, "lock", "locked", True)
 
     def _execute_unlock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """UNLOCK: set locked=False on *skill* sidecar."""
-        return self._flip_sidecar_bool(request, "locked", False, op)
+        locker = self._require(self._locker, "locker")
+        return self._mutate_skill(request, op, locker, "unlock", "locked", False)
 
-    def _flip_sidecar_bool(
-        self, request: SkillsRequest, field: str, value: bool, op: SkillsOp
+    def _mutate_skill(
+        self,
+        request: SkillsRequest,
+        op: SkillsOp,
+        capability: object,
+        method: str,
+        field: str,
+        value: bool,
+        *,
+        message: str | None = None,
     ) -> SkillsResult:
-        """Flip a bool field on a skill's ``.usage.json`` sidecar via atomic write."""
-        self._require(self._telemetry, "telemetry")
+        """Resolve one skill, call *method* on *capability*, map errors."""
         if not request.query or str(request.query).strip() in ("", "None"):
             return SkillsResult(
                 ok=False,
@@ -449,40 +484,29 @@ class SkillsAgent(ISkillsAggregate):
             )
         skill_name = str(request.query).strip()
         root = Path(self._root(request))
-        skill_dir = self._find_skill_dir(skill_name, root)
-        if skill_dir is None:
+        if self._find_skill_dir(skill_name, root) is None:
             return SkillsResult(
                 ok=False,
                 op=op,
                 exit_code=SkillsExitCode.ISSUES_FOUND,
                 message=f"Skill not found: {skill_name}",
             )
-        sidecar_path = skill_dir / ".usage.json"
-        if not sidecar_path.is_file() and self._telemetry:
-            self._telemetry.seed_record_if_missing(skill_name, SkillsRoot(root))
-
-        if sidecar_path.is_file():
-            try:
-                record = json.loads(sidecar_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError, json.JSONDecodeError):
-                record = {}
-        else:
-            record = {}
-        record[field] = value
         try:
-            atomic_write_json(sidecar_path, record)
-        except OSError as failure:
+            getattr(capability, method)(skill_name, root)
+        except (OSError, ValueError, SkillsError) as failure:
             return SkillsResult(
                 ok=False,
                 op=op,
                 exit_code=SkillsExitCode.ISSUES_FOUND,
                 message=str(failure),
             )
+        if message is not None:
+            return SkillsResult(ok=True, op=op, message=message.format(skill=skill_name))
         return SkillsResult(ok=True, op=op, message=f"{field}={value} for {skill_name}")
 
     def _execute_lifecycle_archive(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """Archive: lifecycle.archive(skill, root)."""
-        lifecycle = self._require(self._lifecycle, "lifecycle")
+        """Archive: restore.archive(skill, root)."""
+        restore = self._require(self._restore, "restore")
         root = self._root(request)
         if not request.query or str(request.query).strip() in ("", "None"):
             return SkillsResult(
@@ -493,14 +517,14 @@ class SkillsAgent(ISkillsAggregate):
             )
         skill_name = str(request.query).strip()
         try:
-            result = lifecycle.archive(skill_name, root)
+            result = restore.archive(skill_name, root)
         except (OSError, SkillsError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
     def _execute_restore(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """RESTORE: lifecycle.restore(skill, root)."""
-        lifecycle = self._require(self._lifecycle, "lifecycle")
+        """RESTORE: restore.restore(skill, root)."""
+        restore = self._require(self._restore, "restore")
         root = self._root(request)
         if not request.query or str(request.query).strip() in ("", "None"):
             return SkillsResult(
@@ -511,78 +535,42 @@ class SkillsAgent(ISkillsAggregate):
             )
         skill_name = str(request.query).strip()
         try:
-            result = lifecycle.restore(skill_name, root)
+            result = restore.restore(skill_name, root)
         except (OSError, SkillsError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
     def _execute_prune(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """PRUNE: lifecycle.prune(root, days, dry_run) — bulk-archive idle skills."""
-        lifecycle = self._require(self._lifecycle, "lifecycle")
+        """PRUNE: prune.prune(root, days, dry_run) — bulk-archive idle skills."""
+        prune = self._require(self._prune, "prune")
         root = self._root(request)
         days = int(request.flags["days"]) if "days" in request.flags else None
         dry_run = bool(request.flags.get("dry_run", False) or request.flags.get("dry-run", False))
         try:
-            report = lifecycle.prune(root=root, days=days, dry_run=dry_run)
+            report = prune.prune(root=root, days=days, dry_run=dry_run)
         except (OSError, ValueError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, records=report.get("pruned", ()), message=str(report))
 
     def _execute_purge(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """PURGE: lifecycle.purge(skill, root, dry_run) — delete archived skills."""
-        lifecycle = self._require(self._lifecycle, "lifecycle")
+        """PURGE: purge.purge(skill, root, dry_run) — delete archived skills."""
+        purge = self._require(self._purge, "purge")
         root = self._root(request)
         query = str(request.query).strip() if request.query else ""
         skill_name = query if query and query != "None" else None
         dry_run = bool(request.flags.get("dry_run", False) or request.flags.get("dry-run", False))
         try:
-            result = lifecycle.purge(skill=skill_name, root=root, dry_run=dry_run)
+            result = purge.purge(skill=skill_name, root=root, dry_run=dry_run)
         except (OSError, ValueError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
     def _execute_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """ADOPT: mark skill as agent-managed (created_by="agent")."""
-        self._require(self._telemetry, "telemetry")
-        if not request.query or str(request.query).strip() in ("", "None"):
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
-                message="Skill name required",
-            )
-        skill_name = str(request.query).strip()
-        root = Path(self._root(request))
-        skill_dir = self._find_skill_dir(skill_name, root)
-        if skill_dir is None:
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
-                message=f"Skill not found: {skill_name}",
-            )
-        sidecar_path = skill_dir / ".usage.json"
-        if not sidecar_path.is_file() and self._telemetry:
-            self._telemetry.seed_record_if_missing(skill_name, SkillsRoot(root))
-
-        if sidecar_path.is_file():
-            try:
-                record = json.loads(sidecar_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError, json.JSONDecodeError):
-                record = {}
-        else:
-            record = {}
-        record["created_by"] = "agent"
-        try:
-            atomic_write_json(sidecar_path, record)
-        except OSError as failure:
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
-                message=str(failure),
-            )
-        return SkillsResult(ok=True, op=op, message=f"adopted {skill_name}")
+        adopter = self._require(self._adopter, "adopter")
+        return self._mutate_skill(
+            request, op, adopter, "adopt", "created_by", True, message="adopted {skill}"
+        )
 
     def _execute_backup(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """BACKUP: backup.create_snapshot(root) -> snapshot path."""
@@ -595,13 +583,13 @@ class SkillsAgent(ISkillsAggregate):
         return SkillsResult(ok=True, op=op, content=str(path), message=f"snapshot at {path}")
 
     def _execute_rollback(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
-        """ROLLBACK: backup.rollback(root, id_) with id from query/flags."""
-        backup = self._require(self._backup, "backup")
+        """ROLLBACK: rollback.rollback(root, id_) with id from query/flags."""
+        rollback = self._require(self._rollback, "rollback")
         root = self._root(request)
         snapshot_id = request.query or request.flags.get("id", "")
         try:
-            result = backup.rollback(root, snapshot_id or None)
-        except OSError as failure:
+            result = rollback.rollback(root, snapshot_id or None)
+        except (OSError, SkillsError) as failure:
             return SkillsResult(ok=False, op=op, exit_code=SkillsExitCode.ISSUES_FOUND, message=str(failure))
         return SkillsResult(ok=True, op=op, message=str(result))
 
@@ -648,7 +636,7 @@ class SkillsAgent(ISkillsAggregate):
 
     def _execute_list_archived(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """LIST_ARCHIVED: skills currently in _archive/."""
-        self._require(self._lifecycle, "lifecycle")
+        self._require(self._restore, "restore")
         root = Path(self._root(request))
         arch_dir = root / ARCHIVE_DIRNAME
         if not arch_dir.is_dir():

@@ -12,26 +12,20 @@ import shutil
 import tarfile
 from pathlib import Path
 
-from shared.src.common.utility_skills_mutation import atomic_write_json
-from shared.src.skills_design.taxonomy_skills_error import (
-    SkillsRootError,
-    SkillsUsageError,
-)
+from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
 from shared.src.skills_design.taxonomy_skills_lifecycle_config_vo import (
     load_lifecycle_config,
 )
 
-from skills_design.src.common_lifecycle_support import (
+from shared.src.skills_design.utility_lifecycle_support import (
     BACKUP_DIRNAME,
     DEFAULT_KEEP,
     MANIFEST_NAME,
     TARBALL_NAME,
-    _assert_member_safe,
     _iter_pack_files,
     _new_snapshot_name,
     _sha256_of,
     _utc_iso_stamp,
-    tar_data_filter,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,19 +49,20 @@ class SkillsBackup:
         with tarfile.open(tarball, "w:gz") as tar:
             for rel, abs_path in _iter_pack_files(skills_root):
                 info = tar.gettarinfo(str(abs_path), arcname=rel)
-                if abs_path.is_dir():
-                    tar.addfile(info)
-                else:
-                    tar.addfile(info, abs_path.open("rb"))
+                tar.addfile(info, abs_path.open("rb"))
                 manifest_files.append(
                     {
                         "path": rel,
-                        "sha256": _sha256_of(abs_path) if not abs_path.is_dir() else "",
+                        "sha256": _sha256_of(abs_path),
+                        "size": abs_path.stat().st_size,
                     }
                 )
 
-        manifest = {"files": manifest_files, "created_at": base}
-        atomic_write_json(snap_dir / MANIFEST_NAME, manifest)
+        manifest = {"created_utc": snap_dir.name, "files": manifest_files}
+        (snap_dir / MANIFEST_NAME).write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
 
         if _prune:
             self.prune_old_snapshots(skills_root)
@@ -90,6 +85,16 @@ class SkillsBackup:
             shutil.rmtree(snap)
             removed.append(snap)
         return removed
+
+    # ─── public root accessors (used by SkillsRollback) ────────
+
+    def resolve_root(self, root: Path) -> Path:
+        """Validate and return the pack root, raising ``SkillsRootError``."""
+        return self._require_root(root)
+
+    def backup_root(self, skills_root: Path) -> Path:
+        """Return (creating if needed) the snapshot directory under *skills_root*."""
+        return self._backup_root(skills_root)
 
     # ─── internals ─────────────────────────────────────────────
 

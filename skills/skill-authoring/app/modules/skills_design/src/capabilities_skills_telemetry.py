@@ -13,7 +13,7 @@ from shared.src.common.utility_skill_pack import iter_skill_mds
 from shared.src.common.utility_skills_mutation import atomic_write_json
 from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
 
-from skills_design.src.common_lifecycle_support import (
+from shared.src.skills_design.utility_lifecycle_support import (
     DEFAULT_STATE,
     _baseline_record,
     _normalize,
@@ -21,8 +21,8 @@ from skills_design.src.common_lifecycle_support import (
     _read_sidecar,
     _usage_path,
     _with_lock,
+    find_skill_dir,
 )
-from skills_design.src.skills_lifecycle_core import find_skill_dir
 
 __all__ = ["SkillsTelemetry"]
 
