@@ -1,37 +1,16 @@
-# Setup: Install, Init, and Configure CSVs
+# Init — Create the XDG Workspace and Configure CSVs
 
-**Goal:** get `baa` running on this host with a configured `profile.csv` and `passwords.csv`.
+**Goal:** get a configured `profile.csv` and `passwords.csv` under the XDG
+state/data directories, ready for the sibling skills to consume.
 
-## Prerequisites
-
-- Linux host
-- Python 3.10+ (system Python 3.12 typical)
-- `uv` installed
-- Brave Browser installed (native, Flatpak, or Snap)
-
-## Steps
-
-### 1. Install the CLI
+## Commands
 
 ```bash
-cd <repo-root>/skills/brave-automation/tools
-uv pip install -e .
-```
-
-Verify:
-
-```bash
-baa --help
-# or
-brave-automation-arwaky --help
-```
-
-Both console scripts resolve to `modules.root_baa_entry:main`.
-
-### 2. Initialize the workspace
-
-```bash
+# Initialize the workspace in the current directory
 baa init
+
+# Initialize in a specific target directory
+baa init --dir /path/to/workspace
 ```
 
 This creates the XDG state and data directories:
@@ -41,7 +20,7 @@ This creates the XDG state and data directories:
 
 Never use `/tmp` for any output a reviewer must find.
 
-### 3. Create or edit `profile.csv`
+## Configure `profile.csv`
 
 Located in the workspace after `baa init`. Columns:
 
@@ -60,9 +39,7 @@ personal,personal@example.com,Personal
 ci,ci@example.com,CI bot
 ```
 
-### 4. Create or edit `passwords.csv`
-
-Columns:
+## Configure `passwords.csv`
 
 | Column | Description |
 |--------|-------------|
@@ -81,6 +58,5 @@ work,https://accounts.google.com,work@example.com,secretpass,work GSuite
 
 ## Completion
 
-- `baa --help` prints the command tree
 - `baa init` succeeded and XDG dirs exist
 - `profile.csv` and `passwords.csv` are present and valid

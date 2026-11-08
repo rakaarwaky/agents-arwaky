@@ -1,15 +1,33 @@
 {
   "skills": [
     {
+      "name": "aes-docs",
+      "description": "Adds PRD/ROADMAP/FRD/README/BACKLOG/DESIGN/AGENTS/DATA docs for Python, Rust, and TypeScript modules. Use when creating or improving a PRD, ROADMAP, FRD, BACKLOG, README, AGENTS, DESIGN, or DATA document, or to split spec from status.",
+      "when_to_use": "create, improve, or audit a project document (PRD, ROADMAP, FRD, BACKLOG, README, AGENTS, ARCHITECTURE, CONTRIBUTING, DESIGN, DATA); split spec from status; verify docs with lint-arwaky-cli docs.",
+      "category": "architechture"
+    },
+    {
+      "name": "aes-fix",
+      "description": "AES rule fix references for AES1xx-AES7xx: one step-N file per rule code with concrete fix steps and a verify command.",
+      "when_to_use": "Run after `lint-arwaky-cli scan` or `lint-arwaky-cli report` flags AES violations; fix and ship the fixes.",
+      "category": "architechture"
+    },
+    {
+      "name": "aes-layer",
+      "description": "AES layer scaffolding for agent, capabilities, contract, root, surface, taxonomy, utility across Python, Rust, TypeScript, plus test-suite HOW-TOs under reference/test/. Create a new layer file or improve/audit an existing one.",
+      "when_to_use": "Create a new AES layer file or improve/audit an existing one. Pass a folder path (a crate/module/package dir) or a single file path; the layer (agent/capabilities/contract/root/surface/taxonomy/utility) and language (python/rust/typescript) are auto-detected from the path and routed to reference/<layer>/<language>.md. Without --dry-run the task runs autonomously without asking for permission; with --dry-run it generates a report only and makes no changes.",
+      "category": "architechture"
+    },
+    {
+      "name": "aes-migration",
+      "description": "AES architecture migration workflow for Python, Rust, and TypeScript codebases.",
+      "when_to_use": "migrate, refactor, or convert a legacy Python, Rust, or TypeScript codebase into the AES 7-layer architecture; audit AES compliance; plan the phased taxonomy-first migration.",
+      "category": "architechture"
+    },
+    {
       "name": "android-emulator-linux-gps",
       "description": "Use when running or installing Android apps on a Linux host with the AOSP emulator and spoofing GPS via adb emu geo fix, including AVD setup, x86 image ABI selection, and apkpure/apkcombo APK retrieval.",
       "when_to_use": "Use when the user wants the Android emulator on Linux, Deepin or X11 hosts, an AVD that boots headlessly, 32-bit ARM APK installation, Android GPS spoofing or mock location, or apkpure/apkcombo APK downloads without browser automation.",
-      "category": "automation"
-    },
-    {
-      "name": "brave-automation",
-      "description": "Drive the local baa CLI to provision Brave profiles from CSV, import credentials into Chromium's native Login Data DBs, and persist Google sessions in isolated profiles.",
-      "when_to_use": "Use when the user wants to set up or manage local Brave/Chromium browser profiles for automation, bulk-provision accounts from profile.csv or passwords.csv, generate Chromium Password Manager CSV imports, wipe or sync credentials across profiles, or script Google login/logout with persisted sessions. Not for headless scraping without profiles, non-Chromium browsers, or cloud password managers.",
       "category": "automation"
     },
     {
@@ -53,6 +71,24 @@
       "description": "Orca CLI agent environment: Orca-managed worktrees, folder contexts, terminals, repos, automations and cron jobs, embedded browser, artifacts, and skill sharing via the orca CLI; visible local app windows via orca computer; iOS and Android emulator control; Linear ticket work; per-workspace environment recipes; multi-agent orchestration with DAGs and decision gates. Use for $orca-cli, Orca worktree, child worktree, spawn codex/claude in a worktree, read/wait/send Orca terminal, handoff/handover/give this to another agent, Orca browser, orca artifacts, share skills, scheduled agent tasks or cron jobs, visible GUI windows, booted iOS Simulator or Android emulator, linked Linear issue, per-workspace environment recipe setup, multi-agent DAG coordination. Observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree', orca cli-commands, orca config-system.",
       "when_to_use": "Use for any Orca CLI agent-environment task. Load references/cli.md for worktrees, terminals, repos, automations, artifacts, skill sharing, and the embedded browser; references/automations.md for scheduled agent runs and cron jobs; references/computer-use.md for visible GUI windows; references/emulator.md for a booted iOS Simulator; references/emulator-android.md for an adb-connected Android emulator or phone; references/linear.md for Linear ticket work; references/per-workspace-env.md for per-workspace environment recipes; references/orchestration.md for supervised multi-agent coordination with DAGs and decision gates. Also matches observed user phrasing: 'build the worktree in orca', 'worktree deleted from disk / recreate worktree', 'why isn't it showing in orca IDE', 'check all open PRs', 'resolve conflicts in another worktree'.",
       "category": "autonomous-ai-agents"
+    },
+    {
+      "name": "account-manager",
+      "description": "Manage Brave browser profiles and Google sessions via the baa CLI: create, list, verify, and reset isolated accounts, plus scripted Google login, logout, and session checks.",
+      "when_to_use": "Use when the user wants to create or manage local Brave/Chromium accounts, provision or verify isolated browser profiles from profile.csv, script Google login or logout in a named profile, or check a saved Google session. Not for headless scraping without profiles, non-Chromium browsers, or cloud password managers. Setup, credential import/export, and troubleshooting belong to the sibling brave-setup and password-manager skills.",
+      "category": "brave-automation"
+    },
+    {
+      "name": "brave-setup",
+      "description": "Install the baa CLI, initialize its XDG workspace, verify prerequisites, and troubleshoot common Brave automation failures on Linux.",
+      "when_to_use": "Use when the user wants to install or repair the baa CLI and its prerequisites, initialize the XDG state/data workspace, resolve XDG path issues, or debug CDP connection failures, Local State locks, and Safe Storage key errors. Not for provisioning profiles (account-manager), importing credentials (password-manager), or Google session scripting.",
+      "category": "brave-automation"
+    },
+    {
+      "name": "password-manager",
+      "description": "Import and export browser credentials as Chromium Password Manager CSVs via the baa CLI: import a CSV into the Login Data DBs, or export saved passwords back to CSV.",
+      "when_to_use": "Use when the user wants to import credentials from a CSV into local Brave/Chromium Login Data databases, or export saved browser passwords back to a CSV file. Not for headless scraping without profiles, non-Chromium browsers, or cloud password managers. Profile provisioning and Google session scripting belong to the sibling account-manager skill; setup and troubleshooting belong to brave-setup.",
+      "category": "brave-automation"
     },
     {
       "name": "codegraph",
@@ -137,6 +173,54 @@
       "description": "Audit and fix XDG Base Directory compliance in a repo (data/config/cache/state paths, 0700 dirs, 0600 secrets, precedence). Use when the app resolves paths with `expanduser`/`Path.home`, writes logs outside `$XDG_STATE_HOME`, or ships world-readable secrets.",
       "when_to_use": "Use when auditing a repo's path resolution against the XDG Base Directory spec: relative/tilde rejection, precedence (shell env > XDG file > .env), dir and file permissions, and vendor subdirs.",
       "category": "devops"
+    },
+    {
+      "name": "figcraft",
+      "description": "Coordinates end-to-end FigCraft work from one or more visual references or written requirements through native design construction, interactive prototyping, verification, review, and save. Use for any request to create, reconstruct, prototype, or audit a .figcraft interface.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-builder",
+      "description": "Builds native FigCraft UI designs and screens from one or more reference images or written specifications. Applies reference mapping, reusable components, auto layout, visual fidelity, and strict scope control without inventing screens or content.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-icons",
+      "description": "Maps interface icons to a real icon set through the Iconify API and imports them into FigCraft as editable vectors. Use whenever a reference or specification calls for interface icons instead of hand-drawn glyphs.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-motion",
+      "description": "Adds transition and animation polish to a FigCraft prototype after its flows already work, using verified transition types, easings, springs, and delayed triggers. Use as the final pass, never as a substitute for correct wiring.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-prototyper",
+      "description": "Wires and verifies native FigCraft prototypes for sliders, navigation, buttons, overlays, alerts, component states, variables, and conditional flows. Keeps interactions synchronized with the final design and never claims unsupported editable input.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-review",
+      "description": "Reviews native FigCraft files for structure, auto layout, visual consistency, accessibility, reference coverage, and prototype correctness. Produces a concise scorecard plus a pass/fail interaction gate grounded in inspected layers and preview evidence.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-svg",
+      "description": "Builds illustrations, characters, logos, and decorative artwork for FigCraft by authoring SVG and importing it as editable native vectors. Use when a reference image contains artwork that primitive shapes cannot reproduce faithfully.",
+      "when_to_use": "",
+      "category": "figcraft"
+    },
+    {
+      "name": "figcraft-typography",
+      "description": "Chooses and installs the right typeface for a FigCraft document, including downloading free families from the Google Fonts store through font.download, and verifies that no text renders in a silent fallback.",
+      "when_to_use": "",
+      "category": "figcraft"
     },
     {
       "name": "github-auth",

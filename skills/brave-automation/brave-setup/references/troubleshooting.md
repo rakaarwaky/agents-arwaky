@@ -1,4 +1,4 @@
-# Troubleshooting
+# Troubleshoot — Resolve Common baa Failures
 
 **Goal:** resolve common `baa` failures quickly.
 
@@ -8,7 +8,7 @@
 2. **`$XDG_STATE_HOME/baa/logs/`** — read the latest log for the exact
    exception and line number.
 3. **`baa google session --profile <name>`** — is the session stale?
-4. **Safe Storage key** — did Brave upgrade rotate the key? (Rule R6)
+4. **Safe Storage key** — did Brave upgrade rotate the key?
 
 ## CDP connection failures
 
