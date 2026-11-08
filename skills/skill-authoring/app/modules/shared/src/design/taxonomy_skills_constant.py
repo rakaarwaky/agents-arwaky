@@ -145,9 +145,6 @@ CITATIONS: Final = {
 #: Lifecycle states a skill can hold.
 LIFECYCLE_STATES: Final = ("active", "stale", "archived")
 
-#: Lifecycle config file name, read from the pack root.
-CONFIG_FILENAME: Final = ".lifecycle_config.json"
-
 __all__ = [
     "ARCHIVE_DIRNAME",
     "ASSETS_MARKER_FILENAME",
@@ -155,7 +152,6 @@ __all__ = [
     "CATALOG_FILENAME",
     "CATEGORY_DESCRIPTION_FILENAME",
     "CITATIONS",
-    "CONFIG_FILENAME",
     "DRIFT_WARNING",
     "IGNORED_CATEGORY_DIRS",
     "LIFECYCLE_STATES",

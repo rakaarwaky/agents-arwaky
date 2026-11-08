@@ -8,7 +8,7 @@ The single ``_vo`` module for the skills domain. It carries:
 * the authoring result/mutation VOs (``ValidationReport``,
   ``DiscoveryResult``, ``MutationPlan``, ...);
 * the lifecycle telemetry/ledger VOs (``TelemetryRow``, ``LedgerEntry``);
-* the lifecycle config VO and its ``.lifecycle_config.json`` loader.
+* the lifecycle config VO.
 
 Everything here is pure data except ``load_lifecycle_config``, which
 reads the pack-root config file and overlays it over the dataclass
@@ -30,7 +30,6 @@ from typing import TYPE_CHECKING, Any, Final, NewType
 from shared.src.design.taxonomy_skills_constant import (
     BM25F_SCORE_SCALE,
     CITATIONS,
-    CONFIG_FILENAME,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
@@ -519,59 +518,9 @@ class LifecycleConfig:
 
 
 def load_lifecycle_config(pack_root: Path | None = None) -> LifecycleConfig:
-    """Read lifecycle config, falling back to defaults."""
+    """Return the global lifecycle config (single source of truth — no JSON file)."""
 
-    defaults = LifecycleConfig()
-    root = pack_root or Path(__file__).resolve().parents[7]
-    path = root / CONFIG_FILENAME
-    try:
-        raw = path.read_text(encoding="utf-8")
-        data = json.loads(raw)
-    except (OSError, ValueError):
-        return defaults
-    if not isinstance(data, dict):
-        return defaults
-    overrides: dict[str, object] = {}
-    for key in (
-        "enabled",
-        "interval_hours",
-        "min_idle_hours",
-        "stale_after_days",
-        "archive_after_days",
-        "consolidate",
-        "backup_enabled",
-        "backup_keep",
-        "archive_ttl_days",
-        "pause",
-    ):
-        if key not in data:
-            continue
-        value = data[key]
-        expected = type(getattr(defaults, key))
-        if not (
-            expected is int
-            and type(value) is int
-            or expected is bool
-            and type(value) is bool
-            or expected is not int and expected is not bool and isinstance(value, expected)
-        ):
-            logger.warning(
-                "lifecycle config %r has wrong type %s, using default",
-                key,
-                type(value).__name__,
-            )
-            continue
-        overrides[key] = value
-    backup = data.get("backup")
-    if isinstance(backup, dict):
-        if isinstance(backup.get("enabled"), bool) and type(backup["enabled"]) is bool:
-            overrides["backup_enabled"] = backup["enabled"]
-        keep = backup.get("keep")
-        if isinstance(keep, int) and type(keep) is int:
-            overrides["backup_keep"] = keep
-    if overrides:
-        return LifecycleConfig(**overrides)
-    return defaults
+    return LifecycleConfig()
 
 
 __all__ = [
