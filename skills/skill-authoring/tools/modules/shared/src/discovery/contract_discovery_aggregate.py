@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from shared.src.design.taxonomy_skills_request import SkillsRequest
+from shared.src.design.taxonomy_skills_response import SkillsResult
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRequest
-from shared.src.design.taxonomy_skills_response import SkillsResult
 
 __all__ = [
     "ISkillsCatalogProtocol",
