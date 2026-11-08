@@ -1,9 +1,9 @@
 """Design agent (AES agent layer).
 
 Implements ``ISkillsDesignAggregate`` over the design-side capabilities:
-creator, adopter, linter, runner, catalog. Owns the ops: create, adopt,
-lint, run, pause, resume. The agent is the only layer allowed to
-sequence capabilities.
+creator, adopter, linter, runner. Owns the ops: create, adopt, lint,
+run, pause, resume. The agent is the only layer allowed to sequence
+capabilities.
 """
 
 from __future__ import annotations
@@ -18,7 +18,6 @@ from shared.src.common.taxonomy_common_error import (
 )
 from shared.src.design.contract_skills_protocol import (
     ISkillsAdopterProtocol,
-    ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
     ISkillsLinterProtocol,
     ISkillsRunnerProtocol,
@@ -34,7 +33,6 @@ from shared.src.design.taxonomy_skills_response import (
 )
 
 from design.capabilities_skills_adopter import SkillsAdopter
-from design.capabilities_skills_catalog import SkillsCatalog
 from design.capabilities_skills_creator import SkillsCreator
 from design.capabilities_skills_linter import SkillsLinter
 from design.capabilities_skills_runner import SkillsRunner
@@ -55,14 +53,12 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
         adopter: ISkillsAdopterProtocol | None = None,
         linter: ISkillsLinterProtocol | None = None,
         runner: ISkillsRunnerProtocol | None = None,
-        catalog: ISkillsCatalogProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
         self._creator = creator if creator is not None else SkillsCreator()
         self._adopter = adopter if adopter is not None else SkillsAdopter()
         self._linter = linter if linter is not None else SkillsLinter()
         self._runner = runner if runner is not None else SkillsRunner()
-        self._catalog = catalog if catalog is not None else SkillsCatalog()
         self._default_root = default_root
 
     # ─── Block 1: Module Declaration ──────────────────────────
@@ -188,11 +184,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
             )
             if not request.apply:
                 return SkillsResult(ok=True, op=op, new_category=plan, root=root)
-            catalog = self._require(self._catalog, "catalog")
-            catalog_result = catalog.rebuild(root)
-            return SkillsResult(
-                ok=True, op=op, new_category=plan, catalog=catalog_result, root=root
-            )
+            return SkillsResult(ok=True, op=op, new_category=plan, root=root)
 
         skill = str(request.query)
         category = request.flags.get("category", "")
@@ -220,11 +212,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
         if plan.already_exists or not request.apply:
             return SkillsResult(ok=True, op=op, create_plan=plan, root=root)
 
-        catalog = self._require(self._catalog, "catalog")
-        catalog_result = catalog.rebuild(root)
-        return SkillsResult(
-            ok=True, op=op, create_plan=plan, catalog=catalog_result, root=root
-        )
+        return SkillsResult(ok=True, op=op, create_plan=plan, root=root)
 
     def _execute_adopt(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """ADOPT: mark skill as agent-managed (created_by="agent")."""

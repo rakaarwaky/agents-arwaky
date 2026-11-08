@@ -21,17 +21,10 @@ from pathlib import Path
 
 from design.agent_design_orchestrator import SkillsDesignAgent
 from design.capabilities_skills_adopter import SkillsAdopter
-from design.capabilities_skills_creator import SkillsCreator
-from design.capabilities_skills_linter import SkillsLinter
 from design.capabilities_skills_runner import SkillsRunner
 from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.capabilities_discovery_catalog import SkillsCatalog
-from discovery.capabilities_discovery_finder import SkillsDiscover
-from discovery.capabilities_discovery_lister import SkillsLister
-from discovery.capabilities_discovery_reader import SkillsPackReader
 from governance.agent_governance_orchestrator import SkillsGovernanceAgent
 from governance.capabilities_skills_locker import SkillsLocker
-from governance.capabilities_skills_mover import SkillsMover
 from governance.capabilities_skills_piner import SkillsPiner
 from maintenance.agent_maintenance_orchestrator import SkillsMaintenanceAgent
 from maintenance.capabilities_skills_prune import SkillsPrune
@@ -39,13 +32,10 @@ from maintenance.capabilities_skills_purge import SkillsPurge
 from observability.agent_observability_orchestrator import SkillsObservabilityAgent
 from observability.capabilities_skills_ledger import SkillsLedger
 from observability.capabilities_skills_telemetry import SkillsTelemetry
-from storage.agent_storage_orchestrator import SkillsStorageAgent
-from storage.capabilities_skills_archiver import SkillsArchiver
-from storage.capabilities_skills_backup import SkillsBackup
-from storage.capabilities_skills_restore import SkillsRestore
-from storage.capabilities_skills_rollback import SkillsRollback
 from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
-
+from shared.src.common.taxonomy_common_vo import (
+    SkillRecord,
+)
 from shared.src.design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
@@ -61,17 +51,20 @@ from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
-    SkillsRoot,
 )
-from shared.src.design.taxonomy_skills_response import SkillsExitCode, SkillsResult
-from shared.src.discovery.taxonomy_discovery_request import DiscoveryQuery, DiscoveryRequest, DiscoveryVerb
+from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRequest,
+    DiscoveryRoot,
+    DiscoveryVerb,
+)
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
-from shared.src.common.taxonomy_common_vo import (
-    SkillContent,
-    SkillRecord,
-)
 from shared.src.storage.utility_skill_pack import default_pack_root
+from storage.agent_storage_orchestrator import SkillsStorageAgent
+from storage.capabilities_skills_backup import SkillsBackup
+from storage.capabilities_skills_restore import SkillsRestore
+from storage.capabilities_skills_rollback import SkillsRollback
 
 __all__ = [
     "SkillsFacade",
@@ -102,7 +95,6 @@ def default_aggregate(
         adopter=SkillsAdopter(),
         linter=linter,
         runner=SkillsRunner(),
-        catalog=catalog,
         default_root=root,
     )
     discovery = SkillsDiscoveryAgent(
@@ -306,7 +298,6 @@ class SkillsFacade:
     def list_skills(self) -> Sequence[SkillRecord]:
         """Return one record per skill in the pack, sorted by name."""
         from shared.src.design.taxonomy_skills_request import SkillsRequest as _SR
-        from shared.src.design.taxonomy_skills_request import SkillQuery
 
         result = self._aggregate.execute(
             _SR(op=SkillsOp.LIST, query=SkillQuery(""), root=None)
