@@ -341,6 +341,30 @@ class BM25FHit:
 
 
 @dataclass(frozen=True)
+class _BM25FRow:
+    """Internal indexed row: original attributes + precomputed per-field tokens."""
+
+    skill: str
+    category: str
+    description: str
+    path: str
+    when_to_use: str = ""
+    fields: dict[str, list[str]] = field(default_factory=dict)
+    field_len: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class _Row:
+    """One catalog row the discover capability scores."""
+
+    skill: str
+    category: str
+    description: str
+    path: str
+    when_to_use: str = ""
+
+
+@dataclass(frozen=True)
 class DiscoveryMatch:
     """One scored discovery row.
 

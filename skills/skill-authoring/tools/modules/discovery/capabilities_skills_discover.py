@@ -47,6 +47,8 @@ from shared.src.design.taxonomy_skills_vo import (
     DiscoveryMatch,
     DiscoveryResult,
     map_to_legacy_score,
+    _BM25FRow,
+    _Row,
 )
 
 __all__ = [
@@ -58,8 +60,6 @@ __all__ = [
     "tokenize",
     "tokenize_full",
 ]
-
-# ── BM25F constants ────────────────────────────────────────────────────
 
 #: Field weights: name +5, when_to_use +4, description +3, category +2, path +1.
 BM25F_FIELD_WEIGHTS: dict[str, float] = {
@@ -100,8 +100,6 @@ _FIELD_ATTR: dict[str, str] = {
 }
 _RANKER_FIELDS: tuple[str, ...] = ("name", "when_to_use", "description", "category", "path")
 
-# ── BM25F tokenization & similarity ────────────────────────────────────
-
 def tokenize_full(text: str) -> list[str]:
     """Lowercase, split on non-alphanumerics, drop stop words and short tokens."""
     return [
@@ -139,21 +137,6 @@ def _match_strength(query_tok: str, skill_tok: str) -> float:
             return 0.7 + 0.3 * jac
     return 0.0
 
-# ── BM25F index internals ──────────────────────────────────────────────
-
-@dataclass(frozen=True)
-class _BM25FRow:
-    """Internal indexed row: original attributes + precomputed per-field tokens."""
-
-    skill: str
-    category: str
-    description: str
-    path: str
-    when_to_use: str = ""
-    # Per-field token lists, keyed by logical field name.
-    fields: dict[str, list[str]] = dataclass_field(default_factory=dict)
-    # Per-field token counts.
-    field_len: dict[str, int] = dataclass_field(default_factory=dict)
 
 @dataclass(frozen=True)
 class _BM25FIndex:
@@ -280,8 +263,6 @@ def rank_bm25f(rows, tokens: list[str]) -> list[BM25FHit]:
     hits.sort(key=lambda h: h.score, reverse=True)
     return hits
 
-# ── BM25F ranker class ─────────────────────────────────────────────────
-
 class SkillsBm25fRanker:
     """Offline BM25F field-weighted ranker over catalog rows.
 
@@ -296,18 +277,6 @@ class SkillsBm25fRanker:
 
     def __repr__(self) -> str:
         return "SkillsBm25fRanker()"
-
-# ── Discover row + tree scan ───────────────────────────────────────────
-
-@dataclass(frozen=True)
-class _Row:
-    """One catalog row the discover capability scores."""
-
-    skill: str
-    category: str
-    description: str
-    path: str
-    when_to_use: str = ""
 
 def tokenize(query: str) -> list[str]:
     """Split a query into lowercase tokens (stop-word filtering happens in BM25F)."""
@@ -326,7 +295,7 @@ def tree_scan_rows(skills_root: Path) -> list[_Row]:
         for entry in skill_entries(skills_root)
     ]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ───
 class SkillsDiscover(ISkillsDiscoverProtocol):
     """Scores catalog rows with BM25F; falls back to a live tree scan on drift."""
 
@@ -338,7 +307,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
         self._catalog = catalog
         self._ranker = ranker
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ───
     def discover(self, query: SkillQuery, root: SkillsRoot, limit: int) -> DiscoveryResult:
         """Return the top ``limit`` matches for ``query`` (BM25F)."""
         tokens = tokenize(query)
@@ -371,7 +340,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
         """Score *rows* against *tokens* with the injected BM25F ranker."""
         return self._ranker.rank(rows, tokens)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ───
     def _rows_or_fallback(
         self, skills_root: Path
     ) -> tuple[list[_Row], str, str]:
