@@ -85,11 +85,11 @@ def write_catalog_json(
     )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsCatalog(ISkillsCatalogProtocol):
     """Renders, rebuilds, checks, and reads the tracked catalog."""
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def rebuild(self, root: SkillsRoot) -> CatalogReport:
         """Walk the tree and rewrite the catalog; return the counts."""
         skills_root = Path(root)
@@ -160,6 +160,6 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             return ""
         return path.read_text(encoding="utf-8-sig", errors="replace")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ────────
+    # ─── Block 3: Module Helpers ───
     def __repr__(self) -> str:
         return "SkillsCatalog()"

@@ -28,14 +28,14 @@ from shared.src.design.taxonomy_skills_vo import (
 __all__ = ["SkillsPackReader"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsPackReader(ISkillsReaderProtocol):
     """Reads one skill's ``SKILL.md`` content from the pack at *pack_root*."""
 
     def __init__(self, pack_root: Path | None = None) -> None:
         self._root = pack_root or default_pack_root()
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def show_skill(
         self, query: SkillQuery, root: SkillsRoot | None = None
     ) -> SkillContent | None:
@@ -71,6 +71,6 @@ class SkillsPackReader(ISkillsReaderProtocol):
             return SkillContent(raw) if raw is not None else None
         return None
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ───
     def __repr__(self) -> str:
         return "SkillsPackReader()"

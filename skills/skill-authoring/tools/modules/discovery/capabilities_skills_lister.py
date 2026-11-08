@@ -24,7 +24,7 @@ from shared.src.design.taxonomy_skills_vo import (
 
 __all__ = ["SkillsLister", "default_pack_root"]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 
 
 class SkillsLister(ISkillsListerProtocol):
@@ -33,7 +33,7 @@ class SkillsLister(ISkillsListerProtocol):
     def __init__(self, pack_root: Path | None = None) -> None:
         self._root = pack_root or default_pack_root()
 
-    # ─── Block 2: Protocol Method Implementation ─────────────
+    # ─── Block 2: Module Contract ─────────────
 
     def list_skills(self, root: SkillsRoot | None = None):
         """Return one record per skill, sorted by name.
@@ -73,7 +73,7 @@ class SkillsLister(ISkillsListerProtocol):
             ]
         }
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ──────────
+    # ─── Block 3: Module Helpers ───
 
     def __repr__(self) -> str:
         return "SkillsLister()"
