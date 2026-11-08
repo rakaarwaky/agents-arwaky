@@ -18,10 +18,12 @@ from shared.src.discovery.taxonomy_discovery_request import (
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.discovery.utility_skills_core import (
+    cross_process_lock,
+)
+from shared.src.discovery.utility_skills_tree import (
     category_dirs,
     category_summaries,
     clean_one_line,
-    cross_process_lock,
     parse_frontmatter,
     skill_entries,
 )

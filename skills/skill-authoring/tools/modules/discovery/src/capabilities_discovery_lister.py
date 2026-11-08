@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     SkillContent,
     SkillRecord,
     SkillsJsonPayload,

@@ -22,15 +22,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.common.taxonomy_common_constant import (
     CATALOG_FILENAME,
     DRIFT_WARNING,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     DiscoveryMatch,
     DiscoveryResult,
     _Row,
     map_to_legacy_score,
+)
+from shared.src.common.taxonomy_common_error import (
+    SkillsUsageError,
 )
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
@@ -46,9 +49,6 @@ from shared.src.discovery.taxonomy_discovery_vo import (
     tokenize,
 )
 from shared.src.discovery.utility_skills_tree import skill_entries
-from shared.src.governance.taxonomy_skills_error import (
-    SkillsUsageError,
-)
 
 __all__ = [
     "SkillsDiscover",

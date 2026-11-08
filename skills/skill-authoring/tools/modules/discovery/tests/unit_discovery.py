@@ -21,7 +21,7 @@ from shared.src.discovery.taxonomy_discovery_vo import (
     build_index,
     tokenize,
 )
-from shared.src.design.taxonomy_skills_vo import _Row
+from shared.src.common.taxonomy_common_vo import _Row
 
 
 def _row(skill: str, description: str, category: str = "automation") -> _Row:

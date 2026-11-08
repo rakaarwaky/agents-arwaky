@@ -40,15 +40,16 @@ from shared.src.design.taxonomy_skills_vo import (
 )
 
 import shared.src.discovery.utility_skills_core as _core
+import shared.src.discovery.utility_skills_tree as _tree
 
 def _assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker."""
     declared: set[str] = set()
-    for category in _core.category_dirs(skills_root):
+    for category in _tree.category_dirs(skills_root):
         marker = category / ASSETS_MARKER_FILENAME
         if not marker.is_file():
             continue
-        frontmatter = _core.parse_frontmatter(marker)
+        frontmatter = _tree.parse_frontmatter(marker)
         if frontmatter.get("kind") == "assets":
             declared.add(category.name)
     return declared
@@ -98,7 +99,7 @@ def name_mismatch_repairs(skills_root: Path) -> list[tuple[Path, str]]:
     """The ``(skill_md, expected_name)`` pairs a repair would rewrite."""
     pairs: list[tuple[Path, str]] = []
 
-    for entry in _core.skill_entries(skills_root):
+    for entry in _tree.skill_entries(skills_root):
         if entry.frontmatter_name != entry.skill:
             pairs.append((skills_root / entry.path / "SKILL.md", entry.skill))
 
@@ -114,7 +115,7 @@ def missing_category_descriptions(skills_root: Path) -> list[Path]:
     assets = _assets_container(skills_root)
     return [
         category / CATEGORY_DESCRIPTION_FILENAME
-        for category in _core.category_dirs(skills_root)
+        for category in _tree.category_dirs(skills_root)
         if not (category / CATEGORY_DESCRIPTION_FILENAME).exists()
         and category.name not in assets
     ]
@@ -148,7 +149,7 @@ def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
             candidates.append(skills_root / p)
 
         if len(p.parts) == 1:
-            for category in _core.category_dirs(skills_root):
+            for category in _tree.category_dirs(skills_root):
                 candidates.append(category / p)
 
         candidates.append(Path.cwd() / p)
@@ -167,8 +168,8 @@ def resolve_skill_dir(skill_ref: str, skills_root: Path) -> Path:
 def plan_weed(root: Path) -> MutationPlan:
     """The weeding report body, without the ``Weeding report:`` header."""
     skills_root = root
-    entries = _core.skill_entries(skills_root)
-    summaries = _core.category_summaries(entries, skills_root)
+    entries = _tree.skill_entries(skills_root)
+    summaries = _tree.category_summaries(entries, skills_root)
     assets = _assets_container(skills_root)
 
     name_map: dict[str, list[str]] = {}

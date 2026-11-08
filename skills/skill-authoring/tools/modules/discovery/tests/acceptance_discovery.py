@@ -27,7 +27,7 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
-from shared.src.design.taxonomy_skills_response import SkillsExitCode
+from shared.src.design.taxonomy_skills_response import SkillsExitCode  # type: ignore[assignment]
 
 
 def _agent(root: Path) -> SkillsDiscoveryAgent:

@@ -7,7 +7,7 @@ tokens), ``rank_bm25f`` / ``build_index`` / ``_idf`` /
 
 The ranking parameters they consume live in
 ``taxonomy_discovery_constant``; the row/hit shapes they score come from
-the design domain's taxonomy VO module.
+the common domain's taxonomy VO module.
 
 No I/O, no imports from utility/capabilities/agent/root/surface layers.
 The drift-fallback tree scan (``tree_scan_rows``) moved to the capability
@@ -20,13 +20,9 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from shared.src.design.taxonomy_skills_vo import (
-    BM25FHit,
-    _BM25FRow,
-    _Row,
-)
+from shared.src.common.taxonomy_common_vo import BM25FHit
 from shared.src.discovery.taxonomy_discovery_constant import (
     _ALL_STOP_WORDS,
     _FIELD_ATTR,
@@ -51,6 +47,19 @@ class _BM25FIndex:
     n_docs: int
     avgdl: dict[str, float]
     df: dict[str, dict[str, int]]  # logical field → token → doc count
+
+
+@dataclass(frozen=True)
+class _BM25FRow:
+    """Internal indexed row: original attributes + precomputed per-field tokens."""
+
+    skill: str
+    category: str
+    description: str
+    path: str
+    when_to_use: str = ""
+    fields: dict[str, list[str]] = field(default_factory=dict)
+    field_len: dict[str, int] = field(default_factory=dict)
 
 
 def build_index(rows) -> _BM25FIndex:

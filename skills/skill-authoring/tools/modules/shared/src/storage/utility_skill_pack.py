@@ -10,7 +10,7 @@ import posixpath
 import re
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.common.taxonomy_common_constant import (
     IGNORED_CATEGORY_DIRS,
     NAME_MAX,
     NAME_MIN,

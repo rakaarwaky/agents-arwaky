@@ -22,11 +22,11 @@ from typing import TYPE_CHECKING
 from shared.src.discovery.taxonomy_discovery_request import DiscoveryVerb
 
 if TYPE_CHECKING:
-    # Discovery payloads carry design-domain VO types at type-check time.
+    # Discovery payloads carry common-layer VO types at type-check time.
     # PEP 563 keeps annotations as strings, so the runtime import stays
     # one-directional: discovery taxonomy imports only its own request
-    # module (which imports nothing from design).
-    from shared.src.design.taxonomy_skills_vo import (
+    # module (which imports nothing from common/design).
+    from shared.src.common.taxonomy_common_vo import (
         CatalogCheckResult,
         CatalogReport,
         DiscoveryResult,

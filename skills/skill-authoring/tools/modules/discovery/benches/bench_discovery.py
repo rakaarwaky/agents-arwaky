@@ -14,7 +14,7 @@ for _ns in (
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from shared.src.design.taxonomy_skills_vo import _Row
+from shared.src.common.taxonomy_common_vo import _Row
 from shared.src.discovery.taxonomy_discovery_vo import (
     SkillsBm25fRanker,
     tokenize,

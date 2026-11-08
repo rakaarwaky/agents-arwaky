@@ -19,14 +19,14 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.common.taxonomy_common_constant import (
     CATALOG_FILENAME,
 )
-from shared.src.design.taxonomy_skills_entity import (
+from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     CatalogCheckResult,
     CatalogReport,
 )
