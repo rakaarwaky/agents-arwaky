@@ -1,17 +1,21 @@
 """Design agent (AES agent layer).
 
 Implements ``ISkillsDesignAggregate`` over the design-side capabilities:
-creator, adopter, linter, runner. Owns the ops: create, adopt, lint, run,
-pause, resume. The agent is the only layer allowed to sequence capabilities.
+creator, adopter, linter, runner, catalog. Owns the ops: create, adopt,
+lint, run, pause, resume. The agent is the only layer allowed to
+sequence capabilities.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
-from design.contract_design_aggregate import ISkillsDesignAggregate
+from shared.src.common.taxonomy_common_error import (
+    SkillsError,
+    SkillsRootError,
+    SkillsUsageError,
+)
 from shared.src.design.contract_skills_protocol import (
     ISkillsAdopterProtocol,
     ISkillsCatalogProtocol,
@@ -19,14 +23,7 @@ from shared.src.design.contract_skills_protocol import (
     ISkillsLinterProtocol,
     ISkillsRunnerProtocol,
 )
-from shared.src.design.taxonomy_skills_constant import ARCHIVE_DIRNAME
-from shared.src.common.taxonomy_common_error import (
-    SkillsError,
-    SkillsRootError,
-    SkillsUsageError,
-)
 from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
@@ -35,19 +32,17 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.common.taxonomy_common_vo import (
-    SkillContent,
-    SkillRecord,
-)
 
 from design.capabilities_skills_adopter import SkillsAdopter
+from design.capabilities_skills_catalog import SkillsCatalog
 from design.capabilities_skills_creator import SkillsCreator
 from design.capabilities_skills_linter import SkillsLinter
 from design.capabilities_skills_runner import SkillsRunner
+from design.contract_design_aggregate import ISkillsDesignAggregate
 
 __all__ = [
-    "SkillsDesignAgent",
     "ISkillsDesignAggregate",
+    "SkillsDesignAgent",
 ]
 
 
@@ -56,10 +51,10 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
 
     def __init__(
         self,
-        creator: SkillsCreator | None = None,
-        adopter: SkillsAdopter | None = None,
-        linter: SkillsLinter | None = None,
-        runner: SkillsRunner | None = None,
+        creator: ISkillsCreatorProtocol | None = None,
+        adopter: ISkillsAdopterProtocol | None = None,
+        linter: ISkillsLinterProtocol | None = None,
+        runner: ISkillsRunnerProtocol | None = None,
         catalog: ISkillsCatalogProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
@@ -67,52 +62,23 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
         self._adopter = adopter if adopter is not None else SkillsAdopter()
         self._linter = linter if linter is not None else SkillsLinter()
         self._runner = runner if runner is not None else SkillsRunner()
-        self._catalog = catalog
+        self._catalog = catalog if catalog is not None else SkillsCatalog()
         self._default_root = default_root
 
-    # ─── Block 1: helpers ────────────────────────────────────────
+    # ─── Block 1: Module Declaration ──────────────────────────
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
             raise SkillsRootError(f"design capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> Path:
+    def _root(self, request: SkillsRequest) -> SkillsRoot:
         if request.root:
-            return Path(request.root)
+            return request.root
         if self._default_root is not None:
-            return Path(self._default_root)
-        return Path()
+            return self._default_root
+        return SkillsRoot("")
 
-    def _mutate_skill(
-        self,
-        request: SkillsRequest,
-        op: SkillsOp,
-        capability: object,
-        verb: str,
-        field: str,
-        value: object,
-    ) -> SkillsResult:
-        root = self._root(request)
-        if not request.query or str(request.query).strip() in ("", "None"):
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
-                message="Skill name required",
-            )
-        skill_name = str(request.query).strip()
-        try:
-            result = getattr(capability, verb)(skill_name, root)
-        except (OSError, SkillsError) as failure:
-            return SkillsResult(
-                ok=False,
-                op=op,
-                exit_code=SkillsExitCode.ISSUES_FOUND,
-                message=str(failure),
-            )
-        return SkillsResult(ok=True, op=op, message=str(result))
-
-    # ─── Block 2: Aggregate Method Implementation ────────────────
+    # ─── Block 2: Module Contract ─────────────────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
         """Route *request* to the matching design capability."""
         try:
@@ -145,6 +111,7 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
                 message=str(failure),
             )
 
+    # ─── Block 3: Module Helpers ───────────────────────────────
     def _handler_for(
         self, op: SkillsOp
     ) -> Callable[[SkillsRequest, SkillsOp], SkillsResult]:
@@ -154,7 +121,35 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
             raise KeyError(name)
         return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
-    # ─── Block 3: per-op handlers ────────────────────────────────
+    def _mutate_skill(
+        self,
+        request: SkillsRequest,
+        op: SkillsOp,
+        capability: object,
+        verb: str,
+        field: str,
+        value: object,
+    ) -> SkillsResult:
+        root = self._root(request)
+        if not request.query or str(request.query).strip() in ("", "None"):
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message="Skill name required",
+            )
+        skill_name = str(request.query).strip()
+        try:
+            result = getattr(capability, verb)(skill_name, root)
+        except (OSError, SkillsError) as failure:
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=SkillsExitCode.ISSUES_FOUND,
+                message=str(failure),
+            )
+        return SkillsResult(ok=True, op=op, message=str(result))
+
     def _execute_lint(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """Run the full lint scan (13-rule checks + weed report)."""
         linter = self._require(self._linter, "linter")
@@ -280,7 +275,3 @@ class SkillsDesignAgent(ISkillsDesignAggregate):
                 message=str(failure),
             )
         return SkillsResult(ok=True, op=op, message="lifecycle resumed")
-
-    def show_skill(self, name: str, root: SkillsRoot | None = None):
-        """Pass-through kept for facade compatibility (design has no reader)."""
-        raise NotImplementedError("design agent does not expose show_skill")
