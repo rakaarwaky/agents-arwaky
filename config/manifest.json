@@ -107,7 +107,7 @@
       "binary": "baa",
       "isMcp": false,
       "description": "Brave profile provisioning & native password manager automation",
-      "path": "skills/automation/brave-automation/app"
+      "path": "skills/brave-automation/app"
     }
   ]
 }

@@ -14,7 +14,7 @@
 ### 1. Install the CLI
 
 ```bash
-cd <repo-root>/skills/automation/brave-automation/app
+cd <repo-root>/skills/brave-automation/app
 uv pip install -e .
 ```
 

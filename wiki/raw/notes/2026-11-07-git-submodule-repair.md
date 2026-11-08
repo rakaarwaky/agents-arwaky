@@ -92,6 +92,6 @@ Verification:
 - `.gitmodules` sets `ignore = dirty` on all four submodules, so the parent
   repo reports clean status even when a submodule worktree has local edits.
 - vendor/* submodules (context7, fetch-mcp, codegraph, omniroute, 9router)
-  and skills/automation/brave-automation/app also live in .git/modules;
+  and skills/brave-automation/app also live in .git/modules;
   9router's gitdir was also missing (same fatal pattern). Not repaired in
   this session.
