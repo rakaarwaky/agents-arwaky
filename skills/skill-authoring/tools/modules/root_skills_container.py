@@ -19,9 +19,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from design.agent_design_orchestrator import SkillsDesignAgent
-from design.capabilities_skills_adopter import SkillsAdopter
-from design.capabilities_skills_runner import SkillsRunner
+from design.src.agent_design_orchestrator import SkillsDesignAgent
+from design.src.capabilities_skills_adopter import SkillsAdopter
+from design.src.capabilities_skills_runner import SkillsRunner
 from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
 from governance.agent_governance_orchestrator import SkillsGovernanceAgent
 from governance.capabilities_skills_locker import SkillsLocker

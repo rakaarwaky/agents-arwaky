@@ -112,6 +112,7 @@ if os.path.isdir(ROOT / "skills" / "skill-authoring" / "tools" / "modules"):
             _sk / "discovery",
         )),
         ("design", (
+            _tm / "design" / "src",
             _sk / "design",
         )),
         ("governance", (
