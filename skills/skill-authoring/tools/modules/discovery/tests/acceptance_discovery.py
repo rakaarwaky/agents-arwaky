@@ -26,6 +26,7 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryRoot,
     DiscoveryVerb,
 )
+from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.design.taxonomy_skills_response import SkillsExitCode
 30→
