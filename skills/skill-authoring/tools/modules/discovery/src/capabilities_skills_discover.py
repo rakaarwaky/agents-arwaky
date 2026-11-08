@@ -23,10 +23,8 @@ import json
 import math
 import re
 from dataclasses import dataclass
-from dataclasses import field as dataclass_field
 from pathlib import Path
 
-from shared.src.discovery.utility_skills_tree import skill_entries
 from shared.src.design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -34,9 +32,6 @@ from shared.src.design.contract_skills_protocol import (
 from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
     DRIFT_WARNING,
-)
-from shared.src.governance.taxonomy_skills_error import (
-    SkillsUsageError,
 )
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
@@ -46,9 +41,13 @@ from shared.src.design.taxonomy_skills_vo import (
     BM25FHit,
     DiscoveryMatch,
     DiscoveryResult,
-    map_to_legacy_score,
     _BM25FRow,
     _Row,
+    map_to_legacy_score,
+)
+from shared.src.discovery.utility_skills_tree import skill_entries
+from shared.src.governance.taxonomy_skills_error import (
+    SkillsUsageError,
 )
 
 __all__ = [
