@@ -4,7 +4,7 @@ Append-only JSONL ledger with content-addressed blob storage.
 """
 
 from __future__ import annotations
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsLedgerProtocol,
 )
 
@@ -15,15 +15,15 @@ import shutil
 import uuid
 from pathlib import Path
 
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.maintenance.utility_lifecycle_support import (
     BLOBS_DIRNAME,
     DEFAULT_LEDGER_ACTOR,
     DEFAULT_LEDGER_COMPACT_DAYS,

@@ -27,7 +27,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final, NewType
 
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     BM25F_SCORE_SCALE,
     CITATIONS,
     CONFIG_FILENAME,
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     # ``Issue`` lives in the entity module, which imports ``IssueType``
     # from here. The annotation is a string (PEP 563), so the runtime
     # import stays one-directional: entity -> vo.
-    from shared.src.skills_design.taxonomy_skills_entity import Issue
+    from shared.src.design.taxonomy_skills_entity import Issue
 
 logger = logging.getLogger(__name__)
 

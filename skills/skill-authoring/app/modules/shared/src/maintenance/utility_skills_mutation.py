@@ -19,7 +19,7 @@ import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
@@ -28,18 +28,18 @@ from shared.src.skills_design.taxonomy_skills_constant import (
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     CategoryNameError,
     SkillNotFoundError,
     SkillsRootError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_vo import (
     MutationPlan,
     MutationStep,
 )
 
-import shared.src.skills_design.utility_skills_core as _core
+import shared.src.discovery.utility_skills_core as _core
 
 def _assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker."""

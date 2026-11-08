@@ -21,7 +21,7 @@ from enum import IntEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shared.src.skills_design.taxonomy_skills_request import SkillsOp
+from shared.src.design.taxonomy_skills_request import SkillsOp
 
 if TYPE_CHECKING:
     # The authoring VOs (``ValidationReport``, ``LintReport``,
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     # ``SkillContent``) all live in ``taxonomy_skills_vo``. The names are
     # reserved for type-checking because that module also imports this
     # module's names; PEP 563 keeps the annotations as strings.
-    from shared.src.skills_design.taxonomy_skills_vo import (
+    from shared.src.design.taxonomy_skills_vo import (
         CatalogCheckResult,
         CatalogReport,
         DiscoveryMatch,

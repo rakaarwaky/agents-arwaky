@@ -26,23 +26,23 @@ from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from pathlib import Path
 
-from shared.src.skills_design.utility_skills_tree import skill_entries
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.discovery.utility_skills_tree import skill_entries
+from shared.src.design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
     DRIFT_WARNING,
 )
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_vo import (
     BM25FHit,
     DiscoveryMatch,
     DiscoveryResult,

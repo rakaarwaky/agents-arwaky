@@ -6,17 +6,17 @@ report consumed by the ``status`` / ``usage`` surface verbs.
 """
 
 from __future__ import annotations
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsTelemetryProtocol,
 )
 
 
 from pathlib import Path
 
-from shared.src.skills_design.utility_skill_pack import iter_skill_mds
-from shared.src.skills_design.utility_skills_mutation import atomic_write_json
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.storage.utility_skill_pack import iter_skill_mds
+from shared.src.maintenance.utility_skills_mutation import atomic_write_json
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.maintenance.utility_lifecycle_support import (
     DEFAULT_STATE,
     _baseline_record,
     _normalize,

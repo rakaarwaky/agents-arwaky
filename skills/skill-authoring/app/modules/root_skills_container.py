@@ -41,8 +41,8 @@ from storage.capabilities_skills_backup import SkillsBackup
 from storage.capabilities_skills_restore import SkillsRestore
 from storage.capabilities_skills_rollback import SkillsRollback
 
-from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_aggregate import ISkillsAggregate
+from shared.src.design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
     ISkillsCatalogProtocol,
     ISkillsCreatorProtocol,
@@ -52,18 +52,18 @@ from shared.src.skills_design.contract_skills_protocol import (
     ISkillsMoverProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.skills_design.taxonomy_skills_response import SkillsResult
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
 )
-from shared.src.skills_design.utility_skill_pack import default_pack_root
+from shared.src.storage.utility_skill_pack import default_pack_root
 
 __all__ = [
     "SkillsFacade",
@@ -249,8 +249,8 @@ class SkillsFacade:
     # ─── Read wrappers ───────────────────────────────────────
     def list_skills(self) -> Sequence[SkillRecord]:
         """Return one record per skill in the pack, sorted by name."""
-        from shared.src.skills_design.taxonomy_skills_request import SkillsRequest as _SR
-        from shared.src.skills_design.taxonomy_skills_request import SkillQuery
+        from shared.src.design.taxonomy_skills_request import SkillsRequest as _SR
+        from shared.src.design.taxonomy_skills_request import SkillQuery
 
         result = self._aggregate.execute(
             _SR(op=SkillsOp.LIST, query=SkillQuery(""), root=None)

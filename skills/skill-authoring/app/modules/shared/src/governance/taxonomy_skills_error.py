@@ -10,7 +10,7 @@ legacy message text and the legacy exit code. The surface prints
 
 from __future__ import annotations
 
-from shared.src.skills_design.taxonomy_skills_vo import ErrorMessage
+from shared.src.design.taxonomy_skills_vo import ErrorMessage
 
 __all__ = [
     "CategoryNameError",

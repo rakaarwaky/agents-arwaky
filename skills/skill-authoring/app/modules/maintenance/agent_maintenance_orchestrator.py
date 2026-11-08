@@ -11,21 +11,21 @@ from pathlib import Path
 from typing import cast
 
 from maintenance.contract_maintenance_aggregate import ISkillsMaintenanceAggregate
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsPruneProtocol,
     ISkillsPurgeProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.skills_design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.skills_design.taxonomy_skills_response import (
+from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )

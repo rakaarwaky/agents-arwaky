@@ -22,16 +22,16 @@ from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
 
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
 )
-from shared.src.skills_design.taxonomy_skills_entity import (
+from shared.src.design.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
+from shared.src.governance.taxonomy_skills_error import SkillsRootError
 
 # Optional PyYAML: load-bearing only when present; the single-line
 # fallback below keeps the pack readable on a host without it.

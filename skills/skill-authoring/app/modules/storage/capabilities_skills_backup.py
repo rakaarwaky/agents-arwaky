@@ -5,7 +5,7 @@ Creates content-addressed snapshots of the pack under
 """
 
 from __future__ import annotations
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsBackupProtocol,
 )
 
@@ -16,11 +16,11 @@ import shutil
 import tarfile
 from pathlib import Path
 
-from shared.src.skills_design.taxonomy_skills_error import SkillsRootError
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.governance.taxonomy_skills_error import SkillsRootError
+from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.maintenance.utility_lifecycle_support import (
     BACKUP_DIRNAME,
     DEFAULT_KEEP,
     MANIFEST_NAME,

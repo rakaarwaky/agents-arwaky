@@ -24,16 +24,16 @@ import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     IGNORED_CATEGORY_DIRS,
     PACK_MARKER_FILENAME,
 )
-from shared.src.skills_design.taxonomy_skills_entity import (
+from shared.src.design.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-import shared.src.skills_design.utility_skills_core as _core
+import shared.src.discovery.utility_skills_core as _core
 
 
 __all__ = [

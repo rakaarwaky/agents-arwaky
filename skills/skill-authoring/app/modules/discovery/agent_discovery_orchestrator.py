@@ -12,27 +12,27 @@ from pathlib import Path
 from typing import cast
 
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     SkillsError,
     SkillsRootError,
 )
-from shared.src.skills_design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.skills_design.taxonomy_skills_response import (
+from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
 )

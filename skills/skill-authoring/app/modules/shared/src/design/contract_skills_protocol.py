@@ -22,11 +22,11 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from pathlib import Path
 
-from shared.src.skills_design.taxonomy_skills_request import (
+from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
 )
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_vo import (
     BM25FHit,
     CatalogCheckResult,
     CatalogReport,

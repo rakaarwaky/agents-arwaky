@@ -20,23 +20,23 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
-from shared.src.skills_design.utility_skill_pack import iter_skill_mds
-from shared.src.skills_design.utility_skills_mutation import (
+from shared.src.storage.utility_skill_pack import iter_skill_mds
+from shared.src.maintenance.utility_skills_mutation import (
     archive_root,
     assert_within_root,
     atomic_write_json,
 )
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
     LIFECYCLE_STATES,
 )
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-import shared.src.skills_design.utility_skills_core as _core
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+import shared.src.discovery.utility_skills_core as _core
 
 __all__ = [
     "ACTIVE",

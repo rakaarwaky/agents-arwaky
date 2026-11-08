@@ -9,14 +9,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.skills_design.utility_skill_pack import (
+from shared.src.storage.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
     parse_skill_frontmatter,
 )
-from shared.src.skills_design.contract_skills_protocol import ISkillsListerProtocol
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.contract_skills_protocol import ISkillsListerProtocol
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
     SkillsJsonPayload,

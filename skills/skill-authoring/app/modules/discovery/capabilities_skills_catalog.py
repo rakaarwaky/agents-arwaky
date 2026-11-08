@@ -19,23 +19,23 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.skills_design.utility_skills_markdown import clean_one_line
-from shared.src.skills_design.utility_skills_tree import (
+from shared.src.discovery.utility_skills_markdown import clean_one_line
+from shared.src.discovery.utility_skills_tree import (
     category_summaries,
     skill_entries,
 )
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
-from shared.src.skills_design.taxonomy_skills_constant import (
+from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
 )
-from shared.src.skills_design.taxonomy_skills_entity import (
+from shared.src.design.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import (
     CatalogCheckResult,
     CatalogReport,
 )

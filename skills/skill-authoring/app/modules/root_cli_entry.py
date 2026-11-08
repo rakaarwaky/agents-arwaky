@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import sys
 
-from shared.src.skills_design.utility_path_bootstrap import _REPO_ROOT
+from shared.src.storage.utility_path_bootstrap import _REPO_ROOT
 
 # Register this tree's namespace roots on sys.path before any feature
 # imports resolve; the module-level side effect in utility_path_bootstrap

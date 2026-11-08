@@ -4,16 +4,16 @@ Marks a skill as agent-managed by setting ``created_by="agent"``.
 """
 
 from __future__ import annotations
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsAdopterProtocol,
 )
 
 
 from pathlib import Path
 
-from shared.src.skills_design.utility_skill_pack import default_pack_root
-from shared.src.skills_design.taxonomy_skills_request import SkillsRoot
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.storage.utility_skill_pack import default_pack_root
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
     set_field,
 )

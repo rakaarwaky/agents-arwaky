@@ -6,7 +6,7 @@ module never imports a sibling capability.
 """
 
 from __future__ import annotations
-from shared.src.skills_design.contract_skills_protocol import (
+from shared.src.design.contract_skills_protocol import (
     ISkillsRollbackProtocol,
 )
 
@@ -18,11 +18,11 @@ import tarfile
 from pathlib import Path
 from typing import Any
 
-from shared.src.skills_design.taxonomy_skills_error import (
+from shared.src.governance.taxonomy_skills_error import (
     MutationConflictError,
     SkillsUsageError,
 )
-from shared.src.skills_design.utility_lifecycle_support import (
+from shared.src.maintenance.utility_lifecycle_support import (
     BACKUP_DIRNAME,
     MANIFEST_NAME,
     TARBALL_NAME,

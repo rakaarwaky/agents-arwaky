@@ -39,7 +39,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from shared.src.skills_design.utility_logging_setup import (
+from shared.src.observability.utility_logging_setup import (
     BOLD,
     CYAN,
     RESET,
@@ -47,14 +47,14 @@ from shared.src.skills_design.utility_logging_setup import (
     err,
     info,
 )
-from shared.src.skills_design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.skills_design.taxonomy_skills_error import SkillsUsageError
-from shared.src.skills_design.taxonomy_skills_request import (
+from shared.src.design.contract_skills_aggregate import ISkillsAggregate
+from shared.src.governance.taxonomy_skills_error import SkillsUsageError
+from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
     SkillsRequest,
 )
-from shared.src.skills_design.taxonomy_skills_response import (
+from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
