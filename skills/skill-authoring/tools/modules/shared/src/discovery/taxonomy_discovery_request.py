@@ -10,10 +10,10 @@ No I/O, no imports from utility/capabilities/agent/root/surface layers.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from collections.abc import Mapping
 from typing import NewType
 
 DiscoveryQuery = NewType("DiscoveryQuery", str)
@@ -41,6 +41,7 @@ class DiscoveryRequest:
     verb: DiscoveryVerb
     query: DiscoveryQuery = field(default_factory=lambda: DiscoveryQuery(""))
     root: DiscoveryRoot | None = None
+    flags: Mapping[str, str] = field(default_factory=dict)
 
 
 __all__ = [

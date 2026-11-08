@@ -17,7 +17,7 @@ from typing import NewType
 
 DiscoveryQuery = NewType("DiscoveryQuery", str)
 """A skill name / identifier to look up in the pack."""
-20→
+
 DiscoveryRoot = NewType("DiscoveryRoot", Path)
 """An explicit discovery root; ``None`` on a request means 'use the default'."""
 
@@ -27,7 +27,7 @@ class DiscoveryVerb(Enum):
 
     LIST = "list"
     LIST_ARCHIVED = "list-archived"
-30→    LIST_UNMANAGED = "list-unmanaged"
+    LIST_UNMANAGED = "list-unmanaged"
     READ = "read"
     CATALOG = "catalog"
     DISCOVER = "discover"
@@ -48,4 +48,4 @@ __all__ = [
     "DiscoveryRequest",
     "DiscoveryRoot",
     "DiscoveryVerb",
-50→]
+]
