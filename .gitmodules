@@ -34,8 +34,8 @@
 	path = vendor/9router
 	url = https://github.com/decolua/9router.git
 	ignore = dirty
-[submodule "skills/brave-automation/app"]
-	path = skills/brave-automation/app
+[submodule "skills/brave-automation/tools"]
+	path = skills/brave-automation/tools
 	url = https://github.com/rakaarwaky/brave-automation-arwaky.git
 	ignore = dirty
 [submodule "skills/architechture/tools"]

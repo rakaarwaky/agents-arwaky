@@ -67,7 +67,7 @@ class BraveToolsAdapter(IToolsAdapterProtocol):
 
 config = ToolLifecycleConfig(
     lifecycle="uv_venv",
-    src_rel="skills/brave-automation/app",
+    src_rel="skills/brave-automation/tools",
     tool_name="brave-automation-arwaky",
     launchers=(
         ("baa", "baa"),

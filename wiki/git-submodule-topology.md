@@ -36,7 +36,7 @@ gitdir was also observed missing/broken as of 2026-11-07 and was not repaired
 in that session; it will need the same repair as [[git-submodule-repair]]
 if touched.
 
-## skills/brave-automation/app
+## skills/brave-automation/tools
 
 A gitlink to `https://github.com/rakaarwaky/brave-automation-arwaky.git`.
 Same pointer + `.git/modules/` layout as everything else.
