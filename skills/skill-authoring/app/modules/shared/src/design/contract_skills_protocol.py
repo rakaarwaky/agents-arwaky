@@ -369,16 +369,6 @@ class ISkillsTelemetryProtocol(ABC):
     def view(self, skill: str, root: SkillsRoot) -> None:
         ...
 
-    @abstractmethod
-    def use(self, skill: str, root: SkillsRoot) -> None:
-        ...
-
-    @abstractmethod
-    def use_with_timestamp(
-        self, skill: str, root: SkillsRoot, now_iso: str | None = None
-    ) -> None:
-        ...
-
 class ISkillsRunnerProtocol(ABC):
     """Runner capability: run/pause/resume lifecycle verbs."""
 

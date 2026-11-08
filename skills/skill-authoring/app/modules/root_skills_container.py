@@ -158,23 +158,29 @@ class _ComposedAggregate(ISkillsAggregate):
     def execute(self, request: SkillsRequest) -> SkillsResult:
         op = request.op
         if op in _DESIGN_OPS:
-            return self._design.execute(request)
-        if op in _DISCOVERY_OPS:
-            return self._discovery.execute(request)
-        if op in _GOVERNANCE_OPS:
-            return self._governance.execute(request)
-        if op in _MAINTENANCE_OPS:
-            return self._maintenance.execute(request)
-        if op in _OBSERVABILITY_OPS:
-            return self._observability.execute(request)
-        if op in _STORAGE_OPS:
-            return self._storage.execute(request)
-        return SkillsResult(
-            ok=False,
-            op=op,
-            exit_code=2,
-            message=f"Unknown skills op: {op}",
-        )
+            result = self._design.execute(request)
+        elif op in _DISCOVERY_OPS:
+            result = self._discovery.execute(request)
+        elif op in _GOVERNANCE_OPS:
+            result = self._governance.execute(request)
+        elif op in _MAINTENANCE_OPS:
+            result = self._maintenance.execute(request)
+        elif op in _OBSERVABILITY_OPS:
+            result = self._observability.execute(request)
+        elif op in _STORAGE_OPS:
+            result = self._storage.execute(request)
+        else:
+            return SkillsResult(
+                ok=False,
+                op=op,
+                exit_code=2,
+                message=f"Unknown skills op: {op}",
+            )
+        if result.ok:
+            skill_name = str(request.query or "").strip()
+            if skill_name:
+                self._observability.record_view(skill_name)
+        return result
 
 
 _DESIGN_OPS = frozenset(

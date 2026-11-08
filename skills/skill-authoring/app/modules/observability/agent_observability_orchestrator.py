@@ -145,6 +145,14 @@ class SkillsObservabilityAgent(ISkillsObservabilityAggregate):
         report = telemetry.report(root)
         return SkillsResult(ok=True, op=op, records=report, root=root)
 
+    def record_view(self, skill: str, root: SkillsRoot | None = None) -> None:
+        """Public seam: bump the ``views`` counter for *skill* in ``.usage.json``."""
+        telemetry = self._require(self._telemetry, "telemetry")
+        target_root = root if root is not None else self._root(
+            SkillsRequest(op=SkillsOp.USAGE, query=SkillQuery(skill or ""))
+        )
+        telemetry.view(skill, target_root)
+
     def show_skill(self, name: str, root: SkillsRoot | None = None):
         """Observability agent does not expose show_skill."""
         raise NotImplementedError("observability agent does not expose show_skill")
