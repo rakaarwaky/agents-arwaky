@@ -9,21 +9,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from shared.src.design.contract_skills_protocol import (
-    ISkillsAdopterProtocol,
-    ISkillsCreatorProtocol,
-    ISkillsLinterProtocol,
-    ISkillsRunnerProtocol,
-)
 from shared.src.design.taxonomy_skills_request import SkillsRequest
 from shared.src.design.taxonomy_skills_response import SkillsResult
 
 __all__ = [
     "ISkillsDesignAggregate",
-    "ISkillsAdopterProtocol",
-    "ISkillsCreatorProtocol",
-    "ISkillsLinterProtocol",
-    "ISkillsRunnerProtocol",
 ]
 
 
