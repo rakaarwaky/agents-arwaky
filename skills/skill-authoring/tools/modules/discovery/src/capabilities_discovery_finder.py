@@ -26,9 +26,9 @@ from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
     DRIFT_WARNING,
 )
-from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRoot,
 )
 from shared.src.design.taxonomy_skills_vo import (
     DiscoveryMatch,
@@ -68,7 +68,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
         self._ranker = ranker
 
     # ─── Block 2: Module Contract ───
-    def discover(self, query: SkillQuery, root: SkillsRoot, limit: int) -> DiscoveryResult:
+    def discover(self, query: DiscoveryQuery, root: DiscoveryRoot, limit: int) -> DiscoveryResult:
         """Return the top ``limit`` matches for ``query`` (BM25F)."""
         tokens = tokenize(query)
         if not tokens:
@@ -106,7 +106,7 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
     ) -> tuple[list[_Row], str, str]:
         """Load catalog rows from catalog.json; on missing/stale, fall back to tree scan."""
         path = skills_root / CATALOG_FILENAME
-        text = self._catalog.read(SkillsRoot(skills_root))
+        text = self._catalog.read(DiscoveryRoot(skills_root))
         if not text:
             return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog missing: {path}"
 

@@ -8,6 +8,10 @@ here — the two packages are independent (AES702). The composed agent
 routes each ``SkillsOp`` to its owning module agent; the CLI surface
 receives one ``ISkillsAggregate`` (the composed facade), injected at
 the call site, so no root→surface coupling exists.
+
+Discovery ops are translated at the boundary: ``SkillsRequest`` →
+``DiscoveryRequest`` on the way in, ``DiscoveryResponse`` →
+``SkillsResult`` on the way out.
 """
 
 from __future__ import annotations
@@ -59,7 +63,9 @@ from shared.src.design.taxonomy_skills_request import (
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.design.taxonomy_skills_response import SkillsExitCode, SkillsResult
+from shared.src.discovery.taxonomy_discovery_request import DiscoveryRequest, DiscoveryVerb
+from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
 from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
@@ -166,7 +172,14 @@ class _ComposedAggregate(ISkillsAggregate):
         if op in _DESIGN_OPS:
             result = self._design.execute(request)
         elif op in _DISCOVERY_OPS:
-            result = self._discovery.execute(request)
+            dreq = DiscoveryRequest(
+                verb=DiscoveryVerb(op.value),
+                query=DiscoveryQuery(request.query),
+                root=DiscoveryRoot(request.root) if request.root is not None else None,
+                flags=request.flags,
+            )
+            dresp = self._discovery.execute(dreq)
+            result = _discovery_response_to_result(dresp, op)
         elif op in _GOVERNANCE_OPS:
             result = self._governance.execute(request)
         elif op in _MAINTENANCE_OPS:
@@ -189,6 +202,33 @@ class _ComposedAggregate(ISkillsAggregate):
             if skill_name:
                 self._observability.record_view(skill_name)
         return result
+
+
+def _discovery_response_to_result(
+    dresp: DiscoveryResponse, op: SkillsOp
+) -> SkillsResult:
+    """Translate a discovery response back into a SkillsResult for the surface."""
+    payload: dict[str, object] = {}
+    if dresp.records:
+        payload["records"] = dresp.records
+    if dresp.content is not None:
+        payload["content"] = dresp.content
+    if dresp.catalog_report is not None:
+        payload["catalog"] = dresp.catalog_report
+        payload["check"] = dresp.catalog_report
+    if dresp.discovery is not None:
+        payload["matches"] = dresp.discovery.matches
+    if dresp.warning:
+        payload["warning"] = dresp.warning
+
+    return SkillsResult(
+        ok=dresp.ok,
+        op=op,
+        exit_code=dresp.exit_code,
+        message=dresp.message,
+        root=dresp.root,
+        **payload,
+    )
 
 
 _DESIGN_OPS = frozenset(

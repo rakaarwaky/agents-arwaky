@@ -9,15 +9,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
+from shared.src.discovery.contract_discovery_protocol import ISkillsReaderProtocol
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRoot,
 )
 from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     sanitize_skill_name,
 )
-from shared.src.discovery.contract_discovery_protocol import ISkillsReaderProtocol
 from shared.src.storage.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
@@ -37,7 +37,7 @@ class SkillsPackReader(ISkillsReaderProtocol):
 
     # ─── Block 2: Module Contract ──────────────
     def show_skill(
-        self, query: SkillQuery, root: SkillsRoot | None = None
+        self, query: DiscoveryQuery, root: DiscoveryRoot | None = None
     ) -> SkillContent | None:
         """Return the raw SKILL.md content for *query*, or None if missing.
 

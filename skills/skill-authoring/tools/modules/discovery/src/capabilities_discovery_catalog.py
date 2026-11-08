@@ -26,7 +26,7 @@ from shared.src.design.taxonomy_skills_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.discovery.taxonomy_discovery_request import DiscoveryRoot
 from shared.src.design.taxonomy_skills_vo import (
     CatalogCheckResult,
     CatalogReport,
@@ -50,7 +50,7 @@ class SkillsCatalog(ISkillsCatalogProtocol):
     """Renders, rebuilds, checks, and reads the tracked catalog."""
 
 # ─── Block 2: Module Contract ──────────────
-    def rebuild(self, root: SkillsRoot) -> CatalogReport:
+    def rebuild(self, root: DiscoveryRoot) -> CatalogReport:
         """Walk the tree and rewrite the catalog; return the counts."""
         skills_root = Path(root)
         entries = skill_entries(skills_root)
@@ -65,7 +65,7 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             categories=len(categories),
         )
 
-    def check(self, root: SkillsRoot) -> CatalogCheckResult:
+    def check(self, root: DiscoveryRoot) -> CatalogCheckResult:
         """Regenerate to a temp file and diff against the tracked artifact."""
         skills_root = Path(root)
         path = catalog_path(skills_root)
@@ -113,7 +113,7 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             message=f"Catalog in sync: {path}",
         )
 
-    def read(self, root: SkillsRoot) -> str:
+    def read(self, root: DiscoveryRoot) -> str:
         """Return the raw tracked ``catalog.json`` text; ``""`` when missing."""
         path = catalog_path(Path(root))
         if not path.exists():

@@ -9,13 +9,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.discovery.contract_discovery_protocol import ISkillsListerProtocol
+from shared.src.discovery.taxonomy_discovery_request import DiscoveryRoot
 from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
     SkillsJsonPayload,
 )
-from shared.src.discovery.contract_discovery_protocol import ISkillsListerProtocol
 from shared.src.storage.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
@@ -33,7 +33,7 @@ class SkillsLister(ISkillsListerProtocol):
 
     # ─── Block 2: Module Contract ─────────────
 
-    def list_skills(self, root: SkillsRoot | None = None):
+    def list_skills(self, root: DiscoveryRoot | None = None):
         """Return one record per skill, sorted by name.
 
         ``root`` overrides the capability's construction-time pack root
@@ -55,10 +55,10 @@ class SkillsLister(ISkillsListerProtocol):
         out.sort(key=lambda r: r.name)
         return tuple(out)
 
-    def list_skills_json(self, root: SkillsRoot | None = None) -> SkillsJsonPayload:
+    def list_skills_json(self, root: DiscoveryRoot | None = None) -> SkillsJsonPayload:
         """Return the global-skill JSON list as a pure-data dict."""
         skills_root = Path(root) if root is not None else self._root
-        records = self.list_skills(SkillsRoot(skills_root))
+        records = self.list_skills(DiscoveryRoot(skills_root) if root is not None else None)
         return {
             "skills": [
                 {
