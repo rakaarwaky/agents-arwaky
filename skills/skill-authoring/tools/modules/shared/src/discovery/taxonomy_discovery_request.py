@@ -42,4 +42,9 @@ class DiscoveryRequest:
     root: DiscoveryRoot | None = None
 
 
-__all__ = ["DiscoveryQuery", "DiscoveryRoot", "DiscoveryVerb", "DiscoveryRequest"]
+__all__ = [
+    "DiscoveryQuery",
+    "DiscoveryRequest",
+    "DiscoveryRoot",
+    "DiscoveryVerb",
+]

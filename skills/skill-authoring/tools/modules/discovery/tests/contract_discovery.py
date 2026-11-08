@@ -10,27 +10,29 @@ from pathlib import Path
 
 import pytest
 
-# Bootstrap sys.path so `discovery.*` and `shared.src.*` resolve as
-# top-level packages (mirrors modules/conftest.py path setup).
+# Bootstrap sys.path so `shared.src.*`, `discovery.contract_*`, and the
+# `discovery/src` capability modules resolve (mirrors modules/conftest.py).
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
+for _ns in (
+    _TOOLS_ROOT,
+    _TOOLS_ROOT / "shared" / "src",
+    _TOOLS_ROOT / "discovery" / "src",
+):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.src.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.src.capabilities_discovery_catalog import SkillsCatalog
-from discovery.src.capabilities_discovery_finder import (
-    SkillsBm25fRanker,
-    SkillsDiscover,
-)
-from discovery.src.capabilities_discovery_lister import SkillsLister
-from discovery.src.capabilities_discovery_reader import SkillsPackReader
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
+from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
+from agent_discovery_orchestrator import SkillsDiscoveryAgent
+from capabilities_discovery_catalog import SkillsCatalog
+from capabilities_discovery_finder import SkillsBm25fRanker, SkillsDiscover
+from capabilities_discovery_lister import SkillsLister
+from capabilities_discovery_reader import SkillsPackReader
 
 
 def test_lister_implements_lister_protocol():
@@ -63,6 +65,4 @@ def test_agent_implements_discovery_aggregate():
         catalog=cat, discover=disc,
         lister=SkillsLister(), reader=SkillsPackReader(),
     )
-    # Orchestrator implements the aggregate contract by subclassing the ABC.
-    from shared.src.discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
     assert isinstance(agent, ISkillsDiscoveryAggregate)

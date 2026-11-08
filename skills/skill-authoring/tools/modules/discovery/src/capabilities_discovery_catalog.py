@@ -34,7 +34,6 @@ from shared.src.design.taxonomy_skills_vo import (
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
 )
-from shared.src.discovery.utility_skills_markdown import clean_one_line
 from shared.src.discovery.utility_skills_tree import (
     category_summaries,
     skill_entries,
@@ -131,6 +130,16 @@ class SkillsCatalog(ISkillsCatalogProtocol):
 def catalog_path(skills_root: Path) -> Path:
     """The catalog file for a skills root."""
     return skills_root / CATALOG_FILENAME
+
+
+def clean_one_line(value: object) -> str:
+    """Collapse whitespace to single spaces and strip the edges.
+
+    Catalog-local single-consumer string mechanic (was imported from the
+    shared ``utility_skills_markdown`` module; moved here because it serves
+    exactly one capability).
+    """
+    return " ".join(str(value).split()).strip()
 
 
 def render_catalog_json(

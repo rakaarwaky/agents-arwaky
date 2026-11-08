@@ -99,42 +99,6 @@ _FIELD_ATTR: dict[str, str] = {
 }
 _RANKER_FIELDS: tuple[str, ...] = ("name", "when_to_use", "description", "category", "path")
 
-def tokenize_full(text: str) -> list[str]:
-    """Lowercase, split on non-alphanumerics, drop stop words and short tokens."""
-    return [
-        tok
-        for tok in re.findall(r"[a-z0-9]+", text.lower())
-        if tok not in _ALL_STOP_WORDS and len(tok) >= MIN_TOKEN_LEN
-    ]
-
-def _char_set(token: str) -> set[str]:
-    return set(token)
-
-def _jaccard(a: str, b: str) -> float:
-    """Character-set Jaccard similarity between two strings."""
-    sa, sb = _char_set(a), _char_set(b)
-    if not sa or not sb:
-        return 0.0
-    inter = len(sa & sb)
-    union = len(sa | sb)
-    return inter / union if union else 0.0
-
-def _match_strength(query_tok: str, skill_tok: str) -> float:
-    """Return a strength in [0, 1] for a fuzzy match; 0 means no match.
-
-    Exact match → 1.0. Substring → 0.9. Jaccard ≥ threshold → 0.7 +
-    0.3 * jaccard (so 0.75 → 0.925, 1.0 → 1.0). Jaccard requires both
-    tokens ≥ 4 chars to avoid noise from very short tokens.
-    """
-    if query_tok == skill_tok:
-        return 1.0
-    if len(query_tok) >= MIN_TOKEN_LEN and (query_tok in skill_tok or skill_tok in query_tok):
-        return 0.9
-    if len(query_tok) >= 4 and len(skill_tok) >= 4:
-        jac = _jaccard(query_tok, skill_tok)
-        if jac >= SIMILARITY_THRESHOLD:
-            return 0.7 + 0.3 * jac
-    return 0.0
 
 
 @dataclass(frozen=True)
@@ -378,3 +342,41 @@ class SkillsDiscover(ISkillsDiscoverProtocol):
             return tree_scan_rows(skills_root), DRIFT_WARNING, f"Catalog empty: {path}"
 
         return rows, "", ""
+
+def tokenize_full(text: str) -> list[str]:
+    """Lowercase, split on non-alphanumerics, drop stop words and short tokens."""
+    return [
+        tok
+        for tok in re.findall(r"[a-z0-9]+", text.lower())
+        if tok not in _ALL_STOP_WORDS and len(tok) >= MIN_TOKEN_LEN
+    ]
+
+def _char_set(token: str) -> set[str]:
+    return set(token)
+
+def _jaccard(a: str, b: str) -> float:
+    """Character-set Jaccard similarity between two strings."""
+    sa, sb = _char_set(a), _char_set(b)
+    if not sa or not sb:
+        return 0.0
+    inter = len(sa & sb)
+    union = len(sa | sb)
+    return inter / union if union else 0.0
+
+def _match_strength(query_tok: str, skill_tok: str) -> float:
+    """Return a strength in [0, 1] for a fuzzy match; 0 means no match.
+
+    Exact match → 1.0. Substring → 0.9. Jaccard ≥ threshold → 0.7 +
+    0.3 * jaccard (so 0.75 → 0.925, 1.0 → 1.0). Jaccard requires both
+    tokens ≥ 4 chars to avoid noise from very short tokens.
+    """
+    if query_tok == skill_tok:
+        return 1.0
+    if len(query_tok) >= MIN_TOKEN_LEN and (query_tok in skill_tok or skill_tok in query_tok):
+        return 0.9
+    if len(query_tok) >= 4 and len(skill_tok) >= 4:
+        jac = _jaccard(query_tok, skill_tok)
+        if jac >= SIMILARITY_THRESHOLD:
+            return 0.7 + 0.3 * jac
+    return 0.0
+

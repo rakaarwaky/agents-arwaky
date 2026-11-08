@@ -7,21 +7,19 @@ from pathlib import Path
 import pytest
 
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "discovery" / "src"):
-    if _ns.is_dir() and str(_ns) not in sys.path:
-_TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
+for _ns in (
+    _TOOLS_ROOT,
+    _TOOLS_ROOT / "shared" / "src",
+    _TOOLS_ROOT / "discovery" / "src",
+):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.src.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.src.capabilities_discovery_catalog import SkillsCatalog
-from discovery.src.capabilities_discovery_finder import (
-    SkillsBm25fRanker,
-    SkillsDiscover,
-)
-from discovery.src.capabilities_discovery_lister import SkillsLister
-from discovery.src.capabilities_discovery_reader import SkillsPackReader
+from agent_discovery_orchestrator import SkillsDiscoveryAgent
+from capabilities_discovery_catalog import SkillsCatalog
+from capabilities_discovery_finder import SkillsBm25fRanker, SkillsDiscover
+from capabilities_discovery_lister import SkillsLister
+from capabilities_discovery_reader import SkillsPackReader
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
@@ -36,7 +34,8 @@ def _seed_skills(tmp_path: Path) -> None:
         "office/docx": ("docx", "Create and edit Word docx files."),
         "research-study/arxiv": ("arxiv", "Search arXiv papers by keyword or id."),
     }
-    for (cat, name), (skill_name, desc) in skills.items():
+    for cat_name, (skill_name, desc) in skills.items():
+        cat, name = cat_name.split("/")
         skill_dir = tmp_path / cat / name
         skill_dir.mkdir(parents=True)
         (skill_dir / "SKILL.md").write_text(
@@ -47,7 +46,7 @@ def _seed_skills(tmp_path: Path) -> None:
 
 
 def test_catalog_then_discover_round_trip(tmp_path):
-    """E2E-DISCOVERY-001: catalog rebuild → discover returns ranked hits."""
+    """E2E-DISCOVERY-001: catalog rebuild -> discover returns ranked hits."""
     _seed_skills(tmp_path)
     catalog = SkillsCatalog()
     agent = SkillsDiscoveryAgent(
@@ -65,6 +64,6 @@ def test_catalog_then_discover_round_trip(tmp_path):
         )
     )
     assert search.ok is True
-    assert search.discovery is not None
-    assert len(search.discovery.matches) > 0
-    assert search.discovery.matches[0].skill == "arxiv"
+    assert search.matches is not None
+    assert len(search.matches) > 0
+    assert search.matches[0].skill == "arxiv"

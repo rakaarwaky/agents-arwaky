@@ -151,15 +151,15 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         if request.flags.get("check"):
             report = catalog.check(root)
             return SkillsResult(
-                ok=report.exit_code == SkillsExitCode.CLEAN,
+                ok=report.in_sync,
                 op=op,
-                exit_code=report.exit_code,
-                catalog_report=report,
+                exit_code=SkillsExitCode.CLEAN if report.in_sync else SkillsExitCode.CATALOG_DRIFT,
+                check=report,
                 root=root,
             )
         report = catalog.rebuild(root)
         return SkillsResult(
-            ok=True, op=op, catalog_report=report, root=root
+            ok=True, op=op, catalog=report, root=root
         )
 
     def _execute_discover(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
@@ -175,7 +175,7 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
             )
         limit = int(request.flags.get("limit", "20") or 20)
         result = discover.discover(SkillQuery(str(request.query).strip()), root, limit)
-        return SkillsResult(ok=True, op=op, discovery=result, root=root)
+        return SkillsResult(ok=True, op=op, matches=result.matches, root=root)
 
     def show_skill(self, name: str, root: SkillsRoot | None = None):
         """Pass-through to the reader (used by the facade)."""

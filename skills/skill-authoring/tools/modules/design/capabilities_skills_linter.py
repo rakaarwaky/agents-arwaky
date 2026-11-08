@@ -21,6 +21,7 @@ capability import.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
 
 from shared.src.maintenance.utility_skills_mutation import plan_weed
@@ -327,3 +328,75 @@ class SkillsLinter(ISkillsLinterProtocol):
                         path=entry.path,
                     )
                 )
+
+
+# ─── Linter-local tree walkers (single-consumer, moved out of utility) ──────
+
+def assets_container(skills_root: Path) -> set[str]:
+    """Category names that carry a declared DM2 asset-container marker.
+
+    Linter-only: checks each non-ignored category directory for an
+    ``ASSETS_MARKER_FILENAME`` whose frontmatter ``kind`` is ``assets``.
+    """
+    declared: set[str] = set()
+    for category in category_dirs(skills_root):
+        marker = category / ASSETS_MARKER_FILENAME
+        if not marker.is_file():
+            continue
+        frontmatter = parse_frontmatter(marker)
+        if frontmatter.get("kind") == "assets":
+            declared.add(category.name)
+    return declared
+
+
+def iter_files(folder: Path) -> Iterator[Path]:
+    """Yield every regular file under ``folder`` without following symlinks.
+
+    Linter-only: deterministic (sorted names per directory); symlinked
+    directories are listed but never descended, so a loop cannot hang
+    the scan.
+    """
+    if not folder.is_dir():
+        return
+    for dirpath, dirnames, filenames in os.walk(folder, followlinks=False):
+        dirnames.sort()
+        for name in sorted(filenames):
+            yield Path(dirpath) / name
+
+
+def iter_relative_skill_mds(skills_root: Path, depth: int) -> Iterator[Path]:
+    """Yield ``SKILL.md`` files exactly ``depth`` directories below the root.
+
+    Linter-only: depth=1 is ``category/SKILL.md`` (invalid placement),
+    depth=3 is ``category/pack/nested/SKILL.md`` (too deep). Hidden and
+    ignored category directories are skipped.
+    """
+    pattern = "/".join(["*"] * depth + ["SKILL.md"])
+    for path in skills_root.glob(pattern):
+        try:
+            rel = path.relative_to(skills_root)
+        except ValueError:
+            continue
+        parts = rel.parts
+        if not parts:
+            continue
+        if parts[0].startswith("."):
+            continue
+        if parts[0] in IGNORED_CATEGORY_DIRS:
+            continue
+        yield path
+
+
+def too_deep_exempt_paths(skills_root: Path) -> set[str]:
+    """DM1 nested-pack exemption: ``category/pack/SKILL.md`` paths whose
+    intermediate directory carries the ``pack.toml`` marker."""
+    exempt: set[str] = set()
+    for category in category_dirs(skills_root):
+        for skill_md in category.glob("*/*/SKILL.md"):
+            marker = skill_md.parent.parent / PACK_MARKER_FILENAME
+            if marker.is_file():
+                try:
+                    exempt.add(str(skill_md.relative_to(skills_root)))
+                except ValueError:
+                    continue
+    return exempt

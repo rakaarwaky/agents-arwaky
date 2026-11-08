@@ -27,15 +27,15 @@ from shared.src.discovery.utility_skills_core import (
 )
 
 __all__ = [
+    "DiscoveryQuery",
+    "DiscoveryRequest",
+    "DiscoveryResponse",
+    "DiscoveryRoot",
+    "DiscoveryVerb",
     "ISkillsCatalogProtocol",
     "ISkillsDiscoverProtocol",
     "ISkillsListerProtocol",
     "ISkillsReaderProtocol",
-    "DiscoveryQuery",
-    "DiscoveryRequest",
-    "DiscoveryRoot",
-    "DiscoveryVerb",
-    "DiscoveryResponse",
     "category_dirs",
     "category_summaries",
     "clean_one_line",

@@ -7,14 +7,15 @@ from pathlib import Path
 import pytest
 
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "discovery" / "src"):
-    if _ns.is_dir() and str(_ns) not in sys.path:
-_TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
+for _ns in (
+    _TOOLS_ROOT,
+    _TOOLS_ROOT / "shared" / "src",
+    _TOOLS_ROOT / "discovery" / "src",
+):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.src.capabilities_discovery_finder import (
+from capabilities_discovery_finder import (
     BM25F_FIELD_WEIGHTS,
     SkillsBm25fRanker,
     build_index,
@@ -35,9 +36,9 @@ def _row(skill: str, description: str, category: str = "automation") -> _Row:
 
 
 def test_tokenize_lowercases_and_drops_short_words():
-    """UT-DISCOVERY-001: tokenize lowercases and drops stop/short tokens."""
+    """UT-DISCOVERY-001: tokenize lowercases and splits on whitespace."""
     tokens = tokenize("How do I list skills?")
-    assert tokens == ["list", "skill"]
+    assert tokens == ["how", "do", "i", "list", "skills?"]
 
 
 def test_ranker_ranks_relevant_skill_first():

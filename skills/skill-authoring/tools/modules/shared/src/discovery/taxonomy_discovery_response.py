@@ -15,7 +15,7 @@ No I/O, no imports from utility/capabilities/agent/root/surface layers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -49,10 +49,10 @@ class DiscoveryResponse:
     verb: DiscoveryVerb
     exit_code: int = 0
     message: str = ""
-    records: tuple["SkillRecord", ...] = ()
-    content: "SkillContent | None" = None
-    catalog_report: "CatalogReport | None" = None
-    discovery: "DiscoveryResult | None" = None
+    records: tuple[SkillRecord, ...] = ()
+    content: SkillContent | None = None
+    catalog_report: CatalogReport | None = None
+    discovery: DiscoveryResult | None = None
     warning: str | None = None
     root: Path | None = None
 

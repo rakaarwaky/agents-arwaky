@@ -7,21 +7,19 @@ from pathlib import Path
 import pytest
 
 _TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "discovery" / "src"):
-    if _ns.is_dir() and str(_ns) not in sys.path:
-_TOOLS_ROOT = Path(__file__).resolve().parents[2]
-for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
+for _ns in (
+    _TOOLS_ROOT,
+    _TOOLS_ROOT / "shared" / "src",
+    _TOOLS_ROOT / "discovery" / "src",
+):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.src.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.src.capabilities_discovery_catalog import SkillsCatalog
-from discovery.src.capabilities_discovery_finder import (
-    SkillsBm25fRanker,
-    SkillsDiscover,
-)
-from discovery.src.capabilities_discovery_lister import SkillsLister
-from discovery.src.capabilities_discovery_reader import SkillsPackReader
+from agent_discovery_orchestrator import SkillsDiscoveryAgent
+from capabilities_discovery_catalog import SkillsCatalog
+from capabilities_discovery_finder import SkillsBm25fRanker, SkillsDiscover
+from capabilities_discovery_lister import SkillsLister
+from capabilities_discovery_reader import SkillsPackReader
 from shared.src.design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
@@ -61,7 +59,7 @@ def test_drift_fails_closed(tmp_path):
     )
     check = catalog.check(SkillsRoot(tmp_path))
     assert check.in_sync is False
-    # The agent maps a drift check to exit 3 (usage/drift category per contract).
+    # The agent maps a drift check to exit 3 (drift category per contract).
     result = _agent(tmp_path).execute(
         SkillsRequest(op=SkillsOp.CATALOG, root=SkillsRoot(tmp_path),
                       flags={"check": True})
