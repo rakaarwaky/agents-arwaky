@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     # one-directional: discovery taxonomy imports only its own request
     # module (which imports nothing from design).
     from shared.src.design.taxonomy_skills_vo import (
+        CatalogCheckResult,
         CatalogReport,
         DiscoveryResult,
         SkillContent,
@@ -52,6 +53,7 @@ class DiscoveryResponse:
     records: tuple[SkillRecord, ...] = ()
     content: SkillContent | None = None
     catalog_report: CatalogReport | None = None
+    catalog_check: CatalogCheckResult | None = None
     discovery: DiscoveryResult | None = None
     warning: str | None = None
     root: Path | None = None

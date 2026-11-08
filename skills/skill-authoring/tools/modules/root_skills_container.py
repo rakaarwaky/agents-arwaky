@@ -214,15 +214,9 @@ def _discovery_response_to_result(
     if dresp.content is not None:
         payload["content"] = dresp.content
     if dresp.catalog_report is not None:
-        # catalog.check() yields a CatalogCheckResult; catalog.rebuild() yields a
-        # CatalogReport — both arrive through the single ``catalog_report`` field.
-        from shared.src.design.taxonomy_skills_vo import CatalogCheckResult
-
-        if isinstance(dresp.catalog_report, CatalogCheckResult):
-            payload["check"] = dresp.catalog_report
-        else:
-            payload["catalog"] = dresp.catalog_report
-
+        payload["catalog"] = dresp.catalog_report
+    if dresp.catalog_check is not None:
+        payload["check"] = dresp.catalog_check
     if dresp.discovery is not None:
         payload["matches"] = dresp.discovery.matches
     if dresp.warning:

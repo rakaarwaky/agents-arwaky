@@ -26,6 +26,7 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryRoot,
     DiscoveryVerb,
 )
+from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 
 
 def _seed_skills(tmp_path: Path) -> None:
@@ -65,6 +66,6 @@ def test_catalog_then_discover_round_trip(tmp_path):
         )
     )
     assert search.ok is True
-    assert search.matches is not None
-    assert len(search.matches) > 0
-    assert search.matches[0].skill == "arxiv"
+    assert search.discovery is not None
+    assert len(search.discovery.matches) > 0
+    assert search.discovery.matches[0].skill == "arxiv"

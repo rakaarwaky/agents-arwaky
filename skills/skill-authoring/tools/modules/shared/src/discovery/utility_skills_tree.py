@@ -5,20 +5,26 @@ the two-level loaders' walk, and frontmatter parsing. Business
 decisions (which issue each shape raises) live in the validator
 capability; this module only reports what is on disk.
 
-DM1/DM2 marker exemptions and non-following recursive file iteration
-were moved to ``capabilities_skills_linter`` as linter-local helpers
-because they serve exactly one capability.
+Extracted to the shared kernel so the BM25F ranker (a taxonomy file,
+``taxonomy_discovery_vo.py``) and the capability layer share one
+implementation. Per AES205, shared read-side helpers that perform
+I/O live in utility; taxonomy imports utility only when the
+dependency is truly shared and acyclic. This module's only taxonomy
+imports are the types it consumes (``SkillEntry``,
+``CategorySummary``, constants) — no cycle.
 
-Split-module note: the consumers of this walker (the skill-design
-feature's lint / catalog / discover / move capabilities) live in
-``app/modules/skills_design`` under ``shared.src.skills_design``.
-The ``shared.src`` prefix means every taxonomy import resolves to
-this shared tree, not to a per-feature copy.
+Consumers:
+- ``taxonomy_discovery_vo.py`` — drift-fallback tree scan.
+- ``capabilities_discovery_catalog.py`` — ``category_summaries``,
+  ``skill_entries``.
+- ``capabilities_skills_linter.py`` — ``category_dirs``,
+  ``category_summaries``, ``parse_frontmatter``, ``relpath``,
+  ``skill_entries``.
+- ``capabilities_skills_mover.py`` — ``relpath``.
 
-Layer boundary note: this file is self-contained. It inlines
-``category_dirs`` and ``parse_frontmatter`` rather than importing from a
-sibling utility module, so utility stays import-independent (AES201).
+No state, no side effects beyond filesystem reads.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -141,6 +147,11 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
     return data
 
 
+def _clean_one_line(value: object) -> str:
+    """Collapse whitespace to single spaces and strip the edges."""
+    return " ".join(str(value).split()).strip()
+
+
 def skill_entries(skills_root: Path) -> list[SkillEntry]:
     """All discoverable skills: ``category/*/SKILL.md`` with frontmatter."""
     entries: list[SkillEntry] = []
@@ -153,22 +164,17 @@ def skill_entries(skills_root: Path) -> list[SkillEntry]:
             entries.append(
                 SkillEntry(
                     skill=skill_dir.name,
-                    frontmatter_name=clean_one_line(
+                    frontmatter_name=_clean_one_line(
                         frontmatter.get("name", skill_dir.name)
                     ),
                     category=category.name,
-                    description=clean_one_line(frontmatter.get("description", "")),
-                    when_to_use=clean_one_line(frontmatter.get("when-to-use", "")),
+                    description=_clean_one_line(frontmatter.get("description", "")),
+                    when_to_use=_clean_one_line(frontmatter.get("when-to-use", "")),
                     path=f"{category.name}/{skill_dir.name}",
                 )
             )
 
     return entries
-
-
-def clean_one_line(value: object) -> str:
-    """Collapse whitespace to single spaces and strip the edges."""
-    return " ".join(str(value).split()).strip()
 
 
 def category_summaries(
@@ -190,7 +196,7 @@ def category_summaries(
 
         if exists:
             frontmatter = parse_frontmatter(desc_file)
-            description = clean_one_line(frontmatter.get("description", ""))
+            description = _clean_one_line(frontmatter.get("description", ""))
 
         skill_count = sum(1 for entry in entries if entry.category == category.name)
 

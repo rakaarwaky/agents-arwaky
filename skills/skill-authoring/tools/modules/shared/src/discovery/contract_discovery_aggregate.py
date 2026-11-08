@@ -1,10 +1,3 @@
-"""Discovery-domain aggregate contract (AES contract layer, ABC trait).
-
-Single entry point over the discovery-side capabilities:
-catalog, discover, lister, reader.
-"""
-
-from __future__ import annotations
 
 from abc import ABC, abstractmethod
 

@@ -26,10 +26,6 @@ from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
     DRIFT_WARNING,
 )
-from shared.src.discovery.taxonomy_discovery_request import (
-    DiscoveryQuery,
-    DiscoveryRoot,
-)
 from shared.src.design.taxonomy_skills_vo import (
     DiscoveryMatch,
     DiscoveryResult,
@@ -40,19 +36,43 @@ from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
 )
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRoot,
+)
 from shared.src.discovery.taxonomy_discovery_vo import (
     BM25FHit,
     SkillsBm25fRanker,
     tokenize,
-    tree_scan_rows,
 )
+from shared.src.discovery.utility_skills_tree import skill_entries
 from shared.src.governance.taxonomy_skills_error import (
     SkillsUsageError,
 )
 
 __all__ = [
     "SkillsDiscover",
+    "tree_scan_rows",
 ]
+
+
+def tree_scan_rows(skills_root: Path) -> list[_Row]:
+    """The read-only tree scan the drift fallback answers from.
+
+    Moved from ``taxonomy_discovery_vo.py`` to the capability layer:
+    the taxonomy layer must stay free of filesystem I/O and of the
+    taxonomy→utility edge that created the AES205 cycle.
+    """
+    return [
+        _Row(
+            skill=entry.skill,
+            category=entry.category,
+            description=entry.description,
+            path=entry.path,
+            when_to_use=getattr(entry, "when_to_use", ""),
+        )
+        for entry in skill_entries(skills_root)
+    ]
 
 
 # ─── Block 1: Module Declaration ───

@@ -69,7 +69,19 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
     # ─── Block 2: Module Contract ─────────────────────────────────────────
     def execute(self, request: DiscoveryRequest) -> DiscoveryResponse:
         """Route *request* to the matching discovery capability."""
-        verb = request.verb
+        verb_value = request.verb
+        if not isinstance(verb_value, DiscoveryVerb):
+            try:
+                verb_value = DiscoveryVerb(verb_value)
+            except ValueError:
+                return DiscoveryResponse(
+                    ok=False,
+                    verb=DiscoveryVerb.LIST,
+                    exit_code=2,
+                    message=f"Unknown discovery verb: {request.verb}",
+                )
+        verb = verb_value
+
         try:
             handler = self._handler_for(verb)
         except KeyError:
@@ -77,12 +89,12 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
                 ok=False,
                 verb=verb,
                 exit_code=2,
-                message=f"Unknown skills op: {verb}",
+                message=f"Unknown discovery verb: {verb}",
             )
 
         try:
             if verb == DiscoveryVerb.CATALOG:
-                return handler(request, check=bool(request.flags.get("check")))
+                return handler(request, check=bool(request.flags.get("check", "")))
             if verb == DiscoveryVerb.DISCOVER:
                 return handler(
                     request, limit=int(request.flags.get("limit", "20") or 20)
@@ -157,7 +169,7 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
                 ok=report.in_sync,
                 verb=request.verb,
                 exit_code=0 if report.in_sync else 3,
-                catalog_report=report,
+                catalog_check=report,
                 root=root,
             )
         report = catalog.rebuild(root)

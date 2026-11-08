@@ -2,16 +2,18 @@
 
 The offline BM25F field-weighted ranker (``SkillsBm25fRanker``) plus the
 stateless free functions it rides on: ``tokenize`` (query → lowercase
-tokens), ``tree_scan_rows`` (the read-only tree scan the drift fallback
-answers from), and the ranker itself (``build_index``, `_idf`,
-``rank_bm25f``, ``tokenize_full``, and the match-strength helpers).
+tokens), ``rank_bm25f`` / ``build_index`` / ``_idf`` /
+``tokenize_full`` / the match-strength helpers.
 
 The ranking parameters they consume live in
 ``taxonomy_discovery_constant``; the row/hit shapes they score come from
 the design domain's taxonomy VO module.
 
-No I/O except the injected tree walk in ``tree_scan_rows``; no imports
-from utility/capabilities/agent/root/surface layers.
+No I/O, no imports from utility/capabilities/agent/root/surface layers.
+The drift-fallback tree scan (``tree_scan_rows``) moved to the capability
+layer (``capabilities_discovery_finder``) to keep the taxonomy layer
+free of filesystem I/O and of the taxonomy→utility edge that created
+the AES205 cycle.
 """
 
 from __future__ import annotations
@@ -19,7 +21,6 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
-from pathlib import Path
 
 from shared.src.design.taxonomy_skills_vo import (
     BM25FHit,
@@ -34,7 +35,6 @@ from shared.src.discovery.taxonomy_discovery_constant import (
     MIN_TOKEN_LEN,
     SIMILARITY_THRESHOLD,
 )
-from shared.src.discovery.utility_skills_tree import skill_entries
 
 __all__ = [
     "SkillsBm25fRanker",
@@ -42,7 +42,6 @@ __all__ = [
     "rank_bm25f",
     "tokenize",
     "tokenize_full",
-    "tree_scan_rows",
 ]
 
 
@@ -194,20 +193,6 @@ class SkillsBm25fRanker:
 def tokenize(query: str) -> list[str]:
     """Split a query into lowercase tokens (stop-word filtering happens in BM25F)."""
     return [token.lower() for token in query.split() if token.strip()]
-
-
-def tree_scan_rows(skills_root: Path) -> list[_Row]:
-    """The read-only tree scan the drift fallback answers from."""
-    return [
-        _Row(
-            skill=entry.skill,
-            category=entry.category,
-            description=entry.description,
-            path=entry.path,
-            when_to_use=getattr(entry, "when_to_use", ""),
-        )
-        for entry in skill_entries(skills_root)
-    ]
 
 
 def tokenize_full(text: str) -> list[str]:

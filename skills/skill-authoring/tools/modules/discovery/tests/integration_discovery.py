@@ -26,6 +26,7 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryRoot,
     DiscoveryVerb,
 )
+from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 
 
 def _make_agent(root: Path) -> SkillsDiscoveryAgent:
