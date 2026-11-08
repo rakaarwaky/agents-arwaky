@@ -4,8 +4,7 @@ SSOT for validation budgets, naming rules, layout invariants, domain
 entities, value objects, request/response envelopes, and the aggregate
 dispatch contract.
 """
-from shared.src.design.taxonomy_skills_constant import (
-    ARCHIVE_DIRNAME,
+from shared.src.common.taxonomy_common_constant import (
     BM25F_SCORE_SCALE,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
@@ -13,29 +12,36 @@ from shared.src.design.taxonomy_skills_constant import (
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.design.taxonomy_skills_entity import (
+from shared.src.design.taxonomy_skills_constant import (
+    ARCHIVE_DIRNAME,
+)
+from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
-    Issue,
     SkillEntry,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.design.taxonomy_skills_entity import (
+    Issue,
+)
+from shared.src.common.taxonomy_common_vo import (
     BM25FHit,
     CatalogCheckResult,
     CatalogReport,
     CategoryName,
     DiscoveryMatch,
     DiscoveryResult,
+    SkillContent,
+    SkillDescription,
+    SkillName,
+    SkillRecord,
+    SkillsJsonPayload,
+)
+from shared.src.design.taxonomy_skills_vo import (
     LintReport,
     MutationOutcome,
     MutationPlan,
     MutationStep,
     NewCategoryPlan,
-    SkillContent,
     SkillCreatePlan,
-    SkillDescription,
-    SkillName,
-    SkillRecord,
-    SkillsJsonPayload,
     TelemetryRow,
     ValidationReport,
 )

@@ -30,7 +30,7 @@ from shared.src.design.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
     LIFECYCLE_STATES,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,

@@ -16,7 +16,7 @@ import shutil
 import tarfile
 from pathlib import Path
 
-from shared.src.governance.taxonomy_skills_error import SkillsRootError
+from shared.src.common.taxonomy_common_error import SkillsRootError
 from shared.src.design.taxonomy_skills_vo import (
     load_lifecycle_config,
 )

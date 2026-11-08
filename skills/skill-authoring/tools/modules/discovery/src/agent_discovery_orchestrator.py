@@ -16,6 +16,7 @@ from collections.abc import Callable
 from typing import cast
 
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
+from shared.src.common.taxonomy_common_error import SkillsError, SkillsRootError
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -29,10 +30,6 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.common.taxonomy_common_error import (
-    SkillsError,
-    SkillsRootError,
-)
 
 __all__ = [
     "ISkillsDiscoveryAggregate",

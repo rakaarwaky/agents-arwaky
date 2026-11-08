@@ -1,29 +1,22 @@
-"""Skills-domain entities (AES taxonomy layer).
+"""Skills-domain entities (AES taxonomy layer, design domain).
 
 Identity-bearing domain records produced by the authoring tree walk and
 the validator. Pure data: no I/O, no imports from utility, capabilities,
 agent, root, or surface layers.
 
-Shared entities consumed by more than one module domain live in
-``shared.src.common.taxonomy_common_entity``; this module re-exports them
-so existing imports keep working.
+Cross-domain shared entities (``SkillEntry``, ``CategorySummary``) live
+in ``shared.src.common.taxonomy_common_entity``; this module defines
+only the design-domain ``Issue`` record.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-# Re-export shared entities from the common layer (single source of truth).
-from shared.src.common.taxonomy_common_entity import (
-    CategorySummary,
-    SkillEntry,
-)
 from shared.src.design.taxonomy_skills_vo import IssueType
 
 __all__ = [
-    "CategorySummary",
     "Issue",
-    "SkillEntry",
 ]
 
 

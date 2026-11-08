@@ -1,6 +1,6 @@
-"""Skills taxonomy value objects (AES taxonomy layer).
+"""Skills taxonomy value objects (AES taxonomy layer, design domain).
 
-The single ``_vo`` module for the skills design domain. It carries:
+The design-domain ``_vo`` module. It carries:
 
 * the published rule shape (``IssueType``, ``Rule``, the ``RULES`` table,
   and the ``rule``/``is_valid_skill_name``/``issue_message`` helpers);
@@ -9,9 +9,10 @@ The single ``_vo`` module for the skills design domain. It carries:
 * the lifecycle telemetry/ledger VOs (``TelemetryRow``, ``LedgerEntry``);
 * the lifecycle config VO.
 
-Shared VOs that are consumed by more than one module domain live in
-``shared.src.common.taxonomy_common_vo``; this module re-exports them so
-existing imports keep working.
+Cross-domain shared VOs (``SkillRecord``, ``CatalogReport``,
+``DiscoveryResult``, ...) live in
+``shared.src.common.taxonomy_common_vo``; this module defines only
+design-domain types.
 
 Everything here is pure data except ``load_lifecycle_config``, which
 reads the pack-root config file and overlays it over the dataclass
@@ -22,40 +23,32 @@ from __future__ import annotations
 
 import json
 import logging
-import posixpath
 import re
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final, NewType
+from typing import TYPE_CHECKING, Any, Final
 
-# Re-export shared VOs from the common layer (single source of truth).
+from shared.src.common.taxonomy_common_vo import DiscoveryMatch
 from shared.src.common.taxonomy_common_vo import (
     BM25FHit,
     CatalogCheckResult,
     CatalogReport,
     CategoryName,
-    DiscoveryMatch,
     DiscoveryResult,
-    ErrorMessage,
     SkillContent,
     SkillDescription,
     SkillName,
     SkillRecord,
     SkillsJsonPayload,
-    _Row,
-    map_to_legacy_score,
-    sanitize_skill_name,
 )
 from shared.src.common.taxonomy_common_constant import (
-    BM25F_SCORE_SCALE,
-)
-from shared.src.design.taxonomy_skills_constant import (
-    CITATIONS,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
+)
+from shared.src.design.taxonomy_skills_constant import (
+    CITATIONS,
     SUMMARIES,
 )
 
@@ -66,7 +59,6 @@ if TYPE_CHECKING:
     from shared.src.design.taxonomy_skills_entity import Issue
 
 logger = logging.getLogger(__name__)
-
 
 # ─── Issue taxonomy ────────────────────────────────────────────────────
 
@@ -419,20 +411,20 @@ def load_lifecycle_config(pack_root: Path | None = None) -> LifecycleConfig:
 
 
 __all__ = [
-    "ISSUE_MESSAGES",
-    "RULES",
-    "RULE_IDS",
     "BM25FHit",
     "CatalogCheckResult",
     "CatalogReport",
     "CategoryName",
     "DiscoveryMatch",
     "DiscoveryResult",
-    "ErrorMessage",
+    "ISSUE_MESSAGES",
+    "RULES",
+    "RULE_IDS",
     "IssueType",
     "LedgerEntry",
     "LifecycleConfig",
     "LintReport",
+    "Level",
     "MutationOutcome",
     "MutationPlan",
     "MutationStep",
@@ -449,7 +441,5 @@ __all__ = [
     "is_valid_skill_name",
     "issue_message",
     "load_lifecycle_config",
-    "map_to_legacy_score",
     "rule",
-    "sanitize_skill_name",
 ]

@@ -25,7 +25,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from shared.src.maintenance.utility_skills_mutation import plan_weed
-from shared.src.discovery.utility_discovery_tree import (
+from shared.src.discovery.utility_discovery_core import (
     category_dirs,
     category_summaries,
     parse_frontmatter,
@@ -33,17 +33,21 @@ from shared.src.discovery.utility_discovery_tree import (
     skill_entries,
 )
 from shared.src.design.contract_skills_protocol import ISkillsLinterProtocol
-from shared.src.design.taxonomy_skills_constant import (
-    ASSETS_MARKER_FILENAME,
+from shared.src.common.taxonomy_common_constant import (
     CATALOG_FILENAME,
     IGNORED_CATEGORY_DIRS,
+)
+from shared.src.design.taxonomy_skills_constant import (
+    ASSETS_MARKER_FILENAME,
     MAX_DESCRIPTION_LEN,
     PACK_MARKER_FILENAME,
 )
-from shared.src.design.taxonomy_skills_entity import (
+from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
-    Issue,
     SkillEntry,
+)
+from shared.src.design.taxonomy_skills_entity import (
+    Issue,
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (

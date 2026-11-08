@@ -48,7 +48,7 @@ from shared.src.observability.utility_logging_setup import (
     info,
 )
 from shared.src.design.contract_skills_aggregate import ISkillsAggregate
-from shared.src.governance.taxonomy_skills_error import SkillsUsageError
+from shared.src.common.taxonomy_common_error import SkillsUsageError
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,

@@ -24,22 +24,22 @@ from typing import TYPE_CHECKING
 from shared.src.design.taxonomy_skills_request import SkillsOp
 
 if TYPE_CHECKING:
-    # The authoring VOs (``ValidationReport``, ``LintReport``,
-    # ``CatalogReport``, ...) and the core primitives (``SkillRecord``,
-    # ``SkillContent``) all live in ``taxonomy_skills_vo``. The names are
-    # reserved for type-checking because that module also imports this
-    # module's names; PEP 563 keeps the annotations as strings.
-    from shared.src.design.taxonomy_skills_vo import (
+    # Discovery payloads carry common-layer VO types at type-check time.
+    # PEP 563 keeps annotations as strings, so the runtime import stays
+    # one-directional: design response imports only its own request module.
+    from shared.src.common.taxonomy_common_vo import (
         CatalogCheckResult,
         CatalogReport,
         DiscoveryMatch,
+        SkillContent,
+        SkillRecord,
+    )
+    from shared.src.design.taxonomy_skills_vo import (
         LintReport,
         MutationOutcome,
         MutationPlan,
         NewCategoryPlan,
-        SkillContent,
         SkillCreatePlan,
-        SkillRecord,
     )
 
 

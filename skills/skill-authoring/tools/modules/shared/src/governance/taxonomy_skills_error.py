@@ -1,27 +1,9 @@
 """Skills-domain errors (AES governance layer).
 
-Re-exports the full error hierarchy from the shared common layer. The
-canonical definitions live in ``shared.src.common.taxonomy_common_error``
-so that every module domain (discovery, design, storage, maintenance,
-governance, observability) imports from a single SSOT.
+The governance layer's error surface. All six error classes are
+consumed across every module domain (discovery, design, storage,
+maintenance, governance, observability), so their canonical
+definitions live in ``shared.src.common.taxonomy_common_error``.
+This module is empty of definitions; capabilities must import the
+error hierarchy from the common layer directly.
 """
-
-from __future__ import annotations
-
-from shared.src.common.taxonomy_common_error import (
-    CategoryNameError,
-    MutationConflictError,
-    SkillNotFoundError,
-    SkillsError,
-    SkillsRootError,
-    SkillsUsageError,
-)
-
-__all__ = [
-    "CategoryNameError",
-    "MutationConflictError",
-    "SkillNotFoundError",
-    "SkillsError",
-    "SkillsRootError",
-    "SkillsUsageError",
-]

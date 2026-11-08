@@ -14,7 +14,7 @@ import tempfile
 
 from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
 from shared.src.traces.contract_traces_protocol import ISkillsTracesProtocol
-from shared.src.governance.taxonomy_skills_error import SkillsError
+from shared.src.common.taxonomy_common_error import SkillsError
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,

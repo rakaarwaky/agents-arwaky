@@ -25,15 +25,17 @@ from shared.src.maintenance.utility_skills_mutation import (
 from shared.src.design.contract_skills_protocol import (
     ISkillsArchiverProtocol,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.common.taxonomy_common_vo import (
+    SkillName,
+)
 from shared.src.design.taxonomy_skills_vo import (
     MutationOutcome,
     MutationPlan,
-    SkillName,
 )
 
 from storage.capabilities_skills_restore import SkillsRestore

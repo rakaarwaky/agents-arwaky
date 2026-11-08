@@ -7,7 +7,7 @@ retired ``capabilities_skills_mutator`` so each mutation capability can
 depend on the shared kernel without a sibling import.
 
 The skill-tree walkers and parsers this file needs live in
-``utility_discovery_tree`` -- the single documented AES201 exception.
+``utility_discovery_core`` -- the single documented AES201 exception.
 AES201 forbids utility files importing one another; this module imports
 from the core module (not from a sibling utility) so the dependency
 graph stays acyclic.
@@ -19,16 +19,18 @@ import os
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
-from shared.src.design.taxonomy_skills_constant import (
-    ARCHIVE_DIRNAME,
-    ASSETS_MARKER_FILENAME,
+from shared.src.common.taxonomy_common_constant import (
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.design.taxonomy_skills_constant import (
+    ARCHIVE_DIRNAME,
+    ASSETS_MARKER_FILENAME,
+)
+from shared.src.common.taxonomy_common_error import (
     CategoryNameError,
     SkillNotFoundError,
     SkillsRootError,
@@ -39,8 +41,7 @@ from shared.src.design.taxonomy_skills_vo import (
     MutationStep,
 )
 
-import shared.src.discovery.utility_discovery_core as _core
-import shared.src.discovery.utility_discovery_tree as _tree
+import shared.src.discovery.utility_discovery_core as _tree
 
 def _assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker."""
@@ -263,7 +264,7 @@ def atomic_write_json(path: Path, payload: object) -> None:
         tmp = path.with_name(path.name + ".tmp")
         try:
             with tmp.open("w", encoding="utf-8") as handle:
-                _core.cross_process_lock(handle)
+                _tree.cross_process_lock(handle)
                 json.dump(payload, handle, ensure_ascii=False)
                 handle.flush()
                 os.fsync(handle.fileno())
@@ -275,4 +276,3 @@ def atomic_write_json(path: Path, payload: object) -> None:
                 pass
     else:
         raise OSError(f"Cannot write JSON outside a directory: {path.parent}")
-
