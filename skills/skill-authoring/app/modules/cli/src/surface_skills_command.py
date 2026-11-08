@@ -107,6 +107,8 @@ def cmd_skills(args: list[str], aggregate: ISkillsAggregate) -> int:
         return _cmd_read(rest, aggregate)
     if sub in ("lint", "catalog", "discover", "move", "archive", "create"):
         return _cmd_authoring(sub, rest, aggregate)
+    if sub == "phrases":
+        return _cmd_phrases(rest, aggregate)
     if sub in _LIFECYCLE_OPS:
         return _cmd_lifecycle(sub, rest, aggregate)
     err(f"Unknown skills subcommand: {sub}")
@@ -138,6 +140,108 @@ def _cmd_lifecycle(sub: str, rest: list[str], aggregate: ISkillsAggregate) -> in
     result = aggregate.execute(request)
 
     return _render_lifecycle(sub, op, result)
+
+
+def _cmd_phrases(rest: list[str], aggregate: ISkillsAggregate) -> int:
+    """Route ``sdc phrases`` to the traces agent; render repeated phrases."""
+    parser = argparse.ArgumentParser(prog="sdc phrases", add_help=True)
+    parser.add_argument("--grok-home", metavar="DIR", default="", help="$GROK_HOME directory")
+    parser.add_argument("--run-dir", metavar="DIR", default="", help="Run dir to write session records into")
+    parser.add_argument("--days", type=str, default="0", help="Only keep sessions within N days")
+    parser.add_argument("--since-last", action="store_true", default=False, help="Skip sessions processed in a prior run")
+    parser.add_argument("--min-turns", type=str, default="1", help="Minimum human turns per kept session")
+    parser.add_argument("--limit", type=str, default="0", help="Max sessions to keep")
+    parser.add_argument("--min-sessions", type=str, default="2", help="Minimum distinct sessions for a phrase to count")
+    parser.add_argument("--json", action="store_true", default=False, help="Emit JSON")
+    try:
+        namespace = parser.parse_args(rest)
+    except SystemExit as exit_exc:
+        return int(exit_exc.code or 0)
+
+    run_dir = getattr(namespace, "run_dir", "") or ""
+    flags: dict[str, object] = {
+        "traces_action": "phrases",
+        "grok_home": getattr(namespace, "grok_home", "") or "",
+        "run_dir": run_dir,
+        "days": str(getattr(namespace, "days", "0") or "0"),
+        "since_last": "1" if getattr(namespace, "since_last", False) else "0",
+        "min_turns": str(getattr(namespace, "min_turns", "1") or "1"),
+        "limit": str(getattr(namespace, "limit", "0") or "0"),
+        "min_sessions": str(getattr(namespace, "min_sessions", "2") or "2"),
+    }
+    request = SkillsRequest(op=SkillsOp.TRACES, flags=flags)
+    result = aggregate.execute(request)
+
+    return _render_phrases(result, getattr(namespace, "json", False), run_dir)
+
+
+def _render_phrases(result: SkillsResult, json_mode: bool, run_dir: str) -> int:
+    """Render a phrases result and return its exit code."""
+    if not result.ok:
+        err(result.message)
+        return result.exit_code if result.exit_code != 0 else _EXIT_USAGE
+
+    exact = result.phrases_exact or ()
+    stems = result.phrases_stems or ()
+    lines = result.phrases_lines or ()
+
+    if json_mode:
+        import json as _json
+
+        print(
+            _json.dumps(
+                {
+                    "run_dir": run_dir,
+                    "exact_prompts": [
+                        {
+                            "phrase": r.phrase,
+                            "sessions": r.sessions,
+                            "occurrences": r.occurrences,
+                            "session_ids": list(r.session_ids),
+                        }
+                        for r in exact
+                    ],
+                    "prompt_stems_12_words": [
+                        {
+                            "phrase": r.phrase,
+                            "sessions": r.sessions,
+                            "occurrences": r.occurrences,
+                            "session_ids": list(r.session_ids),
+                        }
+                        for r in stems
+                    ],
+                    "repeated_instruction_lines": [
+                        {
+                            "phrase": r.phrase,
+                            "sessions": r.sessions,
+                            "occurrences": r.occurrences,
+                            "session_ids": list(r.session_ids),
+                        }
+                        for r in lines
+                    ],
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return 0
+
+    info(f"[OK] phrases — {result.message}")
+    if exact:
+        info(f"{len(exact)} repeated exact prompt(s):")
+        for r in exact:
+            info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
+    if stems:
+        info(f"{len(stems)} repeated prompt stem(s):")
+        for r in stems:
+            info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
+    if lines:
+        info(f"{len(lines)} repeated instruction line(s):")
+        for r in lines:
+            info(f"  [{r.sessions} sessions / {r.occurrences} occurrences] {r.phrase}")
+    if not exact and not stems and not lines:
+        info("  No repeated phrases found.")
+    return 0
 
 
 def _lifecycle_verb_parser(sub: str) -> argparse.ArgumentParser:
@@ -306,6 +410,12 @@ def _print_usage() -> None:
     info(f"{BOLD()}sdc lint [--category NAME]{RESET()}        Lint scan all skills (optionally filter by category)")
     info(f"{BOLD()}sdc catalog [--build] [--read]{RESET()}    Build and/or print catalog.json")
     info(f"{BOLD()}sdc discover <query>{RESET()}             Search the catalog")
+    print()
+    info(f"{BOLD()}Observation:{RESET()}")
+    info(f"{BOLD()}sdc phrases [--grok-home DIR] [--run-dir DIR] [--days N]{RESET()}  "
+         "Mine repeated user prompts from session traces")
+    info(f"{BOLD()}sdc phrases [--since-last] [--min-turns N] [--limit N]{RESET()}      "
+         "[--min-sessions N] [--json]")
     print()
     info(f"{BOLD()}Mutations:{RESET()}")
     info(f"{BOLD()}sdc move <name> <category> [--apply]{RESET()}  Move a skill to a category")

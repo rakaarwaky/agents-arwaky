@@ -40,6 +40,7 @@ from storage.capabilities_skills_archiver import SkillsArchiver
 from storage.capabilities_skills_backup import SkillsBackup
 from storage.capabilities_skills_restore import SkillsRestore
 from storage.capabilities_skills_rollback import SkillsRollback
+from observability.src.agent_skills_phrase_orchestrator import SkillsPhraseAgent
 
 from shared.src.design.contract_skills_aggregate import ISkillsAggregate
 from shared.src.design.contract_skills_protocol import (
@@ -59,6 +60,7 @@ from shared.src.design.taxonomy_skills_request import (
     SkillsRoot,
 )
 from shared.src.design.taxonomy_skills_response import SkillsResult
+from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
 from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
@@ -127,6 +129,7 @@ def default_aggregate(
         rollback=rollback or SkillsRollback(backup or SkillsBackup()),
         default_root=root,
     )
+    traces = SkillsPhraseAgent(default_root=root)
 
     return _ComposedAggregate(
         design=design,
@@ -135,6 +138,7 @@ def default_aggregate(
         maintenance=maintenance,
         observability=observability,
         storage=storage,
+        traces=traces,
     )
 
 
@@ -147,6 +151,7 @@ class _ComposedAggregate(ISkillsAggregate):
         maintenance,
         observability,
         storage,
+        traces,
     ) -> None:
         self._design = design
         self._discovery = discovery
@@ -154,6 +159,7 @@ class _ComposedAggregate(ISkillsAggregate):
         self._maintenance = maintenance
         self._observability = observability
         self._storage = storage
+        self._traces = traces
 
     def execute(self, request: SkillsRequest) -> SkillsResult:
         op = request.op
@@ -169,6 +175,8 @@ class _ComposedAggregate(ISkillsAggregate):
             result = self._observability.execute(request)
         elif op in _STORAGE_OPS:
             result = self._storage.execute(request)
+        elif op in _TRACES_OPS:
+            result = self._traces.execute(request)
         else:
             return SkillsResult(
                 ok=False,
@@ -218,6 +226,7 @@ _OBSERVABILITY_OPS = frozenset({SkillsOp.LEDGER, SkillsOp.USAGE})
 _STORAGE_OPS = frozenset(
     {SkillsOp.ARCHIVE, SkillsOp.BACKUP, SkillsOp.RESTORE, SkillsOp.ROLLBACK}
 )
+_TRACES_OPS = frozenset({SkillsOp.TRACES})
 
 
 class SkillsFacade:

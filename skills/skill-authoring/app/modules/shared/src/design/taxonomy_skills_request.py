@@ -68,6 +68,7 @@ class SkillsOp(StrEnum):
     BACKUP = "backup"
     ROLLBACK = "rollback"
     LEDGER = "ledger"
+    TRACES = "traces"
 
 
 
