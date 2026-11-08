@@ -20,12 +20,11 @@ from capabilities_discovery_catalog import SkillsCatalog
 from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
-from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
-from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsOp,
-    SkillsRequest,
-    SkillsRoot,
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRequest,
+    DiscoveryRoot,
+    DiscoveryVerb,
 )
 
 
@@ -48,7 +47,9 @@ def test_list_routes_to_lister(tmp_path):
         encoding="utf-8",
     )
     agent = _make_agent(tmp_path)
-    result = agent.execute(SkillsRequest(op=SkillsOp.LIST, root=SkillsRoot(tmp_path)))
+    result = agent.execute(
+        DiscoveryRequest(verb=DiscoveryVerb.LIST, root=DiscoveryRoot(tmp_path))
+    )
     assert result.ok is True
     assert len(result.records) == 1
     assert result.records[0].name == "fetch"
@@ -64,8 +65,10 @@ def test_read_routes_to_reader(tmp_path):
     )
     agent = _make_agent(tmp_path)
     result = agent.execute(
-        SkillsRequest(
-            op=SkillsOp.READ, query=SkillQuery("fetch"), root=SkillsRoot(tmp_path),
+        DiscoveryRequest(
+            verb=DiscoveryVerb.READ,
+            query=DiscoveryQuery("fetch"),
+            root=DiscoveryRoot(tmp_path),
         )
     )
     assert result.ok is True

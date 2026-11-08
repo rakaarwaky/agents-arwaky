@@ -21,10 +21,10 @@ from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
 from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
-from shared.src.design.taxonomy_skills_request import (
-    SkillsOp,
-    SkillsRequest,
-    SkillsRoot,
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryRequest,
+    DiscoveryRoot,
+    DiscoveryVerb,
 )
 
 
@@ -43,6 +43,8 @@ def test_agent_boots_and_routes(tmp_path):
         lister=SkillsLister(tmp_path),
         reader=SkillsPackReader(tmp_path),
     )
-    result = agent.execute(SkillsRequest(op=SkillsOp.LIST, root=SkillsRoot(tmp_path)))
+    result = agent.execute(
+        DiscoveryRequest(verb=DiscoveryVerb.LIST, root=DiscoveryRoot(tmp_path))
+    )
     assert result.ok is True
-    assert result.op == SkillsOp.LIST
+    assert result.verb == DiscoveryVerb.LIST

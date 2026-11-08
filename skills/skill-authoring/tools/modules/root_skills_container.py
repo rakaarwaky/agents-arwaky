@@ -222,6 +222,7 @@ def _discovery_response_to_result(
             payload["check"] = dresp.catalog_report
         else:
             payload["catalog"] = dresp.catalog_report
+
     if dresp.discovery is not None:
         payload["matches"] = dresp.discovery.matches
     if dresp.warning:
