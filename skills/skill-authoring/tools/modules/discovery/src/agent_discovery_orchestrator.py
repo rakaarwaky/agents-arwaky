@@ -17,10 +17,6 @@ from shared.src.design.contract_skills_protocol import (
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from shared.src.governance.taxonomy_skills_error import (
-    SkillsError,
-    SkillsRootError,
-)
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
@@ -31,10 +27,14 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
+from shared.src.governance.taxonomy_skills_error import (
+    SkillsError,
+    SkillsRootError,
+)
 
 __all__ = [
-    "SkillsDiscoveryAgent",
     "ISkillsDiscoveryAggregate",
+    "SkillsDiscoveryAgent",
 ]
 
 

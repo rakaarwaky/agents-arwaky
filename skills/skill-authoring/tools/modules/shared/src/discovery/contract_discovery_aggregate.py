@@ -18,9 +18,9 @@ from shared.src.design.taxonomy_skills_request import SkillsRequest
 from shared.src.design.taxonomy_skills_response import SkillsResult
 
 __all__ = [
-    "ISkillsDiscoveryAggregate",
     "ISkillsCatalogProtocol",
     "ISkillsDiscoverProtocol",
+    "ISkillsDiscoveryAggregate",
     "ISkillsListerProtocol",
     "ISkillsReaderProtocol",
 ]

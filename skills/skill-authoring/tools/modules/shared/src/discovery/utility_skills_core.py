@@ -23,7 +23,6 @@ from pathlib import Path
 from types import ModuleType
 
 from shared.src.design.taxonomy_skills_constant import (
-    ASSETS_MARKER_FILENAME,
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
 )
@@ -102,7 +101,7 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
     if _yaml_mod is not None:
         try:
             parsed = _yaml_mod.safe_load(fm_text)
-        except Exception:  # degraded to the fallback parser below
+        except _yaml_mod.YAMLError:  # degraded to the fallback parser below
             parsed = None
     else:
         parsed = None

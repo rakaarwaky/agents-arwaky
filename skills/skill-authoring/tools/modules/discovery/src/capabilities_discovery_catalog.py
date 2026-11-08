@@ -19,11 +19,6 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.discovery.utility_skills_markdown import clean_one_line
-from shared.src.discovery.utility_skills_tree import (
-    category_summaries,
-    skill_entries,
-)
 from shared.src.design.contract_skills_protocol import (
     ISkillsCatalogProtocol,
 )
@@ -39,6 +34,11 @@ from shared.src.design.taxonomy_skills_vo import (
     CatalogCheckResult,
     CatalogReport,
 )
+from shared.src.discovery.utility_skills_markdown import clean_one_line
+from shared.src.discovery.utility_skills_tree import (
+    category_summaries,
+    skill_entries,
+)
 
 __all__ = [
     "SkillsCatalog",
@@ -46,50 +46,11 @@ __all__ = [
 ]
 
 
-def catalog_path(skills_root: Path) -> Path:
-    """The catalog file for a skills root."""
-    return skills_root / CATALOG_FILENAME
-
-
-def render_catalog_json(
-    entries: list[SkillEntry],
-    categories: list[CategorySummary],
-) -> str:
-    """Serialize the catalog as JSON: one object per skill with name,
-    description, when_to_use, and category.
-
-    ``categories`` is accepted for signature parity with the legacy
-    markdown renderer but carries no weight in the JSON shape (categories
-    are implicit in each skill's ``category`` field).
-    """
-    skills = [
-        {
-            "name": entry.skill,
-            "description": clean_one_line(entry.description),
-            "when_to_use": clean_one_line(entry.when_to_use),
-            "category": entry.category,
-        }
-        for entry in sorted(entries, key=lambda item: (item.category, item.skill))
-    ]
-    return json.dumps({"skills": skills}, indent=2, ensure_ascii=False) + "\n"
-
-
-def write_catalog_json(
-    entries: list[SkillEntry],
-    categories: list[CategorySummary],
-    path: Path,
-) -> None:
-    """Write the JSON catalog to ``path`` (trailing newline included)."""
-    path.write_text(
-        render_catalog_json(entries, categories), encoding="utf-8"
-    )
-
-
 # ─── Block 1: Module Declaration ──────────────
 class SkillsCatalog(ISkillsCatalogProtocol):
     """Renders, rebuilds, checks, and reads the tracked catalog."""
 
-    # ─── Block 2: Module Contract ──────────────
+# ─── Block 2: Module Contract ──────────────
     def rebuild(self, root: SkillsRoot) -> CatalogReport:
         """Walk the tree and rewrite the catalog; return the counts."""
         skills_root = Path(root)
@@ -160,6 +121,47 @@ class SkillsCatalog(ISkillsCatalogProtocol):
             return ""
         return path.read_text(encoding="utf-8-sig", errors="replace")
 
-    # ─── Block 3: Module Helpers ───
     def __repr__(self) -> str:
         return "SkillsCatalog()"
+
+
+# ─── Block 3: Module Helpers ──────────────
+
+
+def catalog_path(skills_root: Path) -> Path:
+    """The catalog file for a skills root."""
+    return skills_root / CATALOG_FILENAME
+
+
+def render_catalog_json(
+    entries: list[SkillEntry],
+    categories: list[CategorySummary],
+) -> str:
+    """Serialize the catalog as JSON: one object per skill with name,
+    description, when_to_use, and category.
+
+    ``categories`` is accepted for signature parity with the legacy
+    markdown renderer but carries no weight in the JSON shape (categories
+    are implicit in each skill's ``category`` field).
+    """
+    skills = [
+        {
+            "name": entry.skill,
+            "description": clean_one_line(entry.description),
+            "when_to_use": clean_one_line(entry.when_to_use),
+            "category": entry.category,
+        }
+        for entry in sorted(entries, key=lambda item: (item.category, item.skill))
+    ]
+    return json.dumps({"skills": skills}, indent=2, ensure_ascii=False) + "\n"
+
+
+def write_catalog_json(
+    entries: list[SkillEntry],
+    categories: list[CategorySummary],
+    path: Path,
+) -> None:
+    """Write the JSON catalog to ``path`` (trailing newline included)."""
+    path.write_text(
+        render_catalog_json(entries, categories), encoding="utf-8"
+    )
