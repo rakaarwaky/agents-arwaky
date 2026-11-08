@@ -11,7 +11,7 @@ from collections.abc import Callable
 from typing import cast
 
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
-from shared.src.design.contract_skills_protocol import (
+from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
     ISkillsListerProtocol,
