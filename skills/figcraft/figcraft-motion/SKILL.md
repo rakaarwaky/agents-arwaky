@@ -1,6 +1,8 @@
 ---
 name: figcraft-motion
 description: Adds transition and animation polish to a FigCraft prototype after its flows already work, using verified transition types, easings, springs, and delayed triggers. Use as the final pass, never as a substitute for correct wiring.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft Motion

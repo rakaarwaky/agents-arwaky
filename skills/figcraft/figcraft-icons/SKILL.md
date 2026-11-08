@@ -1,6 +1,8 @@
 ---
 name: figcraft-icons
 description: Maps interface icons to a real icon set through the Iconify API and imports them into FigCraft as editable vectors. Use whenever a reference or specification calls for interface icons instead of hand-drawn glyphs.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft Icons

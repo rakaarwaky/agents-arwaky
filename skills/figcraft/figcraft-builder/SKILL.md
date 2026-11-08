@@ -1,6 +1,8 @@
 ---
 name: figcraft-builder
 description: Builds native FigCraft UI designs and screens from one or more reference images or written specifications. Applies reference mapping, reusable components, auto layout, visual fidelity, and strict scope control without inventing screens or content.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft Builder

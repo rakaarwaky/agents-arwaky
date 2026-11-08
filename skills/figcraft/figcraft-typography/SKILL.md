@@ -1,6 +1,8 @@
 ---
 name: figcraft-typography
 description: Chooses and installs the right typeface for a FigCraft document, including downloading free families from the Google Fonts store through font.download, and verifies that no text renders in a silent fallback.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft Typography

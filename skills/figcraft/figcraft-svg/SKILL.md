@@ -1,6 +1,8 @@
 ---
 name: figcraft-svg
 description: Builds illustrations, characters, logos, and decorative artwork for FigCraft by authoring SVG and importing it as editable native vectors. Use when a reference image contains artwork that primitive shapes cannot reproduce faithfully.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft SVG Illustration

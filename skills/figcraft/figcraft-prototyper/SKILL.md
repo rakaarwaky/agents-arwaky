@@ -1,6 +1,8 @@
 ---
 name: figcraft-prototyper
 description: Wires and verifies native FigCraft prototypes for sliders, navigation, buttons, overlays, alerts, component states, variables, and conditional flows. Keeps interactions synchronized with the final design and never claims unsupported editable input.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft Prototyper

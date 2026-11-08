@@ -1,6 +1,8 @@
 ---
 name: figcraft-review
 description: Reviews native FigCraft files for structure, auto layout, visual consistency, accessibility, reference coverage, and prototype correctness. Produces a concise scorecard plus a pass/fail interaction gate grounded in inspected layers and preview evidence.
+created_by: curator
+provenance: curator
 ---
 
 # FigCraft Review
