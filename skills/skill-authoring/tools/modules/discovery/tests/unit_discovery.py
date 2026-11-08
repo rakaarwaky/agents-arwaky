@@ -4,12 +4,17 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_MOD_ROOT = Path(__file__).resolve().parent.parent.parent
-for _ns in (_MOD_ROOT,):
+import pytest
+
+_TOOLS_ROOT = Path(__file__).resolve().parents[2]
+for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "discovery" / "src"):
+    if _ns.is_dir() and str(_ns) not in sys.path:
+_TOOLS_ROOT = Path(__file__).resolve().parents[2]
+for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.capabilities_discovery_finder import (
+from discovery.src.capabilities_discovery_finder import (
     BM25F_FIELD_WEIGHTS,
     SkillsBm25fRanker,
     build_index,

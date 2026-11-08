@@ -20,23 +20,24 @@ capability import.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from shared.src.maintenance.utility_skills_mutation import plan_weed
 from shared.src.discovery.utility_skills_tree import (
-    assets_container,
     category_dirs,
     category_summaries,
-    iter_files,
-    iter_relative_skill_mds,
+    parse_frontmatter,
     relpath,
     skill_entries,
-    too_deep_exempt_paths,
 )
 from shared.src.design.contract_skills_protocol import ISkillsLinterProtocol
 from shared.src.design.taxonomy_skills_constant import (
+    ASSETS_MARKER_FILENAME,
     CATALOG_FILENAME,
+    IGNORED_CATEGORY_DIRS,
     MAX_DESCRIPTION_LEN,
+    PACK_MARKER_FILENAME,
 )
 from shared.src.design.taxonomy_skills_entity import (
     CategorySummary,

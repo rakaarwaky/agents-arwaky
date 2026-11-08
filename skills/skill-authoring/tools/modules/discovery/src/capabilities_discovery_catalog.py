@@ -19,9 +19,6 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.discovery.contract_discovery_protocol import (
-    ISkillsCatalogProtocol,
-)
 from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
 )
@@ -33,6 +30,9 @@ from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
     CatalogCheckResult,
     CatalogReport,
+)
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsCatalogProtocol,
 )
 from shared.src.discovery.utility_skills_markdown import clean_one_line
 from shared.src.discovery.utility_skills_tree import (

@@ -4,25 +4,29 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-_MOD_ROOT = Path(__file__).resolve().parent.parent.parent
-for _ns in (_MOD_ROOT,):
+import pytest
+
+_TOOLS_ROOT = Path(__file__).resolve().parents[2]
+for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "discovery" / "src"):
+    if _ns.is_dir() and str(_ns) not in sys.path:
+_TOOLS_ROOT = Path(__file__).resolve().parents[2]
+for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.capabilities_discovery_catalog import SkillsCatalog
-from discovery.capabilities_discovery_finder import (
+from discovery.src.agent_discovery_orchestrator import SkillsDiscoveryAgent
+from discovery.src.capabilities_discovery_catalog import SkillsCatalog
+from discovery.src.capabilities_discovery_finder import (
     SkillsBm25fRanker,
     SkillsDiscover,
 )
-from discovery.capabilities_discovery_lister import SkillsLister
-from discovery.capabilities_discovery_reader import SkillsPackReader
+from discovery.src.capabilities_discovery_lister import SkillsLister
+from discovery.src.capabilities_discovery_reader import SkillsPackReader
 from shared.src.design.taxonomy_skills_request import (
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
 )
-from shared.src.design.taxonomy_skills_response import SkillsExitCode
 
 
 def test_agent_boots_and_routes(tmp_path):
@@ -40,8 +44,6 @@ def test_agent_boots_and_routes(tmp_path):
         lister=SkillsLister(tmp_path),
         reader=SkillsPackReader(tmp_path),
     )
-    result = agent.execute(
-        SkillsRequest(op=SkillsOp.LIST, root=SkillsRoot(tmp_path))
-    )
+    result = agent.execute(SkillsRequest(op=SkillsOp.LIST, root=SkillsRoot(tmp_path)))
     assert result.ok is True
     assert result.op == SkillsOp.LIST

@@ -12,26 +12,25 @@ import pytest
 
 # Bootstrap sys.path so `discovery.*` and `shared.src.*` resolve as
 # top-level packages (mirrors modules/conftest.py path setup).
-_MOD_ROOT = Path(__file__).resolve().parent.parent.parent
-for _ns in (_MOD_ROOT,):
+_TOOLS_ROOT = Path(__file__).resolve().parents[2]
+for _ns in (_TOOLS_ROOT, _TOOLS_ROOT / "shared" / "src", _TOOLS_ROOT / "discovery" / "src"):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.capabilities_discovery_catalog import SkillsCatalog
-from discovery.capabilities_discovery_finder import (
+from discovery.src.agent_discovery_orchestrator import SkillsDiscoveryAgent
+from discovery.src.capabilities_discovery_catalog import SkillsCatalog
+from discovery.src.capabilities_discovery_finder import (
     SkillsBm25fRanker,
     SkillsDiscover,
 )
-from discovery.capabilities_discovery_lister import SkillsLister
-from discovery.capabilities_discovery_reader import SkillsPackReader
+from discovery.src.capabilities_discovery_lister import SkillsLister
+from discovery.src.capabilities_discovery_reader import SkillsPackReader
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
-from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
 
 
 def test_lister_implements_lister_protocol():
@@ -64,4 +63,6 @@ def test_agent_implements_discovery_aggregate():
         catalog=cat, discover=disc,
         lister=SkillsLister(), reader=SkillsPackReader(),
     )
+    # Orchestrator implements the aggregate contract by subclassing the ABC.
+    from shared.src.discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
     assert isinstance(agent, ISkillsDiscoveryAggregate)

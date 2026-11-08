@@ -25,10 +25,6 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from shared.src.discovery.contract_discovery_protocol import (
-    ISkillsCatalogProtocol,
-    ISkillsDiscoverProtocol,
-)
 from shared.src.design.taxonomy_skills_constant import (
     CATALOG_FILENAME,
     DRIFT_WARNING,
@@ -44,6 +40,10 @@ from shared.src.design.taxonomy_skills_vo import (
     _BM25FRow,
     _Row,
     map_to_legacy_score,
+)
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsCatalogProtocol,
+    ISkillsDiscoverProtocol,
 )
 from shared.src.discovery.utility_skills_tree import skill_entries
 from shared.src.governance.taxonomy_skills_error import (

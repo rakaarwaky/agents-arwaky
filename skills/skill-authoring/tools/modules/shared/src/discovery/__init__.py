@@ -10,6 +10,13 @@ from shared.src.discovery.contract_discovery_protocol import (
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRequest,
+    DiscoveryRoot,
+    DiscoveryVerb,
+)
+from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.discovery.utility_skills_core import (
     category_dirs,
     category_summaries,
@@ -24,6 +31,11 @@ __all__ = [
     "ISkillsDiscoverProtocol",
     "ISkillsListerProtocol",
     "ISkillsReaderProtocol",
+    "DiscoveryQuery",
+    "DiscoveryRequest",
+    "DiscoveryRoot",
+    "DiscoveryVerb",
+    "DiscoveryResponse",
     "category_dirs",
     "category_summaries",
     "clean_one_line",

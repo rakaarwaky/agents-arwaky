@@ -11,12 +11,6 @@ from collections.abc import Callable
 from typing import cast
 
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
-from shared.src.discovery.contract_discovery_protocol import (
-    ISkillsCatalogProtocol,
-    ISkillsDiscoverProtocol,
-    ISkillsListerProtocol,
-    ISkillsReaderProtocol,
-)
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsOp,
@@ -26,6 +20,12 @@ from shared.src.design.taxonomy_skills_request import (
 from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
+)
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsCatalogProtocol,
+    ISkillsDiscoverProtocol,
+    ISkillsListerProtocol,
+    ISkillsReaderProtocol,
 )
 from shared.src.governance.taxonomy_skills_error import (
     SkillsError,
