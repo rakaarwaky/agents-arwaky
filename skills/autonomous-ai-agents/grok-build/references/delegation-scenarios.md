@@ -29,10 +29,13 @@ destination.
 
 ## PR Review Patterns
 
-### Quick Review (Headless)
+### Quick Review (Headless, inside an Orca worktree)
 
 ```bash
-git diff main...feature-branch | grok -p 'Review this diff for bugs, security issues, and style problems. Be thorough.'
+# Create an Orca worktree for the review
+"$ORCA" worktree create --repo path:<repo_path> --name review-<slug> --agent grok --no-parent --json
+cd <worktree_path>
+git diff main...feature-branch | grok -p 'Review this diff for bugs, security issues, and style problems. Be thorough.' --cwd <worktree_path>
 ```
 
 ### Clone-to-Temp Review (safe, no repo mutation)
@@ -41,28 +44,31 @@ git diff main...feature-branch | grok -p 'Review this diff for bugs, security is
 REVIEW=$(mktemp -d)
 git clone https://github.com/user/repo.git $REVIEW
 cd $REVIEW && gh pr checkout 42
-grok -p 'Review the changes vs origin/main. Check bugs, security, race conditions, missing tests.'
+grok -p 'Review the changes vs origin/main. Check bugs, security, race conditions, missing tests.' --cwd $REVIEW
 gh pr comment 42 --body '<review text>'
 ```
 
-## Parallel Issue Fixing with Worktrees
+## Parallel Issue Fixing with Orca Worktrees
 
 ```bash
-git worktree add -b fix/issue-78 ~/.hermes/cache/scratch/issue-78 main
-git worktree add -b fix/issue-99 ~/.hermes/cache/scratch/issue-99 main
+# Create Orca-managed worktrees (preferred — tracks agent state)
+"$ORCA" worktree create --repo path:<repo_path> --name fix-issue-78 --agent grok --no-parent --json
+"$ORCA" worktree create --repo path:<repo_path> --name fix-issue-99 --agent grok --no-parent --json
 
-# Launch Grok headless in each (background)
-grok --always-approve -p 'Fix issue #78: <desc>. Commit when done.'  # in worktree 78
-grok --always-approve -p 'Fix issue #99: <desc>. Commit when done.'  # in worktree 99
+# Launch Grok headless inside each worktree (background)
+cd <worktree_path_78> && grok -p 'Fix issue #78: <desc>. Commit when done.' --cwd <worktree_path_78> --always-approve
+cd <worktree_path_99> && grok -p 'Fix issue #99: <desc>. Commit when done.' --cwd <worktree_path_99> --always-approve
 
-# After completion: push and open PRs, then clean up
-cd ~/.hermes/cache/scratch/issue-78 && git push -u origin fix/issue-78
+# After completion: push and open PRs from each worktree
+git -C <worktree_path_78> push -u origin fix/issue-78
 gh pr create --repo user/repo --head fix/issue-78 --title 'fix: ...'
-git worktree remove ~/.hermes/cache/scratch/issue-78
+
+# Retire worktrees after PRs merge
+"$ORCA" worktree rm --worktree <worktree_id_78> --force --json
 ```
 
-The same worktrees can be Orca-managed (`orca worktree create`), but plain `git
-worktree` works without the Orca daemon.
+Fallback: plain `git worktree add` works without the Orca daemon, but you
+lose agent-state tracking and terminal management.
 
 ## Delegation Verification Protocol (supervised Orca-TUI runs)
 

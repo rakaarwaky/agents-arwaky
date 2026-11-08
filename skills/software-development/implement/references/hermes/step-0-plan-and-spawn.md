@@ -32,7 +32,7 @@ Create:
 - Parse JSON: `result.worktree.path` → `worktree_path`, `result.worktree.id` → `worktree_id`, `result.worktree.branch` → `worktree_branch` (strip `refs/heads/`).
 - **Failure:** if create fails or no Orca CLI resolves, report the error and stop. Never fall back to the main clone.
 
-If `--agent grok` is blocked (e.g. `agent_session_operation_unknown`), fall back to plain `git worktree add` at `~/orca/workspaces/<repo-basename>/<task-slug>` and drive Grok by running the `grok` CLI in that directory instead of using Orca's terminal surface.
+If `--agent grok` is blocked (e.g. `agent_session_operation_unknown`), fall back to plain `git worktree add` at `~/orca/workspaces/<repo-basename>/<task-slug>` and drive Grok headless **inside that worktree** via `grok -p '<brief>' --cwd <worktree_path> --always-approve`. Never run bare `grok` / `grok -p` directly in the Hermes terminal session outside a worktree context.
 
 ## Drop the Task
 

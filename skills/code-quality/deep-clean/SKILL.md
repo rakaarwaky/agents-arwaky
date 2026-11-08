@@ -61,6 +61,14 @@ Marker provenance:
 
 Read only the winning lane's references. Do not read the other lane's.
 
+## Pitfalls and Lessons
+
+- **Relocate, don't delete, shared templates consumed by linters.** When stripping an embedded feature, check whether any removed files are also read by other linters or tests (e.g. doc templates under the removed dir that feed AES601-AES610 doc-shape checks). Relocate them to a non-feature path and update every path reference in build scripts, tests, and dispatchers — deleting them breaks linters that still expect them.
+- **Feature-stripping cascades.** Removing an embedded feature breaks every caller of its modules, constants, traits, and CLI variants. Fix all callers, not just the obvious ones — `cargo build` and `cargo clippy -D warnings` will surface the rest. Don't declare done until the binary compiles and the full test suite passes.
+- **Grok Build can hit max turns on large refactors.** Verify progress in the worktree directory (`git status --short`, `git log --oneline -3`, `git diff <base>..HEAD`), not the TUI stream — an empty stream doesn't mean idle. Send a focused follow-up brief listing only the remaining files, and drive rounds with a shrinking grep count of the feature's key symbols (constant names, fn names, CLI variants — not the generic word) until it hits 0. Never re-send the full original brief each round — the agent re-reads from scratch and burns the turn budget. The full recipe lives in the `grok-build` skill ("Multi-round large refactor recipe").
+- **When relocating a directory, search the whole tree for path strings, not just code.** Doc-comment prose, generated-file headers (build-script-emitted `// Source: <path>` lines), test helper path joins, and stale references to deleted files (e.g. a doc comment citing a SKILL.md removed in the same cleanup) all carry the old path and survive a code-only sweep. Grep the old path string across `*.rs`, `*.md`, and `*.sh` (excluding `target/`) after moving files, and rewrite every hit — `cargo test` passes even with stale doc comments, so the gate will not catch them.
+- **lint-arwaky verification gates (Rust workspace):** `CARGO_INCREMENTAL=0 cargo fmt --all -- --check`, `CARGO_INCREMENTAL=0 cargo clippy --all-targets -- -D warnings`, `CARGO_INCREMENTAL=0 cargo build --bin lint-arwaky-cli`, `CARGO_INCREMENTAL=0 cargo nextest run --workspace --lib --tests -j 2`. Run all four before declaring a deep-clean done.
+
 ## Routing
 
 ### Hermes lane (Steps 0–3)

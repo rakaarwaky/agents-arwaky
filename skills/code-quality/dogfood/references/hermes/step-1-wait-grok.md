@@ -6,7 +6,7 @@ Grok Build runs the full exploratory QA pipeline itself — plan, explore per ta
 
 Worktree case: poll with `orca terminal read --terminal <handle> --cursor <cursor> --limit 1000 --json` until the session is idle. Use `orca terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json` and retry with a larger timeout while `satisfied: false`. Do NOT send text while waiting.
 
-Headless case: the `grok -p` call is foreground/blocking — it returns when Grok finishes. No polling.
+Headless case: the `grok -p` call (launched inside the worktree/scratch directory, never in the Hermes session directly) is foreground/blocking — it returns when Grok finishes. No polling.
 
 ## When Grok Is Done
 

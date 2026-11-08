@@ -38,6 +38,14 @@ specific ask). SOUL.md is the always-on layer; skills load on demand.
   Confirm with the tool's `--help` and the discovery file
   (`~/.config/orca/agent-model-catalog.json` for Orca agent ids + models) before
   writing it down.
+- **Delegation command must route via Orca CLI, not raw grok.** The verified delegation
+  loop is: `orca worktree create ... --agent grok --no-parent` → Grok TUI in first
+  terminal → `orca terminal send --terminal <handle> --text "<brief>" --enter --json`
+  → confirm `accepted: true` → wait via `orca terminal wait --for tui-idle`. Headless
+  runs go through `grok -p <brief> --cwd <workdir> --always-approve --max-turns <n>`
+  launched **inside the Orca worktree**. NEVER run bare `grok -p` / `grok` directly in
+  a Hermes terminal session — headless delegation happens only via the Orca worktree
+  path (or `orca` shell handoff).
 - One line in the routing test should carve the boundary. If you need more than a
   sentence to say what is "coding," the test is too vague — tighten it to a single
   checkable condition.

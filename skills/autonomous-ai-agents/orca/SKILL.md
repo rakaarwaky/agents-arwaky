@@ -110,15 +110,6 @@ Mutually exclusive per worktree — pick one per worktree, never both. The `impl
 `execute-plan` skills in the agents-arwaky tree use the supervised mode; their step files
 are the authoritative protocol for that class of task.
 
-- **Verify the worktree's base before dropping a brief.** `worktree create`
-  bases the new branch on the remote default (`origin/main`) regardless of
-  `--prompt`; for a task stacked on a sibling feature branch, check
-  `git log --oneline -3` in the worktree and `git reset --hard <base-sha>`
-  (or recreate) before sending the brief — otherwise the work conflicts or
-  misses its predecessor's commits. `--prompt` (if used) reaches the TUI
-  only as queued text; an empty TUI stream does not mean the prompt was
-  never delivered — check worktree state instead.
-
 ## Handoff vs. supervision boundary
 
 Full ownership handoff — "hand off", "handover", "give this to another agent", "another
@@ -126,3 +117,19 @@ worktree" — routes to [cli.md](references/cli.md) and stops after the prompt i
 Supervised orchestration — the user asked to monitor, coordinate a DAG, use decision gates,
 or manage ask/reply — routes to [orchestration.md](references/orchestration.md) and keeps the
 original agent in control. The two are mutually exclusive.
+
+## Headless vs. TUI launch — agent slot must go through this skill
+
+Hermes delegates to Grok Build **only** through this skill (orca). When a user-facing
+agent (Hermes or a Grok-style orchestrator) wants a headless Grok run, the canonical
+pattern is:
+
+```bash
+# 1. Orca worktree with the Grok agent slot
+$ORCA worktree create --repo path:<repo> --name <task-slug> --agent grok --no-parent --json
+
+# 2. Drive Grok headless INSIDE that worktree (the worktree is the launch context)
+cd <worktree_path> && grok -p '<brief>' --cwd <worktree_path> --always-approve --max-turns <n>
+
+# 3. Collect Grok's output, then retire/verify the worktree
+```

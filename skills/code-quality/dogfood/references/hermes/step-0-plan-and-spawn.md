@@ -22,11 +22,16 @@ For `web`/`terminal`/`desktop` targets that live in a repo, resolve `$ORCA` (`$O
 "$ORCA" worktree create --repo path:<repo_path> --name dogfood-<target-slug> --agent grok --no-parent --surface terminal --json
 ```
 
-For `mobile` targets or ad-hoc exploration with no repo (a raw APK / external app), skip the worktree and run Grok headless instead:
+For `mobile` targets or ad-hoc exploration with no repo (a raw APK / external app), create a scratch worktree first, then run Grok headless **inside it**:
 
 ```
-grok -p "/dogfood <target> --type mobile ...<brief>" --cwd <workdir> --always-approve
+# Create a scratch worktree (no repo needed — use a temp directory as workdir)
+mkdir -p ~/orca/workspaces/dogfood-mobile/<target-slug>
+cd ~/orca/workspaces/dogfood-mobile/<target-slug>
+grok -p "/dogfood <target> --type mobile ...<brief>" --cwd "$(pwd)" --always-approve
 ```
+
+Never run bare `grok -p` directly in the Hermes terminal session — always `cd` into the worktree/scratch directory first.
 
 Parse JSON (worktree case): `result.worktree.path` → `worktree_path`, `result.worktree.id` → `worktree_id`, `result.worktree.branch` → `worktree_branch` (strip `refs/heads/`).
 
@@ -48,4 +53,4 @@ Confirm `accepted: true`. **After this send, do not send any more text to Grok.*
 
 > Dropped /dogfood into Grok Build at <worktree_path> (target: <target>, type: <type>, scope: <scope>). Waiting for completion.
 
-Then end the turn. When the Orca terminal becomes idle (or the headless `grok -p` call returns), proceed to Step 1.
+Then end the turn. When the Orca terminal becomes idle (or the headless `grok -p` call inside the worktree returns), proceed to Step 1.
