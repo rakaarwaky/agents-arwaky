@@ -39,6 +39,7 @@ __all__ = [
     "SkillsDiscoveryAgent",
 ]
 
+# ─── Block 1: Module Declaration ────────────────────────────────────────
 
 class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
     """Discovery-side agent: list / read / lint / catalog / discover."""
@@ -57,7 +58,7 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         self._reader = reader
         self._default_root = default_root
 
-    # ─── Block 1: Module Declaration ────────────────────────────────────────
+
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
             raise SkillsRootError(f"discovery capability not wired: {name}")

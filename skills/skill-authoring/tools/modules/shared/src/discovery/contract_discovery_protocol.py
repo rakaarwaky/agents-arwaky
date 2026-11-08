@@ -14,10 +14,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from shared.src.discovery.taxonomy_discovery_request import (
-    DiscoveryQuery,
-    DiscoveryRoot,
-)
 from shared.src.design.taxonomy_skills_vo import (
     BM25FHit,
     CatalogCheckResult,
@@ -26,6 +22,10 @@ from shared.src.design.taxonomy_skills_vo import (
     SkillContent,
     SkillRecord,
     SkillsJsonPayload,
+)
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRoot,
 )
 
 

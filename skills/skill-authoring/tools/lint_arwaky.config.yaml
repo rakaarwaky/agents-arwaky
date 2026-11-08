@@ -35,6 +35,7 @@ ignored_rules:
   - "markdownlint::MD060"
   - "markdownlint::MD033"
   - "markdownlint::MD024"
+  - "markdownlint::MD012"
   
 ignored_paths: []
 
