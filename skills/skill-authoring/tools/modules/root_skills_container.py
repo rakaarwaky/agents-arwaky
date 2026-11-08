@@ -64,7 +64,7 @@ from shared.src.design.taxonomy_skills_request import (
     SkillsRoot,
 )
 from shared.src.design.taxonomy_skills_response import SkillsExitCode, SkillsResult
-from shared.src.discovery.taxonomy_discovery_request import DiscoveryRequest, DiscoveryVerb
+from shared.src.discovery.taxonomy_discovery_request import DiscoveryQuery, DiscoveryRequest, DiscoveryVerb
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
 from shared.src.traces.contract_traces_aggregate import ISkillsTracesAggregate
 from shared.src.common.taxonomy_common_vo import (
