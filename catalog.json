@@ -1,22 +1,3 @@
 {
-  "skills": [
-    {
-      "name": "blender-arwaky",
-      "description": "",
-      "when_to_use": "",
-      "category": "internal"
-    },
-    {
-      "name": "qwen-web-arwaky",
-      "description": "Automate Qwen AI Web (chat.qwen.ai) with the Qwen3.8-Max model by default — zero API keys, persistent browser sessions. The model is configurable via the --model flag or the QWEN_MODEL / QWEN_DEFAULT_MODEL environment variables, and a model name the picker does not offer falls back to the first available one with a WARNING. Use when an AI agent needs to send prompts, review code, or analyze document attachments via CLI or MCP tools.",
-      "when_to_use": "",
-      "category": "internal"
-    },
-    {
-      "name": "vision-arwaky",
-      "description": "Unified image and video intelligence for computer vision, OCR, video analysis, object tracking, and MCP integrations.",
-      "when_to_use": "",
-      "category": "internal"
-    }
-  ]
+  "skills": []
 }

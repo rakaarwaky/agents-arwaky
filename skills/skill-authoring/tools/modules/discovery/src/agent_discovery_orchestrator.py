@@ -16,7 +16,12 @@ from collections.abc import Callable
 from typing import cast
 
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
+from discovery.src.capabilities_discovery_catalog import SkillsCatalog as _DefaultSkillsCatalog
+from discovery.src.capabilities_discovery_finder import SkillsDiscover as _DefaultSkillsDiscover
+from discovery.src.capabilities_discovery_lister import SkillsLister as _DefaultSkillsLister
+from discovery.src.capabilities_discovery_reader import SkillsPackReader as _DefaultSkillsPackReader
 from shared.src.common.taxonomy_common_error import SkillsError, SkillsRootError
+from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
     ISkillsDiscoverProtocol,
@@ -49,10 +54,14 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
         reader: ISkillsReaderProtocol | None = None,
         default_root: DiscoveryRoot | None = None,
     ) -> None:
-        self._catalog = catalog
-        self._discover = discover
-        self._lister = lister
-        self._reader = reader
+        _catalog = catalog if catalog is not None else _DefaultSkillsCatalog()
+        _discover = discover if discover is not None else _DefaultSkillsDiscover(
+            _catalog, SkillsBm25fRanker()
+        )
+        self._catalog = _catalog
+        self._discover = _discover
+        self._lister = lister if lister is not None else _DefaultSkillsLister()
+        self._reader = reader if reader is not None else _DefaultSkillsPackReader()
         self._default_root = default_root
 
 
