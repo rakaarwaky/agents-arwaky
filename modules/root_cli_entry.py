@@ -54,6 +54,7 @@ for _skills_ns in (
     ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
+    ROOT / "skills" / "skill-authoring" / "tools" / "modules",
 ):
     if _skills_ns.is_dir() and str(_skills_ns) not in sys.path:
         sys.path.insert(0, str(_skills_ns))
@@ -610,7 +611,7 @@ def cmd_skills(argv: list[str]) -> int:
     from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
-    from skills/skill-authoring/tools/modules/root_skills_container import default_aggregate
+    from root_skills_container import default_aggregate
 
     aggregate = default_aggregate()
     return _skills_surface(list(argv), aggregate)
