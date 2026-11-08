@@ -18,37 +18,35 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from shared.src.design.contract_skills_protocol import (
+    ISkillsMoverProtocol,
+)
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import (
+    CategoryName,
+    MutationOutcome,
+    MutationPlan,
+    SkillName,
+)
+from shared.src.discovery.utility_skills_tree import relpath
+from shared.src.governance.taxonomy_skills_error import (
+    MutationConflictError,
+    SkillsUsageError,
+)
 from shared.src.maintenance.utility_skills_mutation import (
     assert_within_root,
     resolve_skill_dir,
     validate_category_name,
 )
-from shared.src.discovery.utility_discovery_core import relpath
-from shared.src.design.contract_skills_protocol import (
-    ISkillsMoverProtocol,
-)
-from shared.src.common.taxonomy_common_error import (
-    MutationConflictError,
-    SkillsUsageError,
-)
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.common.taxonomy_common_vo import (
-    CategoryName,
-    SkillName,
-)
-from shared.src.design.taxonomy_skills_vo import (
-    MutationOutcome,
-    MutationPlan,
-)
 
 __all__ = ["SkillsMover"]
 
 
-# ─── Block 1: Module Declaration ──────────────
+# ─── Block 1: Class Definition & Constructor ──────────────
 class SkillsMover(ISkillsMoverProtocol):
     """Plans and applies a move of a skill to another category."""
 
-    # ─── Block 2: Module Contract ─────────────
+    # ─── Block 2: Protocol Method Implementation ─────────────
     def plan_move(
         self, skill: SkillName, target: CategoryName, root: SkillsRoot
     ) -> MutationPlan:
@@ -100,6 +98,6 @@ class SkillsMover(ISkillsMoverProtocol):
         shutil.move(str(plan.source), str(plan.destination))
         return MutationOutcome(message="moved")
 
-    # ─── Block 3: Module Helpers ─────────
+    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
     def __repr__(self) -> str:
         return "SkillsMover()"
