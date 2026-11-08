@@ -4,6 +4,12 @@ Stateless discovery helpers: tree walking, frontmatter parsing, markdown
 string mechanics, cross-process locking, and the discovery loaders that
 turn a skills root into skill records and BM25F hits.
 """
+from shared.src.discovery.contract_discovery_protocol import (
+    ISkillsCatalogProtocol,
+    ISkillsDiscoverProtocol,
+    ISkillsListerProtocol,
+    ISkillsReaderProtocol,
+)
 from shared.src.discovery.utility_skills_core import (
     category_dirs,
     category_summaries,
@@ -14,6 +20,10 @@ from shared.src.discovery.utility_skills_core import (
 )
 
 __all__ = [
+    "ISkillsCatalogProtocol",
+    "ISkillsDiscoverProtocol",
+    "ISkillsListerProtocol",
+    "ISkillsReaderProtocol",
     "category_dirs",
     "category_summaries",
     "clean_one_line",
@@ -21,3 +31,10 @@ __all__ = [
     "parse_frontmatter",
     "skill_entries",
 ]
+
+_layer_symbols = {
+    "ISkillsCatalogProtocol": ISkillsCatalogProtocol,
+    "ISkillsDiscoverProtocol": ISkillsDiscoverProtocol,
+    "ISkillsListerProtocol": ISkillsListerProtocol,
+    "ISkillsReaderProtocol": ISkillsReaderProtocol,
+}

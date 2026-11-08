@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import ISkillsReaderProtocol
+from shared.src.discovery.contract_discovery_protocol import ISkillsReaderProtocol
 from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,

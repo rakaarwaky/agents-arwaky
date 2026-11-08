@@ -19,7 +19,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from shared.src.design.contract_skills_protocol import (
+from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
 )
 from shared.src.design.taxonomy_skills_constant import (
