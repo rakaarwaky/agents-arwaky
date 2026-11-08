@@ -3,9 +3,12 @@
 The single executable source of truth for what a valid skill is: the
 budget / layout constants, the escape helpers' rule text, the layout
 invariants, and the issue taxonomy — the 13 issue-type strings plus the
-exact message strings ``validate`` emits. It also carries the discovery
-score scale, the rule-doc summaries/citations, and the lifecycle state
-and config-file constants.
+exact message strings ``validate`` emits. It also carries the rule-doc
+summaries/citations, and the lifecycle state constants.
+
+Cross-domain shared constants (naming budget, category dirs, catalog
+file, drift warning, BM25F scale) live in
+``shared.src.common.taxonomy_common_constant``.
 
 Provenance: these values originated in the retired ``librarian.py``
 (which no longer exists); this module is now the single executable
@@ -16,29 +19,21 @@ must read these constants rather than restate them.
 
 from __future__ import annotations
 
-import re
 from typing import Final
+
+from shared.src.common.taxonomy_common_constant import (
+    BM25F_SCORE_SCALE,
+    CATALOG_FILENAME,
+    CATEGORY_DESCRIPTION_FILENAME,
+    DRIFT_WARNING,
+    IGNORED_CATEGORY_DIRS,
+    NAME_MAX,
+    NAME_MIN,
+    NAME_RE,
+)
 
 # Originally ``librarian.py`` (retired); now this module is the SSOT.
 MAX_DESCRIPTION_LEN: Final = 1024
-
-# ─── Naming budget ─────────────────────────────────────────────────────
-
-#: Naming budget. ``is_valid_skill_name`` in
-#: ``taxonomy_skills_vo.py`` consumes these.
-NAME_MIN: Final = 2
-NAME_MAX: Final = 64
-NAME_RE: Final = re.compile(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$")
-
-# ── Layout invariants ─────────────────────────────────────────────────
-
-#: Category description file name (provenance: retired ``librarian.py``).
-CATEGORY_DESCRIPTION_FILENAME: Final = "DESCRIPTION.md"
-
-#: Category directories the walker skips (provenance: retired ``librarian.py``).
-IGNORED_CATEGORY_DIRS: Final = frozenset(
-    {".git", ".hg", ".svn", "__pycache__", "_archive"}
-)
 
 #: Archive directory the ``archive`` mutation moves skills into; the
 #: walker skips it (it is in ``IGNORED_CATEGORY_DIRS``).
@@ -59,24 +54,6 @@ ASSETS_MARKER_FILENAME: Final = "ASSETS.md"
 #: ``validate`` skips the ``too-deep`` error for those files. Opt-in
 #: only — without the marker, depth violations are unchanged.
 PACK_MARKER_FILENAME: Final = "pack.toml"
-
-#: The loud drift warning: the catalog failed its drift gate, so the
-#: answer comes from a live tree scan. Named repair: ``catalog --check``.
-DRIFT_WARNING: Final = (
-    "WARNING: catalog drift detected — answering from a live tree scan. "
-    "Run `catalog --check` to repair catalog.json."
-)
-
-#: The catalog file name (tracked artifact name).
-CATALOG_FILENAME: Final = "catalog.json"
-
-# ── Discovery scoring ────────────────────────────────────────────────
-
-#: Score scale factor: float BM25F score * scale → int legacy projection.
-#: Lived in ``capabilities_skills_discover`` (AES403 CapabilityLocalConstant:
-#: module-level constants in capability files are flagged); taxonomy is the
-#: SSOT home for shared numeric constants.
-BM25F_SCORE_SCALE: Final = 100
 
 # ── Rule documentation ───────────────────────────────────────────────
 
@@ -150,8 +127,8 @@ __all__ = [
     "ASSETS_MARKER_FILENAME",
     "BM25F_SCORE_SCALE",
     "CATALOG_FILENAME",
-    "CATEGORY_DESCRIPTION_FILENAME",
     "CITATIONS",
+    "CATEGORY_DESCRIPTION_FILENAME",
     "DRIFT_WARNING",
     "IGNORED_CATEGORY_DIRS",
     "LIFECYCLE_STATES",

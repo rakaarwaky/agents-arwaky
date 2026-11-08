@@ -25,15 +25,17 @@ from shared.src.maintenance.utility_skills_mutation import (
 from shared.src.design.contract_skills_protocol import (
     ISkillsCreatorProtocol,
 )
-from shared.src.design.taxonomy_skills_constant import (
+from shared.src.common.taxonomy_common_constant import (
     CATEGORY_DESCRIPTION_FILENAME,
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     CategoryName,
+    SkillName,
+)
+from shared.src.design.taxonomy_skills_vo import (
     NewCategoryPlan,
     SkillCreatePlan,
-    SkillName,
 )
 
 __all__ = ["SkillsCreator"]

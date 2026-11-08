@@ -1,8 +1,12 @@
-"""Skills-domain entities (AES taxonomy layer).
+"""Skills-domain entities (AES taxonomy layer, design domain).
 
 Identity-bearing domain records produced by the authoring tree walk and
 the validator. Pure data: no I/O, no imports from utility, capabilities,
 agent, root, or surface layers.
+
+Cross-domain shared entities (``SkillEntry``, ``CategorySummary``) live
+in ``shared.src.common.taxonomy_common_entity``; this module defines
+only the design-domain ``Issue`` record.
 """
 
 from __future__ import annotations
@@ -12,37 +16,8 @@ from dataclasses import dataclass
 from shared.src.design.taxonomy_skills_vo import IssueType
 
 __all__ = [
-    "CategorySummary",
     "Issue",
-    "SkillEntry",
 ]
-
-
-@dataclass(frozen=True)
-class SkillEntry:
-    """One discoverable skill at ``category/skill``.
-
-    Fields mirror the dict the original ``skill_entries`` produced, so
-    callers can index them identically. ``path`` is the
-    ``category/skill`` identity string used in every report.
-    """
-
-    skill: str
-    frontmatter_name: str
-    category: str
-    description: str
-    when_to_use: str
-    path: str
-
-
-@dataclass(frozen=True)
-class CategorySummary:
-    """One category folder: description state and skill count."""
-
-    category: str
-    description: str
-    description_file_exists: bool
-    skill_count: int
 
 
 @dataclass(frozen=True)

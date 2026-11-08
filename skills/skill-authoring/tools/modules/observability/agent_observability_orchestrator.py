@@ -15,7 +15,7 @@ from shared.src.design.contract_skills_protocol import (
     ISkillsLedgerProtocol,
     ISkillsTelemetryProtocol,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
 )

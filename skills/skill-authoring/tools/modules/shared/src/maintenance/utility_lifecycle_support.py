@@ -30,13 +30,13 @@ from shared.src.design.taxonomy_skills_constant import (
     ARCHIVE_DIRNAME,
     LIFECYCLE_STATES,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillNotFoundError,
     SkillsUsageError,
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
-import shared.src.discovery.utility_skills_core as _core
+import shared.src.discovery.utility_discovery_core as _core
 
 __all__ = [
     "ACTIVE",

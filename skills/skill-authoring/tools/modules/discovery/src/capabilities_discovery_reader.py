@@ -9,35 +9,35 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.src.common.taxonomy_common_vo import (
+    SkillContent,
+    sanitize_skill_name,
+)
+from shared.src.discovery.contract_discovery_protocol import ISkillsReaderProtocol
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRoot,
+)
 from shared.src.storage.utility_skill_pack import (
     default_pack_root,
     iter_skill_mds,
     parse_skill_frontmatter,
     read_skill_md,
 )
-from shared.src.design.contract_skills_protocol import ISkillsReaderProtocol
-from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
-)
-from shared.src.design.taxonomy_skills_vo import (
-    SkillContent,
-    sanitize_skill_name,
-)
 
 __all__ = ["SkillsPackReader"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsPackReader(ISkillsReaderProtocol):
     """Reads one skill's ``SKILL.md`` content from the pack at *pack_root*."""
 
     def __init__(self, pack_root: Path | None = None) -> None:
         self._root = pack_root or default_pack_root()
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def show_skill(
-        self, query: SkillQuery, root: SkillsRoot | None = None
+        self, query: DiscoveryQuery, root: DiscoveryRoot | None = None
     ) -> SkillContent | None:
         """Return the raw SKILL.md content for *query*, or None if missing.
 
@@ -71,6 +71,6 @@ class SkillsPackReader(ISkillsReaderProtocol):
             return SkillContent(raw) if raw is not None else None
         return None
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ───
     def __repr__(self) -> str:
         return "SkillsPackReader()"

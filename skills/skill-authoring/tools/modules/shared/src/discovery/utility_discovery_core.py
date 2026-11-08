@@ -1,40 +1,31 @@
-"""Shared skill-tree helpers (AES utility layer, AES201 exception).
+"""Skills discovery utilities (AES utility layer).
 
-Holds the cross-cutting walkers and parsers that ``utility_skills_tree``
-and ``utility_skills_mutation`` both need. AES201 forbids utility files
-from importing one another; this module is the single documented
-exception. Both consumers import from here and no longer carry
-private copies.
+Single shared-utility module for the discovery feature: cross-process
+locking, markdown string mechanics, skill-tree walking, and frontmatter
+parsing. Stateless technical readers over a skills root; business
+decisions (which issue each shape raises) live in the capability
+layers.
 
-Contents:
-- ``clean_one_line``: the whitespace-collapsing string helper.
-- ``category_dirs``: the category walker (symlink/hidden/ignored skip).
-- ``parse_frontmatter``: the optional-PyYAML + single-line fallback.
-- ``skill_entries`` / ``category_summaries``: the two-level discovery loaders.
-- ``cross_process_lock``: the fcntl/msvcrt lock primitive.
-
-Imports only from the taxonomy layer; no capability, agent, root, or
-surface imports. No other utility file imports this module.
+Optional PyYAML: load-bearing only when present; the single-line
+fallback keeps the pack readable on a host without it.
 """
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from types import ModuleType
 
-from shared.src.design.taxonomy_skills_constant import (
-    ASSETS_MARKER_FILENAME,
+from shared.src.common.taxonomy_common_constant import (
     CATEGORY_DESCRIPTION_FILENAME,
     IGNORED_CATEGORY_DIRS,
 )
-from shared.src.design.taxonomy_skills_entity import (
+from shared.src.common.taxonomy_common_entity import (
     CategorySummary,
     SkillEntry,
 )
-from shared.src.governance.taxonomy_skills_error import SkillsRootError
+from shared.src.common.taxonomy_common_error import SkillsRootError
 
-# Optional PyYAML: load-bearing only when present; the single-line
-# fallback below keeps the pack readable on a host without it.
 _yaml_mod: ModuleType | None
 try:
     import yaml as _yaml_mod
@@ -47,13 +38,45 @@ __all__ = [
     "clean_one_line",
     "cross_process_lock",
     "parse_frontmatter",
+    "relpath",
     "skill_entries",
 ]
+
+
+def cross_process_lock(handle: object) -> None:
+    """Take an exclusive, blocking cross-process lock on *handle*.
+
+    Uses ``fcntl.flock`` on POSIX and ``msvcrt.locking`` on Windows.
+    The caller is responsible for unlocking; see the consumers'
+    ``_with_lock`` / ``_unlock_file`` wrappers.
+    """
+    try:
+        import fcntl as _fcntl
+    except ImportError:  # pragma: no cover - POSIX only
+        _fcntl = None
+    try:
+        import msvcrt as _msvcrt
+    except ImportError:  # pragma: no cover - Windows only
+        _msvcrt = None
+
+    if _fcntl is not None:
+        _fcntl.flock(handle.fileno(), _fcntl.LOCK_EX)
+    elif _msvcrt is not None:
+        handle.flush()
+        _msvcrt.locking(handle.fileno(), _msvcrt.LK_LOCK, (1 << 31) - 1)
 
 
 def clean_one_line(value: object) -> str:
     """Collapse whitespace to single spaces and strip the edges."""
     return " ".join(str(value).split()).strip()
+
+
+def relpath(path: Path, skills_root: Path) -> str:
+    """A skills-root-relative path when possible, else the absolute one."""
+    try:
+        return str(path.relative_to(skills_root))
+    except ValueError:
+        return str(path)
 
 
 def category_dirs(skills_root: Path) -> Iterator[Path]:
@@ -102,7 +125,7 @@ def parse_frontmatter(path: Path) -> dict[str, object]:
     if _yaml_mod is not None:
         try:
             parsed = _yaml_mod.safe_load(fm_text)
-        except Exception:  # degraded to the fallback parser below
+        except _yaml_mod.YAMLError:  # degraded to the fallback parser below
             parsed = None
     else:
         parsed = None
@@ -194,26 +217,3 @@ def category_summaries(
         )
 
     return summaries
-
-
-def cross_process_lock(handle: object) -> None:
-    """Take an exclusive, blocking cross-process lock on *handle*.
-
-    Uses ``fcntl.flock`` on POSIX and ``msvcrt.locking`` on Windows.
-    The caller is responsible for unlocking; see the consumers'
-    ``_with_lock`` / ``_unlock_file`` wrappers.
-    """
-    try:
-        import fcntl as _fcntl
-    except ImportError:  # pragma: no cover - POSIX only
-        _fcntl = None
-    try:
-        import msvcrt as _msvcrt
-    except ImportError:  # pragma: no cover - Windows only
-        _msvcrt = None
-
-    if _fcntl is not None:
-        _fcntl.flock(handle.fileno(), _fcntl.LOCK_EX)
-    elif _msvcrt is not None:
-        handle.flush()
-        _msvcrt.locking(handle.fileno(), _msvcrt.LK_LOCK, (1 << 31) - 1)

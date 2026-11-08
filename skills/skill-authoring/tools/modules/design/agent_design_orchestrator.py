@@ -20,7 +20,7 @@ from shared.src.design.contract_skills_protocol import (
     ISkillsRunnerProtocol,
 )
 from shared.src.design.taxonomy_skills_constant import ARCHIVE_DIRNAME
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
     SkillsUsageError,
@@ -35,7 +35,7 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     SkillContent,
     SkillRecord,
 )

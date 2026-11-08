@@ -26,21 +26,23 @@ from shared.src.design.taxonomy_skills_request import (
     SkillQuery,
     SkillsRoot,
 )
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     BM25FHit,
     CatalogCheckResult,
     CatalogReport,
     CategoryName,
     DiscoveryResult,
+    SkillContent,
+    SkillName,
+    SkillRecord,
+    SkillsJsonPayload,
+)
+from shared.src.design.taxonomy_skills_vo import (
     LintReport,
     MutationOutcome,
     MutationPlan,
     NewCategoryPlan,
-    SkillContent,
     SkillCreatePlan,
-    SkillName,
-    SkillRecord,
-    SkillsJsonPayload,
 )
 
 
@@ -405,4 +407,3 @@ __all__ = [
     "ISkillsRunnerProtocol",
     "ISkillsTelemetryProtocol",
 ]
-

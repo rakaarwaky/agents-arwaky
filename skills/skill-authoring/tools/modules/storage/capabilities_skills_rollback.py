@@ -18,7 +18,7 @@ import tarfile
 from pathlib import Path
 from typing import Any
 
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
 )

@@ -23,20 +23,22 @@ from shared.src.maintenance.utility_skills_mutation import (
     resolve_skill_dir,
     validate_category_name,
 )
-from shared.src.discovery.utility_skills_tree import relpath
+from shared.src.discovery.utility_discovery_core import relpath
 from shared.src.design.contract_skills_protocol import (
     ISkillsMoverProtocol,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.design.taxonomy_skills_vo import (
+from shared.src.common.taxonomy_common_vo import (
     CategoryName,
+    SkillName,
+)
+from shared.src.design.taxonomy_skills_vo import (
     MutationOutcome,
     MutationPlan,
-    SkillName,
 )
 
 __all__ = ["SkillsMover"]

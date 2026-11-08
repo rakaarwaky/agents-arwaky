@@ -1,14 +1,18 @@
-"""Skills taxonomy value objects (AES taxonomy layer).
+"""Skills taxonomy value objects (AES taxonomy layer, design domain).
 
-The single ``_vo`` module for the skills domain. It carries:
+The design-domain ``_vo`` module. It carries:
 
-* the core read-side primitives (``SkillRecord``, ``SkillContent``, ...);
 * the published rule shape (``IssueType``, ``Rule``, the ``RULES`` table,
   and the ``rule``/``is_valid_skill_name``/``issue_message`` helpers);
 * the authoring result/mutation VOs (``ValidationReport``,
-  ``DiscoveryResult``, ``MutationPlan``, ...);
+  ``MutationPlan``, ...);
 * the lifecycle telemetry/ledger VOs (``TelemetryRow``, ``LedgerEntry``);
 * the lifecycle config VO.
+
+Cross-domain shared VOs (``SkillRecord``, ``CatalogReport``,
+``DiscoveryResult``, ...) live in
+``shared.src.common.taxonomy_common_vo``; this module defines only
+design-domain types.
 
 Everything here is pure data except ``load_lifecycle_config``, which
 reads the pack-root config file and overlays it over the dataclass
@@ -19,20 +23,19 @@ from __future__ import annotations
 
 import json
 import logging
-import posixpath
 import re
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Final, NewType
+from typing import TYPE_CHECKING, Any, Final
 
-from shared.src.design.taxonomy_skills_constant import (
-    BM25F_SCORE_SCALE,
-    CITATIONS,
+from shared.src.common.taxonomy_common_constant import (
     NAME_MAX,
     NAME_MIN,
     NAME_RE,
+)
+from shared.src.design.taxonomy_skills_constant import (
+    CITATIONS,
     SUMMARIES,
 )
 
@@ -43,43 +46,6 @@ if TYPE_CHECKING:
     from shared.src.design.taxonomy_skills_entity import Issue
 
 logger = logging.getLogger(__name__)
-
-# ─── Core read-side primitives ─────────────────────────────────────────
-
-SkillContent = NewType("SkillContent", str)
-"""Raw SKILL.md text returned by a read."""
-
-SkillDescription = NewType("SkillDescription", str)
-"""One-line description extracted from SKILL.md frontmatter."""
-
-ErrorMessage = NewType("ErrorMessage", str)
-"""A formatted error message for skill-domain exceptions."""
-
-SkillsJsonPayload = NewType("SkillsJsonPayload", Mapping[str, object])
-"""The pure-data JSON list of global skills (``SkillsLister.list_skills_json``).
-
-One entry per skill (``name``, ``source``, ``path``, ``loaded``); the
-source is the repo pack only. A pure-data dict, so it never touches I/O.
-"""
-
-
-@dataclass(frozen=True)
-class SkillRecord:
-    """One discoverable skill in the pack."""
-
-    name: str
-    description: SkillDescription
-    path: Path
-
-
-# ─── Skill reference value objects ─────────────────────────────────────
-
-#: A skill directory name (the folder name under a category).
-SkillName = NewType("SkillName", str)
-
-#: A category directory name.
-CategoryName = NewType("CategoryName", str)
-
 
 # ─── Issue taxonomy ────────────────────────────────────────────────────
 
@@ -226,33 +192,12 @@ def is_valid_skill_name(name: str) -> bool:
     return bool(NAME_RE.match(name)) and "--" not in name and NAME_MIN <= len(name) <= NAME_MAX
 
 
-def sanitize_skill_name(raw: str, fallback: str) -> str:
-    """Convert frontmatter name into a safe directory name (prevents path traversal)."""
-    raw = (raw or "").strip().replace("\\\\", "/")
-    raw = posixpath.basename(raw)
-    name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-")
-    if not name:
-        name = re.sub(r"[^A-Za-z0-9._-]+", "-", fallback).strip(".-") or "skill"
-    return name[:64]
-
-
 def issue_message(issue_type: IssueType, **fields: Any) -> str:
     """Render the verbatim message for an issue type with the given fields."""
     return ISSUE_MESSAGES[issue_type].format(**fields)
 
 
 # ─── Authoring value objects ───────────────────────────────────────────
-
-
-def map_to_legacy_score(score: float) -> int:
-    """Map a float BM25F score to the legacy int score projection.
-
-    Pure data helper (no I/O, no imports from utility/capabilities/
-    agent/root/surface) so the discover capability can project the
-    ranker's float score onto the stable int ``DiscoveryMatch.score``
-    field without a cross-capability import (AES201).
-    """
-    return max(0, round(score * BM25F_SCORE_SCALE))
 
 
 @dataclass(frozen=True)
@@ -311,77 +256,6 @@ class LintReport:
             f"{self.unfiltered_issue_count} issues / {self.skills} skills / "
             f"{self.categories} categories"
         )
-
-
-@dataclass(frozen=True)
-class CatalogReport:
-    """The result of rebuilding ``catalog.json``."""
-
-    path: Path
-    skills: int
-    categories: int
-
-
-@dataclass(frozen=True)
-class CatalogCheckResult:
-    """The result of ``catalog --check`` (never writes)."""
-
-    in_sync: bool
-    diff_lines: tuple[str, ...] = ()
-    message: str = ""
-
-
-@dataclass(frozen=True)
-class BM25FHit:
-    """A ranked result row plus which logical fields contributed to its score."""
-
-    score: float
-    row: object
-    matched_fields: tuple[str, ...]
-
-
-@dataclass(frozen=True)
-class DiscoveryMatch:
-    """One scored discovery row.
-
-    ``matched_fields`` carries the logical field names that contributed
-    to this match (e.g. ``("name", "when_to_use")``) — empty on the
-    tree-scan fallback or when no field match was recorded.
-    """
-
-    skill: str
-    category: str
-    description: str
-    path: str
-    score: int
-    matched_fields: tuple[str, ...] = ()
-    when_to_use: str = ""
-
-    def as_dict(self) -> dict[str, object]:
-        """The legacy match projection, in legacy key order."""
-        return {
-            "skill": self.skill,
-            "category": self.category,
-            "description": self.description,
-            "path": self.path,
-            "score": self.score,
-            "matched_fields": list(self.matched_fields),
-            "when_to_use": self.when_to_use,
-        }
-
-
-@dataclass(frozen=True)
-class DiscoveryResult:
-    """Discovery matches plus the drift-fallback warning state.
-
-    ``warning`` mirrors today's JSON ``warning`` key (empty on the happy
-    path); ``warning_detail`` carries the legacy ``  reason: ...`` stderr
-    line's detail so the surface can reproduce it verbatim.
-    """
-
-    matches: tuple[DiscoveryMatch, ...] = ()
-    warning: str = ""
-    warning_detail: str = ""
 
 
 @dataclass(frozen=True)
@@ -527,34 +401,21 @@ __all__ = [
     "ISSUE_MESSAGES",
     "RULES",
     "RULE_IDS",
-    "BM25FHit",
-    "CatalogCheckResult",
-    "CatalogReport",
-    "CategoryName",
-    "DiscoveryMatch",
-    "DiscoveryResult",
-    "ErrorMessage",
     "IssueType",
     "LedgerEntry",
     "LifecycleConfig",
     "LintReport",
+    "Level",
     "MutationOutcome",
     "MutationPlan",
     "MutationStep",
     "NewCategoryPlan",
     "Rule",
-    "SkillContent",
     "SkillCreatePlan",
-    "SkillDescription",
-    "SkillName",
-    "SkillRecord",
-    "SkillsJsonPayload",
     "TelemetryRow",
     "ValidationReport",
     "is_valid_skill_name",
     "issue_message",
     "load_lifecycle_config",
-    "map_to_legacy_score",
     "rule",
-    "sanitize_skill_name",
 ]
