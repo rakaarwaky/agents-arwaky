@@ -514,7 +514,7 @@ class LifecycleConfig:
     consolidate: bool = False
     backup_enabled: bool = True
     backup_keep: int = 2
-    archive_ttl_days: int = 0
+    archive_ttl_days: int = 30
     pause: bool = False
 
 
