@@ -15,35 +15,19 @@
 ## Rules
 
 1. **Suffix is strictly `_container` or `_entry`.** File: `root_<concept>_<suffix>.rs`.
-   Documented exceptions: `main.rs`, `lib.rs`, `mod.rs`, `root_cli_main_entry.rs`,
-   `root_mcp_main_entry.rs`, `root_tui_main_entry.rs`, `root_composition_container.rs`
-   (AES101/AES102).
-2. **Container = wire one feature only.** `Arc::new(impl)` for capabilities; expose
-   `Arc<dyn Trait>` (aggregate/protocol contracts). Never business logic.
-3. **Entry = bootstrap the app.** Parse CLI args (if needed), compose feature container
-   factories, start the surface/CLI loop. Never construct capabilities directly.
-4. **Allowed imports: everything below root** — agent, capabilities, surface, contract,
-   taxonomy, utility. Nothing below root may import root (AES201–AES205).
-5. **No business logic, no orchestration policy, no technical parsing, no UI behaviour** —
-   those live in capabilities / agent / utility / surface.
-6. **Signatures use shared VOs** where domain values appear (AES402). `bool` for
-   semantic toggles only.
+   Documented exceptions: `main.rs`, `lib.rs`, `mod.rs`, `root_cli_main_entry.rs`, `root_mcp_main_entry.rs`, `root_tui_main_entry.rs`, `root_composition_container.rs` (AES101/AES102).
+2. **Container = wire one feature only.** `Arc::new(impl)` for capabilities; expose `Arc<dyn Trait>` (aggregate/protocol contracts). Never business logic.
+3. **Entry = bootstrap the app.** Parse CLI args (if needed), compose feature container factories, start the surface/CLI loop. Never construct capabilities directly.
+4. **Allowed imports: everything below root** — agent, capabilities, surface, contract, taxonomy, utility. Nothing below root may import root (AES201–AES205).
+5. **No business logic, no orchestration policy, no technical parsing, no UI behaviour** — those live in capabilities / agent / utility / surface.
+6. **Signatures use shared VOs** where domain values appear (AES402). `bool` for semantic toggles only.
 7. **Register** in crate `mod.rs`.
-
-### Workflow
-
-1. **Determine role** — Container (wire one feature) or Entry (bootstrap all)?
-2. **Create file** → `root_<concept>_<suffix>.rs`.
-3. **Wire deps** → `Arc::new(impl)`; expose `Arc<dyn Trait>`.
-4. **Register** → update `mod.rs`.
-5. **Verify** → `lint-arwaky-cli scan <layer-path>` then `cargo check -p <crate-name>`.
 
 ---
 
 ## Template
 
-Copy, fill, delete nothing. File: `root_<concept>_<suffix>.rs` where
-`<suffix>` is `_container` or `_entry`.
+Copy, fill, delete nothing. File: `root_<concept>_<suffix>.rs` where `<suffix>` is `_container` or `_entry`.
 
 ### Container — wire one feature
 
@@ -78,9 +62,7 @@ impl <Concept>Container {
 }
 ```
 
-**Container rules:** instantiate capabilities with `Arc::new(impl)`; expose
-`Arc<dyn Trait>` (aggregate/protocol contracts) so agents and surfaces never
-see concretions; construction and binding only — no business logic.
+**Container rules:** instantiate capabilities with `Arc::new(impl)`; expose `Arc<dyn Trait>` (aggregate/protocol contracts) so agents and surfaces never see concretions; construction and binding only — no business logic.
 
 ### Entry — bootstrap the application
 
@@ -97,19 +79,9 @@ fn main() {
 }
 ```
 
-**Entry rules:** parse process args (bootstrap only) and compose containers;
-start the surface/CLI loop; never construct capabilities directly — go through
-a container; no business logic.
+**Entry rules:** parse process args (bootstrap only) and compose containers; start the surface/CLI loop; never construct capabilities directly — go through a container; no business logic.
 
 ---
-
-## Review
-
-- Role suffix correct: `_container` (composition container) or `_entry` (app entry) — § Rules role rules.
-- Container: `new` + accessors only, wiring is the whole job — § Rules container rules.
-- Entry: compose containers + `main`, bootstrap only — § Rules entry rules.
-- Layer-legal imports — `Arc<dyn Trait>` in signatures, no concrete capability exposure — § Rules import/signature rules.
-- Registered in `mod.rs` — dead code otherwise — § Rules registration rule.
 
 ## Section Contract
 
@@ -126,7 +98,25 @@ a container; no business logic.
 
 ---
 
-## Anti-Patterns
+## Workflow
+
+1. **Determine role** — Container (wire one feature) or Entry (bootstrap all)?
+2. **Create file** → `root_<concept>_<suffix>.rs`.
+3. **Wire deps** → `Arc::new(impl)`; expose `Arc<dyn Trait>`.
+4. **Register** → update `mod.rs`.
+5. **Verify** → `lint-arwaky-cli scan <layer-path>` then `cargo check -p <crate-name>`.
+
+---
+
+## Review
+
+- Role suffix correct: `_container` (composition container) or `_entry` (app entry) — § Rules role rules.
+- Container: `new` + accessors only, wiring is the whole job — § Rules container rules.
+- Entry: compose containers + `main`, bootstrap only — § Rules entry rules.
+- Layer-legal imports — `Arc<dyn Trait>` in signatures, no concrete capability exposure — § Rules import/signature rules.
+- Registered in `mod.rs` — dead code otherwise — § Rules registration rule.
+
+### Anti-Patterns
 
 - **Business / orchestration / parsing / UI logic in root** — move down a layer.
 - **Entry constructing capabilities directly** — go through a container `new`.

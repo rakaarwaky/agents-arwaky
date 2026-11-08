@@ -95,14 +95,6 @@ Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `a
 | Agent        | 50%   |
 | Utility      | 70%   |
 
-### Workflow
-
-1. Analyze package / app structure.
-2. Write `tests/contract_<package>.ts`, `tests/unit_<package>_<module>.ts`, `tests/integration_<package>.ts`.
-3. Write `tests/dogfood_<pipeline>.ts` (requires live session), then `tests/smoke_<app>.ts`, `tests/e2e_<flow>.ts`, `tests/acceptance_<FRD_ID>.ts`.
-4. Write `benches/bench_<subject>.ts`.
-5. Run `npx vitest run`, then verify coverage targets met.
-
 ---
 
 ## Template
@@ -183,6 +175,16 @@ export default defineConfig({
 
 ---
 
+## Workflow
+
+1. Analyze package / app structure.
+2. Write `tests/contract_<package>.ts`, `tests/unit_<package>_<module>.ts`, `tests/integration_<package>.ts`.
+3. Write `tests/dogfood_<pipeline>.ts` (requires live session), then `tests/smoke_<app>.ts`, `tests/e2e_<flow>.ts`, `tests/acceptance_<FRD_ID>.ts`.
+4. Write `benches/bench_<subject>.ts`.
+5. Run `npx vitest run`, then verify coverage targets met.
+
+---
+
 ## Review
 
 - No inline tests in `src/` — all suites live under `tests/`/`benches/` — § Rules placement rules.
@@ -195,7 +197,7 @@ export default defineConfig({
 - Benchmarks use vitest bench, not manual timing loops — § Rules bench rule.
 - Acceptance tests reference FRD/PRD IDs; smoke runs in <5s — § Rules traceability rule.
 
-## Dogfood / Integration Pipeline Tests
+### Dogfood / Integration Pipeline Tests
 
 **Dogfood tests are REQUIRED — not optional.** They validate against LIVE services.
 
@@ -211,6 +213,8 @@ For tests that exercise actual CLI commands against live services/sessions:
 8. **Mark with `@dogfood` decorator** for identification.
 
 Dogfood tests skip in CI when services unavailable — but the file MUST exist.
+
+---
 
 ## Verify
 

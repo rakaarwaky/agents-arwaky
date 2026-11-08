@@ -98,16 +98,6 @@ Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `a
 | Agent        | 50%   |
 | Utility      | 70%   |
 
-### Workflow
-
-1. Analyze module / app structure.
-2. Write `tests/contract_<module>.py`, `tests/unit_<module>_<subject>.py`, `tests/integration_<module>.py`.
-3. Write `tests/dogfood_<pipeline>.py` (requires live session), then `tests/smoke_<app>.py`, `tests/e2e_<flow>.py`, `tests/acceptance_<FRD_ID>.py`.
-4. Write `benches/bench_<subject>.py`.
-5. Run `pytest --tb=short`, then verify coverage targets met.
-
-**Note: ALL 8 test types are REQUIRED. Do not skip any type.**
-
 ---
 
 ## Template
@@ -171,6 +161,18 @@ Repo root:
 
 ---
 
+## Workflow
+
+1. Analyze module / app structure.
+2. Write `tests/contract_<module>.py`, `tests/unit_<module>_<subject>.py`, `tests/integration_<module>.py`.
+3. Write `tests/dogfood_<pipeline>.py` (requires live session), then `tests/smoke_<app>.py`, `tests/e2e_<flow>.py`, `tests/acceptance_<FRD_ID>.py`.
+4. Write `benches/bench_<subject>.py`.
+5. Run `pytest --tb=short`, then verify coverage targets met.
+
+**Note: ALL 8 test types are REQUIRED. Do not skip any type.**
+
+---
+
 ## Review
 
 - No inline tests in `src/` — all suites live under `tests/`/`benches/` — § Rules placement rules.
@@ -183,7 +185,7 @@ Repo root:
 - Benchmarks use `pytest-benchmark`, not manual timing loops — § Rules bench rule.
 - Acceptance tests reference FRD/PRD IDs; smoke runs in <5s — § Rules traceability rule.
 
-## Dogfood / Integration Pipeline Tests
+### Dogfood / Integration Pipeline Tests
 
 **Dogfood tests are REQUIRED — not optional.** They validate against LIVE services.
 
@@ -199,6 +201,8 @@ For tests that exercise actual CLI commands against live services/sessions:
 8. **Mark with `@pytest.mark.dogfood`** for identification.
 
 Dogfood tests skip in CI when services unavailable — but the file MUST exist.
+
+---
 
 ## Verify
 

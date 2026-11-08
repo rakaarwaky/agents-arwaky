@@ -25,13 +25,6 @@
 Keep in surface file if ANY: uses `this`, surface-specific mapping, static factory.
 Extract to taxonomy utility only if ALL: no `this`, pure, domain-agnostic, reusable.
 
-### Workflow
-
-1. Determine type (Smart/Utility/Passive), choose suffix.
-2. Enforce import rules for that type.
-3. No silent error discard.
-4. `npx tsc --noEmit`.
-
 ---
 
 ## Template
@@ -52,16 +45,6 @@ export class Surface<Name> {
 
 ---
 
-## Review
-
-- Correct surface tier suffix: `_smart` / `_utility` / `_passive` — § Rules tier rules.
-- Smart: only taxonomy + `contract_*_aggregate` imports; delegates via injected interface — § Rules import rules.
-- Utility: only taxonomy + passive surface imports — § Rules import rules.
-- Passive: only taxonomy imports — § Rules import rules.
-- Zero business logic and computation — § Rules behavior rules.
-- No silent error discarding — errors propagate or wrap into VOs — § Rules error rules.
-- All state fields use shared VOs — § Rules VO rules.
-
 ## Section Contract
 
 | Check | Why it belongs here|
@@ -75,6 +58,27 @@ export class Surface<Name> {
 | No silent error discarding. | Required by AES layer rules and the linter; missing it is a defect.|
 | All state fields use shared VOs. | Required by AES layer rules and the linter; missing it is a defect.|
 | `npx tsc --noEmit` passes. | Required by AES layer rules and the linter; missing it is a defect.|
+
+---
+
+## Workflow
+
+1. Determine type (Smart/Utility/Passive), choose suffix.
+2. Enforce import rules for that type.
+3. No silent error discard.
+4. `npx tsc --noEmit`.
+
+---
+
+## Review
+
+- Correct surface tier suffix: `_smart` / `_utility` / `_passive` — § Rules tier rules.
+- Smart: only taxonomy + `contract_*_aggregate` imports; delegates via injected interface — § Rules import rules.
+- Utility: only taxonomy + passive surface imports — § Rules import rules.
+- Passive: only taxonomy imports — § Rules import rules.
+- Zero business logic and computation — § Rules behavior rules.
+- No silent error discarding — errors propagate or wrap into VOs — § Rules error rules.
+- All state fields use shared VOs — § Rules VO rules.
 
 ---
 

@@ -31,8 +31,11 @@ A utility file **performs a pure operation** — no state, no business rules, ju
 
 ### Import rules
 
-**Allowed imports:** Taxonomy, Contract (`_protocol` only), Utility.
-**Forbidden:** `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants.
+| Rule                           | Value                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Allowed imports**            | `shared::*` — taxonomy VOs/constants, `_protocol` contracts, `*_utility` helpers                   |
+| **Mandatory imports (AES202)** | At least one `_protocol` import (Import Matrix row 9)                                             |
+| **Forbidden imports**          | `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants              |
 
 ### Structure rules (Rust)
 
@@ -64,74 +67,52 @@ A utility file **performs a pure operation** — no state, no business rules, ju
 - Domain-agnostic (no business rules).
 - ≥2 consumers (reusable across modules).
 
-### Workflow
-
-1. Confirm implements protocol behavior (not orchestration/data/mechanics).
-2. File `use shared::..._protocol::I<Name>` — if missing → flag `CapabilityNoProtocol`.
-3. Create `contract_<name>_protocol.rs` if missing.
-4. Enforce 3-Block with explicit `// Block 1:`, `// Block 2:`, `// Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
-5. AES403: ≥1 trait implementor, ≤3 types, `Arc<dyn Trait>` for DI, shared VOs.
-6. No forbidden imports, no inter-capability deps, no local domain models.
-7. `cargo check -p <crate-name>`.
-
 ---
 
-## Review
-
-- Capability vs Utility boundary respected: file implements one protocol (has state + business rules), stateless pure ops live in `utility_*` — § Rules § Capability vs Utility Boundary.
-- Imports: Taxonomy, Contract (`_protocol` only), Utility — nothing from `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants — § Rules Import rules.
-- Total struct + enum ≤ 3; ≥1 struct implements a protocol trait; Block 1 → 2 → 3 order — § Rules § Structure rules (Rust), § 3-Block Structure.
-- Block 2 holds only protocol trait implementations — no agent/surface logic inside — § Rules § 3-Block Structure.
-- Helper-vs-Utility matrix applied — stateless free function, no `&self`, ≥2 consumers → utility — § Rules § Helper vs Utility Decision Matrix.
-
 ## Template
+
+### 3-block implementation
 
 ```rust
 use std::sync::Arc;
 
-use shared::<name-feature>::taxonomy_<name-policy>_vo::<NamePolicy>VO;
-use shared::<name-feature>::contract_<name-store>_protocol::I<NameStore>Protocol;
-use shared::<name-feature>::contract_<name-collaborator>_protocol::I<NameCollaborator>Protocol;
-use shared::<name-feature>::contract_<name-capability>_protocol::I<NameCapability>Protocol;
+use shared::<domain>::taxonomy_<name>_vo::<VO>;
+use shared::<domain>::contract_<name>_protocol::I<Name>Protocol;
 
 // ─── Block 1: Module Declaration ───────────────────────────
-pub struct Capabilities<NameCapability> {
-    collaborator: Arc<dyn I<NameCollaborator>Protocol>,
-    store: Arc<dyn I<NameStore>Protocol>,
-    policy: <NamePolicy>VO,
+pub struct Capabilities<Name> {
+    dep: Arc<dyn I<Name>Protocol>,
+}
+
+impl Capabilities<Name> {
+    pub fn new(dep: Arc<dyn I<Name>Protocol>) -> Self {
+        Self { dep }
+    }
 }
 
 // ─── Block 2: Module Contract ───────────────
-impl I<NameCapability>Protocol for Capabilities<NameCapability> {
-    fn execute(&self, input: &<DomainVO>) -> Vec<<ResultVO>> {
-        let mut results = Vec::new();
-        // domain logic using injected dependencies
-        results
+impl I<Name>Protocol for Capabilities<Name> {
+    fn method_name(&self, param: <VO>) -> <VO> {
+        // domain behavior
+        todo!()
     }
 }
 
 // ─── Block 3: Module Helpers ─────────
-impl Capabilities<NameCapability> {
-    pub fn new(
-        collaborator: Arc<dyn I<NameCollaborator>Protocol>,
-        store: Arc<dyn I<NameStore>Protocol>,
-        policy: <NamePolicy>VO,
-    ) -> Self {
-        Self {
-            collaborator,
-            store,
-            policy,
-        }
+impl Capabilities<Name> {
+    pub fn to_string(&self) -> String {
+        format!("Capabilities<Name>()")
     }
+}
+```
 
-    // HELPERS: `pub fn` is only for genuine API. A helper with no caller in
-    // production code should be `fn` (private) or `pub(crate)` if a `#[cfg(test)]`
-    // module in the same file calls it. Integration tests under `tests/` compile
-    // as a separate crate, so a helper they call must stay `pub`.
-    fn helper_method(&self) -> bool {
-        // internal logic
-        true
-    }
+### Protocol trait
+
+```rust
+use shared::<domain>::taxonomy_<name>_vo::<VO>;
+
+pub trait I<Name>Protocol {
+    fn method_name(&self, param: <VO>) -> <VO>;
 }
 ```
 
@@ -145,7 +126,7 @@ checks it — the shape is still the contract, but a violation is caught by revi
 or by `cargo`, not by `scan`.
 
 | Check                                                        | Enforced                                                        |
-| ------------------------------------------------------------ | -----------------------------------------------------------------|
+| ------------------------------------------------------------ | --------------------------------------------------------------- |
 | All three `// Block 1:` / `// Block 2:` / `// Block 3:` banners present, in order, none above 3. | **AES403** `CapabilityBlockMarkers` (MEDIUM)                    |
 | Block 2 (protocol impl) precedes Block 3 (inherent impl).    | **AES403** `CapabilityBlockOrder` (HIGH)                        |
 | ≥1 struct implements a protocol trait.                       | **AES403** `CapabilityNoImplementor` (MEDIUM)                   |
@@ -166,6 +147,28 @@ inside a comment. The colon is load-bearing: prose such as
 `Block 1 (types) -> Block 2` is not a marker, and neither is `Sub-Block 4:`. Put
 the banner above the item it heads — and above that item's own `///` doc comment,
 never between the doc comment and the item, which would detach the documentation.
+
+---
+
+## Workflow
+
+1. Confirm implements protocol behavior (not orchestration/data/mechanics).
+2. File `use shared::..._protocol::I<Name>` — if missing → flag `CapabilityNoProtocol`.
+3. Create `contract_<name>_protocol.rs` if missing.
+4. Enforce 3-Block with explicit `// Block 1:`, `// Block 2:`, `// Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
+5. AES403: ≥1 trait implementor, ≤3 types, `Arc<dyn Trait>` for DI, shared VOs.
+6. No forbidden imports, no inter-capability deps, no local domain models.
+7. `cargo check -p <crate-name>`.
+
+---
+
+## Review
+
+- Capability vs Utility boundary respected: file implements one protocol (has state + business rules), stateless pure ops live in `utility_*` — § Rules § Capability vs Utility Boundary.
+- Imports: Taxonomy, Contract (`_protocol` only), Utility — nothing from `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants — § Rules Import rules.
+- Total struct + enum ≤ 3; ≥1 struct implements a protocol trait; Block 1 → 2 → 3 order — § Rules § Structure rules (Rust), § 3-Block Structure.
+- Block 2 holds only protocol trait implementations — no agent/surface logic inside — § Rules § 3-Block Structure.
+- Helper-vs-Utility matrix applied — stateless free function, no `&self`, ≥2 consumers → utility — § Rules § Helper vs Utility Decision Matrix.
 
 ---
 

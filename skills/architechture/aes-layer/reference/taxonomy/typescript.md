@@ -157,11 +157,7 @@ A leaf VO may expose a read-only accessor (e.g., `get value(): string`) for its 
 
 Constants are the explicit exception for literal values because constant files contain compile-time literals, not domain fields.
 
-`_request` and `_response` are a second exception. AES401 is not gated on those
-suffixes, and their role scope `taxonomy(request,response)` permits primitive
-union discriminants. The `"verb"` and `"kind"` string literals that discriminate a
-request or response union are required, so they are correct in these files.
-Domain *values* still belong in VOs.
+`_request` and `_response` are a second exception. AES401 is not gated on those suffixes, and their role scope `taxonomy(request,response)` permits primitive union discriminants. The `"verb"` and `"kind"` string literals that discriminate a request or response union are required, so they are correct in these files. Domain *values* still belong in VOs.
 
 ---
 
@@ -175,110 +171,6 @@ FIX: Expand the component or merge this logic into a related module. (min: 5).
 ```
 
 JSDoc comments and `export const` lines count. For constants, each constant should have a descriptive JSDoc line above it — this keeps the file above the minimum while also documenting intent.
-
----
-
-## Workflow
-
-1. Determine type:
-
-   ```text
-   VO
-   Entity
-   Error
-   Event
-   Constant
-   Request
-   Response
-   ```
-
-2. Create the file:
-
-   ```text
-   taxonomy_<domain>_<suffix>.ts
-   ```
-
-   inside:
-
-   ```text
-   packages/shared/src/<domain>/
-   ```
-
-3. For VOs:
-
-   ```text
-   Validate in the constructor.
-   Throw an Error on invalid input.
-   Ensure fields are readonly.
-   No I/O.
-   ```
-
-4. For Entities:
-
-   ```text
-   Include an identity VO field.
-   Use VO fields only for domain state.
-   Do not use raw primitives for public/domain fields.
-   ```
-
-5. For Errors:
-
-   ```text
-   Extend the built-in Error class.
-   Set this.name to the class name.
-   Store VO fields only — no raw string, number, or Record payloads.
-   Expose an error_id getter (stable numeric id) for fast machine branching.
-     Ids are allocated in per-feature blocks: common errors use 000X; each
-     feature (a folder with an `agent_*_orchestrator.ts`) gets its own block:
-     feature 1 uses 1000–1999, feature 2 uses 2000–2999, and so on.
-   Expose an error_code getter (stable string identifier) for human-readable
-     error classification.
-   Provide a message getter that returns a human-readable description
-     derived from the stored VOs, error id, and error code.
-   Do not store raw string messages as domain payloads.
-   ```
-
-6. For Events:
-
-   ```text
-   Use readonly fields.
-   Use VO payload fields only.
-   Name events as past-tense domain facts.
-   ```
-
-7. For Requests:
-
-   ```text
-   Use a discriminated union with a `verb` string literal.
-   Export a factory function per verb named request<Verb>().
-   VO payload fields only — no raw string or number for domain values.
-   No I/O.
-   ```
-
-8. For Responses:
-
-   ```text
-   Use a discriminated union with a `kind` string literal.
-   VO payload fields only — no raw string or number for domain values.
-   No I/O.
-   ```
-
-9. For Constants:
-
-   ```text
-   Use export const only.
-   No functions.
-   No computed values at runtime.
-   No I/O.
-   ```
-
-10. Register the public type in the domain `index.ts`.
-
-11. Verify the project compiles:
-
-   ```bash
-   npx tsc --noEmit
-   ```
 
 ---
 
@@ -442,19 +334,11 @@ export class OrderNotFoundError extends Error {
 Every error must expose all four:
 
 - **Field VO** — programmatic access to the domain data that caused the error
-- **Error id** — a stable numeric id such as `1001`, so APIs, database rows,
-  and monitoring queries can correlate on a compact value
-- **Error code** — a stable string name such as `ORDER_NOT_FOUND`, readable in
-  logs without a lookup table
-- **Message** — a human-readable description derived from the error id, the
-  error code, and the stored VOs
+- **Error id** — a stable numeric id such as `1001`, so APIs, database rows, and monitoring queries can correlate on a compact value
+- **Error code** — a stable string name such as `ORDER_NOT_FOUND`, readable in logs without a lookup table
+- **Message** — a human-readable description derived from the error id, the error code, and the stored VOs
 
-Both the error id and the error code stay stable across releases. Renaming or
-reformatting the message is a compatible change; changing the id or the code
-is a breaking one. Allocate ids in per-feature blocks: common errors use the
-`000X` block; each feature — a folder that contains an `agent_*_orchestrator.ts`
-— gets its own block in sequence: feature 1 uses `1000–1999`, feature 2 uses
-`2000–2999`, and so on. Surface-only folders never own an error type.
+Both the error id and the error code stay stable across releases. Renaming or reformatting the message is a compatible change; changing the id or the code is a breaking one. Allocate ids in per-feature blocks: common errors use the `000X` block; each feature — a folder that contains an `agent_*_orchestrator.ts` — gets its own block in sequence: feature 1 uses `1000–1999`, feature 2 uses `2000–2999`, and so on. Surface-only folders never own an error type.
 
 Good:
 
@@ -673,17 +557,6 @@ export type { OrderResponse } from './taxonomy_order_response';
 
 ---
 
-## Review
-
-- Import rules respected: no capabilities/agents/surface/root/contract imports, no I/O/network/fs/env/randomness/time modules — § Rules § Import rules.
-- File name follows `taxonomy_<domain>_<suffix>.ts` pattern with a valid suffix from the suffix table — § Rules § File-name pattern, § File-name suffix table.
-- VO primitive rules (AES401) satisfied: VOs wrap primitives, no raw primitive leakage outside VO fields — § Rules § VO primitive rules.
-- File length within AES302 limit — § Rules § File length.
-- VO shape correct: `Value Object`, `Entity`, `Error`, `Event`, `Request`, `Response` sections use their canonical templates — § Template.
-- Constants live in `taxonomy_<domain>_constant.ts`, never in other files — § Template § Constants.
-- Registration: exported in shared `index.ts` — § Template § Registration.
-- Orphan reachability: no unreachable VO/constant; Phase 2 orphan check passes — § Workflow.
-
 ## Section Contract
 
 | Check | Enforcement | Why it belongs here|
@@ -713,6 +586,123 @@ export type { OrderResponse } from './taxonomy_order_response';
 | Request and response are re-exported explicitly from the domain `index.ts` — type-only with `export type` for the union, value exports for the factories. | Convention — the linter checks reachability, not export style. | Required by AES taxonomy convention; missing it is a defect.|
 | No I/O, network, database, filesystem, environment, randomness, or time retrieval. | Convention — not machine-checked fully. The reader verifies this; the linter does not guarantee it. | Required by AES taxonomy convention; missing it is a defect.|
 | `npx tsc --noEmit` passes. | Manual fallback gate. | Required by the TypeScript compilation check; missing it is a defect.|
+
+---
+
+## Workflow
+
+1. Determine type:
+
+   ```text
+   VO
+   Entity
+   Error
+   Event
+   Constant
+   Request
+   Response
+   ```
+
+2. Create the file:
+
+   ```text
+   taxonomy_<domain>_<suffix>.ts
+   ```
+
+   inside:
+
+   ```text
+   packages/shared/src/<domain>/
+   ```
+
+3. For VOs:
+
+   ```text
+   Validate in the constructor.
+   Throw an Error on invalid input.
+   Ensure fields are readonly.
+   No I/O.
+   ```
+
+4. For Entities:
+
+   ```text
+   Include an identity VO field.
+   Use VO fields only for domain state.
+   Do not use raw primitives for public/domain fields.
+   ```
+
+5. For Errors:
+
+   ```text
+   Extend the built-in Error class.
+   Set this.name to the class name.
+   Store VO fields only — no raw string, number, or Record payloads.
+   Expose an error_id getter (stable numeric id) for fast machine branching.
+     Ids are allocated in per-feature blocks: common errors use 000X; each
+     feature (a folder with an `agent_*_orchestrator.ts`) gets its own block:
+     feature 1 uses 1000–1999, feature 2 uses 2000–2999, and so on.
+   Expose an error_code getter (stable string identifier) for human-readable
+     error classification.
+   Provide a message getter that returns a human-readable description
+     derived from the stored VOs, error id, and error code.
+   Do not store raw string messages as domain payloads.
+   ```
+
+6. For Events:
+
+   ```text
+   Use readonly fields.
+   Use VO payload fields only.
+   Name events as past-tense domain facts.
+   ```
+
+7. For Requests:
+
+   ```text
+   Use a discriminated union with a `verb` string literal.
+   Export a factory function per verb named request<Verb>().
+   VO payload fields only — no raw string or number for domain values.
+   No I/O.
+   ```
+
+8. For Responses:
+
+   ```text
+   Use a discriminated union with a `kind` string literal.
+   VO payload fields only — no raw string or number for domain values.
+   No I/O.
+   ```
+
+9. For Constants:
+
+   ```text
+   Use export const only.
+   No functions.
+   No computed values at runtime.
+   No I/O.
+   ```
+
+10. Register the public type in the domain `index.ts`.
+
+11. Verify the project compiles:
+
+    ```bash
+    npx tsc --noEmit
+    ```
+
+---
+
+## Review
+
+- Import rules respected: no capabilities/agents/surface/root/contract imports, no I/O/network/fs/env/randomness/time modules — § Rules § Import rules.
+- File name follows `taxonomy_<domain>_<suffix>.ts` pattern with a valid suffix from the suffix table — § Rules § File-name pattern, § File-name suffix table.
+- VO primitive rules (AES401) satisfied: VOs wrap primitives, no raw primitive leakage outside VO fields — § Rules § VO primitive rules.
+- File length within AES302 limit — § Rules § File length.
+- VO shape correct: `Value Object`, `Entity`, `Error`, `Event`, `Request`, `Response` sections use their canonical templates — § Template.
+- Constants live in `taxonomy_<domain>_constant.ts`, never in other files — § Template § Constants.
+- Registration: exported in shared `index.ts` — § Template § Registration.
+- Orphan reachability: no unreachable VO/constant; Phase 2 orphan check passes — § Workflow.
 
 ---
 

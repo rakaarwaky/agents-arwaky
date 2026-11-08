@@ -10,7 +10,7 @@ user-invocable: true
 
 Scaffold AES layer files — agent orchestrators, capabilities, contracts, composition roots, surface commands/UI, taxonomy VOs, and stateless utilities — across Python, Rust, and TypeScript. Each layer owns one domain: agent implements exactly one aggregate; capabilities implement one protocol; contract defines protocol ABCs; root wires containers and entries; surface maps input events to VOs; taxonomy holds shared VOs/constants; utility holds pure helpers. The layer chain reads contract → capabilities → agent, consumed by surface/root. One layer file implements one protocol/aggregate pair where applicable. Invariants read by more than one layer live in Global Rules below. The layer also provisions test-suite HOW-TOs under `reference/test/` (python/rust/typescript), moved here from the former `aes-testing-suite` skill.
 
-## Global rules
+## Rules
 
 - Argument shape: `<path> [create|improve] [--dry-run]`. `<path>` is a folder (crate/module/package) or a single file; missing mode defaults to improve.
 - Language auto-detection: resolve the path, detect python (.py) / rust (.rs) / typescript (.ts/.tsx/.js/.jsx/.mts/.cts) from files present; on mixed or ambiguous input, list the detected languages and proceed with the dominant one, naming it in the report.
@@ -22,6 +22,29 @@ Scaffold AES layer files — agent orchestrators, capabilities, contracts, compo
 - Verify: `lint-arwaky-cli scan <layer-path>` → 0 violations. Language compile is fallback only.
 - On-disk verify: a parallel agent or `git reset` can revert files without notice — after applying any edit, re-read the touched region (or grep the new content) before declaring the run done.
 - One fact, one home: the language HOW-TO carries its layer's suffix, imports, and structure — read it, do not restate here. Cite the linter, not this file, when pointing at a rule. Each bullet states a fact once; references point at the bullet.
+
+### Cross-language consistency (all 3 languages)
+
+Every `reference/<layer>/<language>.md` HOW-TO must use identical H2 heading order so a contributor can jump between Python, Rust, and TypeScript variants without relearning structure:
+
+```
+## Rules
+## Template
+## Section Contract
+## Workflow
+## Review
+## Verify
+```
+
+- `Workflow` is its own `##` heading — never nested under `## Rules` as `###`. The agent files set this standard; capabilities files must match it.
+- Every language variant gets the Import Matrix table under `### Import rules`: Allowed imports, Mandatory imports (AES202), Forbidden imports. Do not drop the Mandatory row from any language file.
+- Every capabilities HOW-TO gets a Section Contract table with an `Enforced` column naming the AES403 check (e.g. `CapabilityBlockMarkers`, `CapabilityNoImplementor`) and the severity.
+- Every agent HOW-To gets an "Error and VO rules" block with Rule 1 "Never silently discard" through Rule 5 (primitive/bool/domain-field rules), and the AES405-11 ≥2 injected subsystems note in the constructor comment.
+- Rust template placeholders must use the standard `<Name>`, `<VO>`, `<domain>` tokens — never `<name-feature>`, `<name-policy>`, `<name-store>`, or similar per-role variants. A Rust file with mixed placeholder conventions is a defect, not a language variant.
+- Watch for `ORCA_RICH_MD` inline-html artifacts (`[[ORCA_RICH_MD:...:inline-html:...]]`) in Rust files — they are paste corruption, remove them and rewrite the line in plain markdown.
+- No extra top-level `##` sections between `Review` and `Verify` — fold Anti-Patterns, Dogfood, or any other extra section into `Review` as `###` subsections. A sibling `## Anti-Patterns` or `## Dogfood` breaks the cross-language order and is a defect.
+- `lint-arwaky-cli scan --layer <layer>` → 0 violations is the gate; language compile (`tsc --noEmit`, `python -c "import ..."`, `cargo check -p <crate>`) is fallback only.
+- Verify H2 order with `grep -n "^## " reference/<layer>/<language>.md` — output must match `Rules → Template → Section Contract → Workflow → Review → Verify` exactly; no extra, no missing, no reordered.
 
 ## Routing
 

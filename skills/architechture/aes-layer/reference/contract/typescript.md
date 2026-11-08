@@ -1,19 +1,19 @@
 # AES Contract HOW-TO (Typescript)
 
-> **Purpose**: State a TypeScript contract's public promises (protocol or aggregate) so  
+> **Purpose**: State a TypeScript contract's public promises (protocol or aggregate) so 
 > outer layers can depend on the seam without importing a concretion.
 >
-> **Audience**: Agents and engineers scaffolding AES contract interfaces in the shared  
+> **Audience**: Agents and engineers scaffolding AES contract interfaces in the shared 
 > domain.
 >
-> **Scope**: Pure interface definitions in `contract_<concept>_<suffix>.ts` — `_protocol`  
+> **Scope**: Pure interface definitions in `contract_<concept>_<suffix>.ts` — `_protocol` 
 > or `_aggregate` only. No class implementations.
 >
-> **Location**: Shared domain package next to taxonomy, registered in the shared  
+> **Location**: Shared domain package next to taxonomy, registered in the shared 
 > `index.ts`.
 >
-> **Length**: One file per feature. A `_protocol` file may declare **one interface per**  
-> **capability seam**; each interface is **rich** — one method per operation, each with a  
+> **Length**: One file per feature. A `_protocol` file may declare **one interface per** 
+> **capability seam**; each interface is **rich** — one method per operation, each with a 
 > concrete return type. An `_aggregate` file declares **exactly one method**.
 
 ---
@@ -22,24 +22,25 @@
 
 Seven rules. Each one prevents a specific failure mode.
 
-1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`,  
+1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`, 
  `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.ts`.
-2. `export interface` **only — no class implementations.** Never private-helper  
+2. `export interface` **only — no class implementations.** Never private-helper 
  signatures, never convenience API (`AES101`/`AES102`).
-3. **One file per feature, one interface per capability seam, each interface rich.** A  
- `_protocol` file for a feature with several capabilities declares one `export  interface` per seam — `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol`  
- — side by side in the same file. Each interface carries **every** method its  
- capability implements, each with its own named signature and **one concrete return**  
- **type**. Never `execute(op, …)` dispatch, never an untyped argument bag, never a union  
+3. **One file per feature, one interface per capability seam, each interface rich.** A 
+ `_protocol` file for a feature with several capabilities declares one `export 
+ interface` per seam — `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` 
+ — side by side in the same file. Each interface carries **every** method its 
+ capability implements, each with its own named signature and **one concrete return** 
+ **type**. Never `execute(op, …)` dispatch, never an untyped argument bag, never a union 
  return spanning several value shapes.
-4. **A capability implements exactly one interface, and all of it.** Because each  
- interface is scoped to one capability's own operations, an interface is never partially  
- implemented: it declares only the methods that capability owns, and that capability  
- defines every one of them. This is why a single file per feature is enough — no  
+4. **A capability implements exactly one interface, and all of it.** Because each 
+ interface is scoped to one capability's own operations, an interface is never partially 
+ implemented: it declares only the methods that capability owns, and that capability 
+ defines every one of them. This is why a single file per feature is enough — no 
  per-method splitting, and no stubs.
-5. **Aggregate = exactly one method.** The aggregate is the single entry point the  
- surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to  
- the rich protocol interfaces. A dump-all `execute(op, …)` aggregate is the violation  
+5. **Aggregate = exactly one method.** The aggregate is the single entry point the 
+ surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to 
+ the rich protocol interfaces. A dump-all `execute(op, …)` aggregate is the violation 
  here.
 6. **Signatures use shared VOs for domain values.** Domain values must not be numeric
    primitives — `number`, `number[]`, `Record<number,T>` — or bare string types — `string` —
@@ -57,18 +58,6 @@ Seven rules. Each one prevents a specific failure mode.
 7. **Register in shared** `index.ts` so the pair is importable.
 
 ---
-
-## Workflow
-
-1. **Determine suffix** — `_protocol` (inward, rich interfaces) or `_aggregate` (outward,  
- one method).
-2. **List the feature's capability seams** — group the feature's operations by the  
- capability that owns them. One group becomes one interface.
-3. **Create file** → `contract_<concept>_<suffix>.ts`, one interface per seam.
-4. **Draft each interface** — every method its capability implements, one concrete return  
- type each.
-5. **Register** in shared `index.ts`.
-6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
 
 ## Template
 
@@ -112,12 +101,12 @@ export interface I<SeamN>Protocol {
 }
 ```
 
-**One file → one feature → one interface per capability seam → many named methods per**  
+**One file → one feature → one interface per capability seam → many named methods per** 
 **interface.**
 
-Violations: an `execute(op, …)` that dispatches several features behind one name, an  
-untyped argument bag, a union return that papers over differing result shapes, an  
-interface that declares methods its implementors do not own, or an implementor that  
+Violations: an `execute(op, …)` that dispatches several features behind one name, an 
+untyped argument bag, a union return that papers over differing result shapes, an 
+interface that declares methods its implementors do not own, or an implementor that 
 leaves a declared method unimplemented.
 
 ### Aggregate file — one method
@@ -138,9 +127,9 @@ export interface I<Feature>Aggregate {
 }
 ```
 
-**The aggregate is the one door consumers knock on.** Consumers never see the protocol  
-interfaces' method lists; the agent behind the aggregate routes the request to the right  
-capability. Adding a consumer verb = a new property on `RequestVO` + the agent's dispatch  
+**The aggregate is the one door consumers knock on.** Consumers never see the protocol 
+interfaces' method lists; the agent behind the aggregate routes the request to the right 
+capability. Adding a consumer verb = a new property on `RequestVO` + the agent's dispatch 
 branch, not a new aggregate method.
 
 ---
@@ -164,6 +153,20 @@ Every contract file is required to carry the rows that apply. Each exists for on
 
 ---
 
+## Workflow
+
+1. **Determine suffix** — `_protocol` (inward, rich interfaces) or `_aggregate` (outward, 
+ one method).
+2. **List the feature's capability seams** — group the feature's operations by the 
+ capability that owns them. One group becomes one interface.
+3. **Create file** → `contract_<concept>_<suffix>.ts`, one interface per seam.
+4. **Draft each interface** — every method its capability implements, one concrete return 
+ type each.
+5. **Register** in shared `index.ts`.
+6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
+
+---
+
 ## Review
 
 - Suffix is strictly `_protocol` or `_aggregate`; type names `I<Name>Protocol`, `I<Name>Aggregate`; file `contract_<concept>_<suffix>.ts` — § Rules rule 1.
@@ -173,6 +176,8 @@ Every contract file is required to carry the rows that apply. Each exists for on
 - Aggregate = exactly one method (`execute()`); protocol interfaces signature-only — § Rules rule 5.
 - Shared VOs in signatures — no numeric primitives or bare `str` for domain values; `boolean` permitted for toggles only — § Rules rule 6.
 - Register in shared `index.ts` — § Rules rule 7.
+
+---
 
 ## Verify
 
@@ -206,6 +211,7 @@ runtime shape.
 **Boolean in signatures vs. taxonomy.** `bool` is treated as a primitive in
 `taxonomy_*_entity` field declarations (no carve-out; see
 [../taxonomy/rust.md](../taxonomy/rust.md)).
+
 In contract signatures (`contract_*_protocol` / `contract_*_aggregate`), `bool`
 is permitted only for semantic toggles or predicates (e.g. `enabled: bool`)
 because the signature describes *when* a capability runs, not the domain value

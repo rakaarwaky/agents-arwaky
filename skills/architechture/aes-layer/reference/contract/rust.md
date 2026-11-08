@@ -1,17 +1,17 @@
 # AES Contract HOW-TO (Rust)
 
-> **Purpose**: State a Rust contract's public promises (protocol or aggregate) so outer  
+> **Purpose**: State a Rust contract's public promises (protocol or aggregate) so outer 
 > layers can depend on the seam without importing a concretion.
 >
 > **Audience**: Agents and engineers scaffolding AES contract traits in the shared domain.
 >
-> **Scope**: Pure trait definitions in `contract_<concept>_<suffix>.rs` — `_protocol` or  
+> **Scope**: Pure trait definitions in `contract_<concept>_<suffix>.rs` — `_protocol` or 
 > `_aggregate` only. No default bodies.
 >
 > **Location**: Shared domain crate next to taxonomy, registered in the shared `mod.rs`.
 >
-> **Length**: One file per feature. A `_protocol` file may declare **one trait per**  
-> **capability seam**; each trait is **rich** — one method per operation, each with a  
+> **Length**: One file per feature. A `_protocol` file may declare **one trait per** 
+> **capability seam**; each trait is **rich** — one method per operation, each with a 
 > concrete return type. An `_aggregate` file declares **exactly one method**.
 
 ---
@@ -20,24 +20,24 @@
 
 Seven rules. Each one prevents a specific failure mode.
 
-1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`,  
+1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`, 
  `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.rs`.
-2. `pub trait` **only — methods end with** `;`**, no bodies.** Never default  
+2. `pub trait` **only — methods end with** `;`**, no bodies.** Never default 
  implementations, never private-helper signatures (`AES101`/`AES102`).
-3. **One file per feature, one trait per capability seam, each trait rich.** A  
- `_protocol` file for a feature with several capabilities declares one `pub trait` per  
- seam — `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` — side by side  
- in the same file. Each trait carries **every** method its capability implements, each  
- with its own named signature and **one concrete return type**. Never `execute(op, …)`  
- dispatch, never an untyped argument bag, never an enum return spanning several value  
+3. **One file per feature, one trait per capability seam, each trait rich.** A 
+ `_protocol` file for a feature with several capabilities declares one `pub trait` per 
+ seam — `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` — side by side 
+ in the same file. Each trait carries **every** method its capability implements, each 
+ with its own named signature and **one concrete return type**. Never `execute(op, …)` 
+ dispatch, never an untyped argument bag, never an enum return spanning several value 
  shapes.
-4. **A capability implements exactly one trait, and all of it.** Because each trait is  
- scoped to one capability's own operations, a trait is never partially implemented: it  
- declares only the methods that capability owns, and that capability defines every one  
- of them. This is why a single file per feature is enough — no per-method splitting, and  
+4. **A capability implements exactly one trait, and all of it.** Because each trait is 
+ scoped to one capability's own operations, a trait is never partially implemented: it 
+ declares only the methods that capability owns, and that capability defines every one 
+ of them. This is why a single file per feature is enough — no per-method splitting, and 
  no unimplemented stubs.
-5. **Aggregate = exactly one method.** The aggregate is the single entry point the  
- surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to  
+5. **Aggregate = exactly one method.** The aggregate is the single entry point the 
+ surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to 
  the rich protocol traits. A dump-all `execute(op, …)` aggregate is the violation here.
 6. **Signatures use shared VOs for domain values.** Domain values must not be numeric
    primitives — `i32`–`u64`, `f32`/`f64` — or bare string types — `String`, `&str` —
@@ -56,28 +56,6 @@ Seven rules. Each one prevents a specific failure mode.
 7. **Register in shared** `mod.rs` so the pair is importable.
 
 ---
-
-## Review
-
-- Suffix is strictly `_protocol` or `_aggregate`; trait names `I<Name>Protocol`, `I<Name>Aggregate`; file `contract_<concept>_<suffix>.rs` — § Rules rule 1.
-- `pub trait` only — methods end with `;`, no bodies, never default implementations or private helpers — § Rules rule 2.
-- One file per feature; one trait per capability seam; each trait rich — every method its capability owns, one concrete return type each — § Rules rule 3.
-- A capability implements exactly one trait, all of it — no partial implementations — § Rules rule 4.
-- Aggregate = exactly one method — § Rules rule 5.
-- Object-safe, `Send + Sync` bounded traits; no `where Self: Sized` on protocol methods — § Rules rule 6.
-- Register in shared `mod.rs` — § Rules rule 7.
-
-## Workflow
-
-1. **Determine suffix** — `_protocol` (inward, rich traits) or `_aggregate` (outward, one  
- method).
-2. **List the feature's capability seams** — group the feature's operations by the  
- capability that owns them. One group becomes one trait.
-3. **Create file** → `contract_<concept>_<suffix>.rs`, one trait per seam.
-4. **Draft each trait** — every method its capability implements, one concrete return  
- type each.
-5. **Register** in shared `mod.rs`.
-6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
 
 ## Template
 
@@ -122,9 +100,9 @@ pub trait I<SeamN>Protocol: Send + Sync {
 
 **One file → one feature → one trait per capability seam → many named methods per trait.**
 
-Violations: an `execute(op, …)` that dispatches several features behind one name, an  
-untyped argument bag, a return enum that papers over differing result shapes, a trait  
-that declares methods its implementors do not own, or an implementor that leaves a  
+Violations: an `execute(op, …)` that dispatches several features behind one name, an 
+untyped argument bag, a return enum that papers over differing result shapes, a trait 
+that declares methods its implementors do not own, or an implementor that leaves a 
 declared method unimplemented.
 
 ### Aggregate file — one method
@@ -144,9 +122,9 @@ pub trait I<Feature>Aggregate: Send + Sync {
 }
 ```
 
-**The aggregate is the one door consumers knock on.** Consumers never see the protocol  
-traits' method lists; the agent behind the aggregate routes the request to the right  
-capability. Adding a consumer verb = a new variant on `RequestVO` + the agent's dispatch  
+**The aggregate is the one door consumers knock on.** Consumers never see the protocol 
+traits' method lists; the agent behind the aggregate routes the request to the right 
+capability. Adding a consumer verb = a new variant on `RequestVO` + the agent's dispatch 
 arm, not a new aggregate method.
 
 ### mod.rs
@@ -177,6 +155,32 @@ Every contract file is required to carry the rows that apply. Each exists for on
 | Shared VOs in signatures                 | Numeric and string domain values stay behind VOs; only `bool` is permitted bare.|
 | No impl-layer imports                    | Keeps the dependency arrow (capabilities → trait ← agent).                       |
 | Register in shared `mod.rs`              | Importable without reaching into private modules.                                |
+
+---
+
+## Workflow
+
+1. **Determine suffix** — `_protocol` (inward, rich traits) or `_aggregate` (outward, one 
+ method).
+2. **List the feature's capability seams** — group the feature's operations by the 
+ capability that owns them. One group becomes one trait.
+3. **Create file** → `contract_<concept>_<suffix>.rs`, one trait per seam.
+4. **Draft each trait** — every method its capability implements, one concrete return 
+ type each.
+5. **Register** in shared `mod.rs`.
+6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
+
+---
+
+## Review
+
+- Suffix is strictly `_protocol` or `_aggregate`; trait names `I<Name>Protocol`, `I<Name>Aggregate`; file `contract_<concept>_<suffix>.rs` — § Rules rule 1.
+- `pub trait` only — methods end with `;`, no bodies, never default implementations or private helpers — § Rules rule 2.
+- One file per feature; one trait per capability seam; each trait rich — every method its capability owns, one concrete return type each — § Rules rule 3.
+- A capability implements exactly one trait, all of it — no partial implementations — § Rules rule 4.
+- Aggregate = exactly one method — § Rules rule 5.
+- Object-safe, `Send + Sync` bounded traits; no `where Self: Sized` on protocol methods — § Rules rule 6.
+- Register in shared `mod.rs` — § Rules rule 7.
 
 ---
 
@@ -213,6 +217,7 @@ communicate domain structure, not just runtime shape.
 **Boolean in signatures vs. taxonomy.** `bool` is treated as a primitive in
 `taxonomy_*_entity` field declarations (no carve-out; see
 [../taxonomy/rust.md](../taxonomy/rust.md)).
+
 In contract signatures (`contract_*_protocol` / `contract_*_aggregate`), `bool`
 is permitted only for semantic toggles or predicates (e.g. `enabled: bool`)
 because the signature describes *when* a capability runs, not the domain value

@@ -47,13 +47,6 @@ utility couples two helpers that should be independently extractable.
 **Keep as private helper** if ANY: uses `self`, domain-specific, single consumer.
 **Extract here** only if ALL: no `self`, pure/I/O-safe, domain-agnostic, ≥2 consumers.
 
-### Workflow
-
-1. Confirm ≥2 consumers, stateless, domain-agnostic.
-2. Create `utility_<domain>_<role>.py`.
-3. Register in `__init__.py`.
-4. `python -c "import <module>"`.
-
 ---
 
 ## Template
@@ -108,6 +101,15 @@ def <second_function_name>(<param_name>: str) -> str:
 
 ---
 
+## Workflow
+
+1. Confirm ≥2 consumers, stateless, domain-agnostic.
+2. Create `utility_<domain>_<role>.py`.
+3. Register in `__init__.py`.
+4. `python -c "import <module>"`.
+
+---
+
 ## Review
 
 - Only module-level functions — no class — § Rules structure rules.
@@ -117,6 +119,8 @@ def <second_function_name>(<param_name>: str) -> str:
 - Used by ≥2 modules (not a single-consumer helper) — § Rules consumer rule.
 - No import from Capabilities, Agent, Surface, Contract — § Rules import rules.
 - No magic constants — moved to `taxonomy_*_constant.py` — § Rules constant rule.
+
+---
 
 ## Verify
 

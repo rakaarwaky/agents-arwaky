@@ -21,7 +21,7 @@ A utility file **performs a pure operation** — no state, no business rules, ju
 
 | Decision | → Capability | → Utility|
 |---|---|---|
-| Has `self` / instance state / injected dependencies | Yes | No|
+| Uses `self` / instance state / injected dependencies | Yes | No|
 | Contains business rules or protocol logic | Yes | No|
 | Stateless, domain-agnostic, ≥2 consumers | — | Yes|
 | Implements `_protocol` interface/ABC/trait | Yes | No|
@@ -31,8 +31,11 @@ A utility file **performs a pure operation** — no state, no business rules, ju
 
 ### Import rules
 
-**Allowed imports:** Taxonomy, Contract (`_protocol` only), Utility.
-**Forbidden:** `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants.
+| Rule                           | Value                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Allowed imports**            | `shared/*` — taxonomy VOs/constants, `_protocol` contracts, `*_utility` helpers                   |
+| **Mandatory imports (AES202)** | At least one `_protocol` import (Import Matrix row 9)                                             |
+| **Forbidden imports**          | `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants              |
 
 ### Structure rules (Python)
 
@@ -55,16 +58,6 @@ Method placement: `@abstractmethod` → Block 2. Dunder/factory/private → Bloc
 Keep in Block 3 if ANY: uses `self`, domain-specific, single consumer, factory.
 Extract to utility only if ALL: no `self`, pure, no side effects, domain-agnostic, ≥2 consumers.
 I/O: stateless + I/O + domain-agnostic = utility OK.
-
-### Workflow
-
-1. Confirm implements protocol behavior (not orchestration/data/mechanics).
-2. File imports from `_protocol` module — if missing → flag `CapabilityNoProtocol`.
-3. Create `contract_<name>_protocol.py` if missing.
-4. Enforce 3-Block with explicit `# ─── Block 1:`, `Block 2:`, `Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
-5. AES403: ≥1 protocol inheritor, ≤3 classes, DI via protocols, shared VOs.
-6. No forbidden imports, no inter-capability deps, no local domain models.
-7. `python -c "import <module>"`.
 
 ---
 
@@ -110,14 +103,6 @@ class I<Name>Protocol(ABC):
 
 ---
 
-## Review
-
-- Capability vs Utility boundary respected: file implements one protocol (has state + business rules), stateless pure ops live in `utility_*` — § Rules § Capability vs Utility Boundary.
-- Imports: Taxonomy, Contract (`_protocol` only), Utility — nothing from `agent_*`, other `capabilities_*`, `surface_*`, local domain models — § Rules Import rules.
-- ≤3 total classes; ≥1 class inherits a protocol ABC; Block 1 → 2 → 3 order with explicit banners — § Rules § Structure rules, § 3-Block Structure.
-- Block 2 holds only protocol ABC/ABC method implementations — no orchestration logic leaked down — § Rules § 3-Block Structure.
-- Helper-vs-Utility matrix applied: stateless, domain-agnostic, ≥2 consumers → utility; otherwise stays in Block 3 — § Rules § Helper vs Utility Decision Matrix.
-
 ## Section Contract
 
 The `Enforced` column says which rule reports a violation, so you know what the
@@ -126,7 +111,7 @@ checks it — the shape is still the contract, but a violation is caught by revi
 or by the interpreter, not by `scan`.
 
 | Check                                                             | Enforced                                                        |
-| ----------------------------------------------------------------- | -----------------------------------------------------------------|
+| ----------------------------------------------------------------- | --------------------------------------------------------------- |
 | All three `# ─── Block 1:` / `Block 2:` / `Block 3:` banners present, in order, none above 3. | **AES403** `CapabilityBlockMarkers` (MEDIUM) |
 | Block 1 (class) precedes Block 2 (protocol methods).              | **AES403** `CapabilityBlockOrder` (HIGH)                        |
 | ≥1 class inherits a protocol ABC.                                 | **AES403** `CapabilityNoImplementor` (MEDIUM)                   |
@@ -147,6 +132,28 @@ inside a comment, so the Python comment sigil is `#`. The colon is load-bearing:
 prose such as `Block 1 (types) -> Block 2` is not a marker, and neither is
 `Sub-Block 4:`. Put the banner above the block it heads, at the same indent as
 the code it introduces.
+
+---
+
+## Workflow
+
+1. Confirm implements protocol behavior (not orchestration/data/mechanics).
+2. File imports from `_protocol` module — if missing → flag `CapabilityNoProtocol`.
+3. Create `contract_<name>_protocol.py` if missing.
+4. Enforce 3-Block with explicit `# ─── Block 1:`, `Block 2:`, `Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
+5. AES403: ≥1 protocol inheritor, ≤3 classes, DI via protocols, shared VOs.
+6. No forbidden imports, no inter-capability deps, no local domain models.
+7. `python -c "import <module>"`.
+
+---
+
+## Review
+
+- Capability vs Utility boundary respected: file implements one protocol (has state + business rules), stateless pure ops live in `utility_*` — § Rules § Capability vs Utility Boundary.
+- Imports: Taxonomy, Contract (`_protocol` only), Utility — nothing from `agent_*`, other `capabilities_*`, `surface_*`, local domain models — § Rules Import rules.
+- ≤3 total classes; ≥1 class inherits a protocol ABC; Block 1 → 2 → 3 order with explicit banners — § Rules § Structure rules, § 3-Block Structure.
+- Block 2 holds only protocol ABC/ABC method implementations — no orchestration logic leaked down — § Rules § 3-Block Structure.
+- Helper-vs-Utility matrix applied: stateless, domain-agnostic, ≥2 consumers → utility; otherwise stays in Block 3 — § Rules § Helper vs Utility Decision Matrix.
 
 ---
 

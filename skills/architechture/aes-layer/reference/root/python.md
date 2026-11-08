@@ -16,31 +16,18 @@
 
 1. **Suffix is strictly `_container` or `_entry`.** File: `root_<concept>_<suffix>.py`.
    Documented exceptions: `main.py`, `__init__.py`, barrel/entry files (AES101/AES102).
-2. **Container = wire one feature only.** Instantiate capabilities, bind them to
-   contract protocol/aggregate types, expose the aggregate. Never business logic.
-3. **Entry = bootstrap the app.** Parse argv (if needed), compose feature container
-   factories, start the surface/CLI loop. Never construct capabilities directly.
-4. **Allowed imports: everything below root** — agent, capabilities, surface, contract,
-   taxonomy, utility. Nothing below root may import root (AES201–AES205).
-5. **No business logic, no orchestration policy, no technical parsing, no UI behaviour** —
-   those live in capabilities / agent / utility / surface.
-6. **Signatures use shared VOs** where domain values appear (AES402). `bool` for
-   semantic toggles only.
+2. **Container = wire one feature only.** Instantiate capabilities, bind them to contract protocol/aggregate types, expose the aggregate. Never business logic.
+3. **Entry = bootstrap the app.** Parse argv (if needed), compose feature container factories, start the surface/CLI loop. Never construct capabilities directly.
+4. **Allowed imports: everything below root** — agent, capabilities, surface, contract, taxonomy, utility. Nothing below root may import root (AES201–AES205).
+5. **No business logic, no orchestration policy, no technical parsing, no UI behaviour** — those live in capabilities / agent / utility / surface.
+6. **Signatures use shared VOs** where domain values appear (AES402). `bool` for semantic toggles only.
 7. **Register** in package `__init__.py` when the container/entry is public.
-
-### Workflow
-
-1. **Determine role** — Container (wire one feature) or Entry (bootstrap all)?
-2. **Create file** → `root_<concept>_<suffix>.py`.
-3. **Wire deps** → instantiate capabilities; bind to contract interfaces/aggregates.
-4. **Verify** → `lint-arwaky-cli scan <layer-path>` then `python -c "import <module>"`.
 
 ---
 
 ## Template
 
-Copy, fill, delete nothing. File: `root_<concept>_<suffix>.py` where
-`<suffix>` is `_container` or `_entry`.
+Copy, fill, delete nothing. File: `root_<concept>_<suffix>.py` where `<suffix>` is `_container` or `_entry`.
 
 ### Container — wire one feature
 
@@ -53,10 +40,11 @@ from modules.<feature>.src.capabilities_<concept>_<role> import <Capability>
 from modules.shared.src.contract_<concept>_aggregate import I<Concept>Aggregate
 from modules.shared.src.contract_<concept>_protocol import I<Concept>Protocol
 
+
 class <Concept>Container:
     """Construct the capabilities and the orchestrator (wiring only)."""
 
-    def __init__(self, /* shared deps */) -> None:
+    def __init__(self, /*, shared deps */) -> None:
         runners: list[I<Concept>Protocol] = [
             <Capability>(/* deps */),
         ]
@@ -66,14 +54,13 @@ class <Concept>Container:
     def aggregate(self) -> I<Concept>Aggregate:
         return self._orchestrator
 
+
 def create_<concept>_feature(/* shared deps */) -> I<Concept>Aggregate:
     """Fully-wired <concept> feature aggregate (factory for entry / DI)."""
     return <Concept>Container(/* deps */).aggregate
 ```
 
-**Container rules:** import capabilities + agent + contract types only; expose
-the aggregate (contract), never a concrete capability; no business/orchestration
-logic — construction and binding only.
+**Container rules:** import capabilities + agent + contract types only; expose the aggregate (contract), never a concrete capability; no business/orchestration logic — construction and binding only.
 
 ### Entry — bootstrap the application
 
@@ -86,29 +73,20 @@ import sys
 from modules.<feature>.src.root_<concept>_container import create_<concept>_feature
 from modules.<feature>.src.surface_<concept>_command import main as surface_main
 
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     aggregate = create_<concept>_feature()
     return int(surface_main(aggregate, argv))
 
+
 if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-**Entry rules:** may parse argv (bootstrap only) and compose containers; start
-the surface/CLI loop; never import concrete capabilities directly — go through
-a container factory; no business logic.
+**Entry rules:** may parse argv (bootstrap only) and compose containers; start the surface/CLI loop; never import concrete capabilities directly — go through a container factory; no business logic.
 
 ---
-
-## Review
-
-- Role suffix correct: `_container` (composition container) or `_entry` (app entry) — § Rules role rules.
-- Container: construct + bind only, wiring is the whole job — § Rules container rules.
-- Entry: compose containers + start, bootstrap only — § Rules entry rules.
-- Layer-legal imports — no agent/surface/contract imports below root that break the arrow — § Rules import rules.
-- Expose contracts (`Arc<dyn Trait>` / VO), never concrete capability types — § Rules signature rules.
-- Registered in package barrel — dead code otherwise — § Rules registration rule.
 
 ## Section Contract
 
@@ -124,7 +102,25 @@ a container factory; no business logic.
 
 ---
 
-## Anti-Patterns
+## Workflow
+
+1. **Determine role** — Container (wire one feature) or Entry (bootstrap all)?
+2. **Create file** → `root_<concept>_<suffix>.py`.
+3. **Wire deps** → instantiate capabilities; bind to contract interfaces/aggregates.
+4. **Verify** → `lint-arwaky-cli scan <layer-path>` then `python -c "import <module>"`.
+
+---
+
+## Review
+
+- Role suffix correct: `_container` (composition container) or `_entry` (app entry) — § Rules role rules.
+- Container: construct + bind only, wiring is the whole job — § Rules container rules.
+- Entry: compose containers + start, bootstrap only — § Rules entry rules.
+- Layer-legal imports — no agent/surface/contract imports below root that break the arrow — § Rules import rules.
+- Expose contracts (`Arc<dyn Trait>` / VO), never concrete capability types — § Rules signature rules.
+- Registered in package barrel — dead code otherwise — § Rules registration rule.
+
+### Anti-Patterns
 
 - **Business / orchestration / parsing / UI logic in root** — move down a layer.
 - **Entry importing `capabilities_*` directly** — go through a container factory.

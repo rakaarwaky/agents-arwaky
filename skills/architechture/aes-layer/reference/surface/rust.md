@@ -25,13 +25,6 @@
 Keep in surface file if ANY: uses `&self`, surface-specific mapping, constructor.
 Extract to taxonomy utility only if ALL: no `self`, pure, domain-agnostic, reusable.
 
-### Workflow
-
-1. Determine type (Smart/Utility/Passive), choose suffix.
-2. Enforce import rules for that type.
-3. No silent error discard.
-4. `cargo check -p <crate-name>`.
-
 ---
 
 ## Template
@@ -60,16 +53,6 @@ impl Surface<Name> {
 
 ---
 
-## Review
-
-- Correct surface tier suffix: `_smart` / `_utility` / `_passive` — § Rules tier rules.
-- Smart: only taxonomy + `contract_*_aggregate` imports; delegates via `Arc<dyn Trait>` — § Rules import rules.
-- Utility: only taxonomy + passive surface imports — § Rules import rules.
-- Passive: only taxonomy imports — § Rules import rules.
-- Zero business logic and computation — § Rules behavior rules.
-- No silent error discarding — errors propagate or wrap into VOs — § Rules error rules.
-- All state fields use shared VOs — § Rules VO rules.
-
 ## Section Contract
 
 | Check | Why it belongs here|
@@ -86,10 +69,32 @@ impl Surface<Name> {
 
 ---
 
+## Workflow
+
+1. Determine type (Smart/Utility/Passive), choose suffix.
+2. Enforce import rules for that type.
+3. No silent error discard.
+4. `cargo check -p <crate-name>`.
+
+---
+
+## Review
+
+- Correct surface tier suffix: `_smart` / `_utility` / `_passive` — § Rules tier rules.
+- Smart: only taxonomy + `contract_*_aggregate` imports; delegates via `Arc<dyn Trait>` — § Rules import rules.
+- Utility: only taxonomy + passive surface imports — § Rules import rules.
+- Passive: only taxonomy imports — § Rules import rules.
+- Zero business logic and computation — § Rules behavior rules.
+- No silent error discarding — errors propagate or wrap into VOs — § Rules error rules.
+- All state fields use shared VOs — § Rules VO rules.
+
+---
+
 ## Verify
 
 ```bash
 lint-arwaky-cli scan --layer surface
+
 # Checks: AES101/AES102 (filename + suffix), AES201–AES205 (layer imports),
 # AES401–AES406 (role/primitive/structure rules for this layer).
 # Machine-checked: suffix allow-list (AES102); function count over tier limit

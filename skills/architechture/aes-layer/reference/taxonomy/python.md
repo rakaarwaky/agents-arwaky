@@ -160,10 +160,7 @@ A leaf VO may expose a read-only accessor such as `.value` for its wrapped primi
 
 Constants are the explicit exception for literal values because constant files contain compile-time literals, not domain fields.
 
-`_request` and `_response` are a second exception. AES401 is not gated on those
-suffixes, and their role scope `taxonomy(request,response)` permits primitive
-enum discriminants. A `Verb` enum, a `bool` flag, and an `| None` operand
-placeholder are all correct in these files. Domain *values* still belong in VOs.
+`_request` and `_response` are a second exception. AES401 is not gated on those suffixes, and their role scope `taxonomy(request,response)` permits primitive enum discriminants. A `Verb` enum, a `bool` flag, and an `| None` operand placeholder are all correct in these files. Domain *values* still belong in VOs.
 
 ---
 
@@ -177,121 +174,6 @@ FIX: Expand the component or merge this logic into a related module. (min: 5).
 ```
 
 Docstrings and comments count. For constants, each constant should have a descriptive comment line above it — this keeps the file above the minimum while also documenting intent.
-
----
-
-## Workflow
-
-1. Determine type:
-
-   ```text
-   VO
-   Entity
-   Error
-   Event
-   Constant
-   Request
-   Response
-   ```
-
-2. Create the file:
-
-   ```text
-   taxonomy_<domain>_<suffix>.py
-   ```
-
-   inside:
-
-   ```text
-   modules/shared/src/<domain>/
-   ```
-
-3. For VOs:
-
-   ```text
-   Validate on construction.
-   Use @dataclass(frozen=True) or an equivalent immutable manual implementation.
-   No I/O.
-   No side effects.
-   ```
-
-4. For Entities:
-
-   ```text
-   Include an identity VO field.
-   Use VO fields only for domain state.
-   Do not use raw primitives for public/domain fields.
-   ```
-
-5. For Errors:
-
-   ```text
-   Extend Exception.
-   Store VO fields only — no raw str, int, float, dict.
-   Provide an error_id property (stable numeric id) for fast machine branching.
-     Ids are allocated in per-feature blocks: common errors use 000X; each
-     feature (a folder with an `agent_*_orchestrator` module) gets its own block:
-     feature 1 uses 1000–1999, feature 2 uses 2000–2999, and so on.
-   Provide an error_code property (plain string identifier) for human-readable
-     error classification.
-   Provide a message property that derives a human-readable description
-     from the stored VOs, error id, and error code.
-   Do not store raw str as a domain payload field.
-   ```
-
-6. For Events:
-
-   ```text
-   Use @dataclass(frozen=True).
-   Use VO payload fields only.
-   Name events as past-tense domain facts.
-   ```
-
-7. For Requests:
-
-   ```text
-   Use a @dataclass with a `verb` discriminator field (e.g., an Enum).
-   Use classmethod factories so callers call CalculatorRequest.delegate(...) instead of
-     instantiating the dataclass directly.
-   VO payload fields only — no raw str or float for domain values.
-   No I/O.
-   ```
-
-8. For Responses:
-
-   ```text
-   Use a @dataclass with optional VO fields that distinguish each outcome.
-   Use classmethod factories so callers call CalculatorResponse.history(...) instead of
-     instantiating the dataclass directly.
-   VO payload fields only — no raw str or float for domain values.
-   No I/O.
-   ```
-
-9. For Constants:
-
-   ```text
-   Use module-level literal assignments only.
-   No functions.
-   No classes.
-   No I/O.
-   No computed values.
-   ```
-
-10. Register the public type in the domain `__init__.py`.
-
-11. Verify the module imports:
-
-   ```bash
-   python -c "import modules.shared.src.<domain>.taxonomy_<domain>_<suffix>"
-   ```
-
-Example:
-
-```bash
-python -c "import modules.shared.src.order.taxonomy_order_vo"
-```
-
-If your Python package root differs from `modules.shared`, substitute the correct package root while preserving the actual source path layout.
 
 ---
 
@@ -463,19 +345,11 @@ class OrderNotFoundError(Exception):
 Every error must expose all four:
 
 - **Field VO** — programmatic access to the domain data that caused the error
-- **Error id** — a stable numeric id such as `1001`, so APIs, database rows,
-  and monitoring queries can correlate on a compact value
-- **Error code** — a stable string name such as `ORDER_NOT_FOUND`, readable in
-  logs without a lookup table
-- **Message** — a human-readable description derived from the error id, the
-  error code, and the stored VOs
+- **Error id** — a stable numeric id such as `1001`, so APIs, database rows, and monitoring queries can correlate on a compact value
+- **Error code** — a stable string name such as `ORDER_NOT_FOUND`, readable in logs without a lookup table
+- **Message** — a human-readable description derived from the error id, the error code, and the stored VOs
 
-Both the error id and the error code stay stable across releases. Renaming or
-reformatting the message is a compatible change; changing the id or the code
-is a breaking one. Allocate ids in per-feature blocks: common errors use the
-`000X` block; each feature — a folder that contains an `agent_*_orchestrator`
-module — gets its own block in sequence: feature 1 uses `1000–1999`, feature 2
-uses `2000–2999`, and so on. Surface-only folders never own an error type.
+Both the error id and the error code stay stable across releases. Renaming or reformatting the message is a compatible change; changing the id or the code is a breaking one. Allocate ids in per-feature blocks: common errors use the `000X` block; each feature — a folder that contains an `agent_*_orchestrator` module — gets its own block in sequence: feature 1 uses `1000–1999`, feature 2 uses `2000–2999`, and so on. Surface-only folders never own an error type.
 
 Good:
 
@@ -782,17 +656,6 @@ __all__ = [
 
 ---
 
-## Review
-
-- Import rules respected: no capabilities/agents/surface/root/contract imports, no I/O/network/fs/env/randomness/time modules — § Rules § Import rules.
-- File name follows `taxonomy_<domain>_<suffix>.py` pattern with a valid suffix from the suffix table — § Rules § File-name pattern, § File-name suffix table.
-- VO primitive rules (AES401) satisfied: VOs wrap primitives, no raw `int`/`float`/`str` leakage outside VO fields — § Rules § VO primitive rules.
-- File length within AES302 limit — § Rules § File length.
-- VO shape correct: `Value Object`, `Entity`, `Error`, `Event`, `Request`, `Response` sections use their canonical templates — § Template.
-- Constants live in `taxonomy_<domain>_constant.py`, never in other files — § Template § Constants.
-- Registration: exported in package `__init__.py` with `__all__` + `_layer_symbols` — § Template § Registration.
-- Orphan reachability: no unreachable VO/constant; Phase 2 orphan check passes — § Workflow.
-
 ## Section Contract
 
 | Check | Enforcement | Why it belongs here|
@@ -822,6 +685,134 @@ __all__ = [
 | Request and response files declare `__all__` and are re-exported explicitly in the barrel. | Convention — the linter checks reachability, not export style. | Required by AES taxonomy convention; missing it is a defect.|
 | No I/O, network, database, filesystem, environment, randomness, or time retrieval. | Convention — not machine-checked fully. The reader verifies this; the linter does not guarantee it. | Required by AES taxonomy convention; missing it is a defect.|
 | `python -c "import ..."` passes. | Manual fallback gate. | Required by the Python packaging check; missing it is a defect.|
+
+---
+
+## Workflow
+
+1. Determine type:
+
+   ```text
+   VO
+   Entity
+   Error
+   Event
+   Constant
+   Request
+   Response
+   ```
+
+2. Create the file:
+
+   ```text
+   taxonomy_<domain>_<suffix>.py
+   ```
+
+   inside:
+
+   ```text
+   modules/shared/src/<domain>/
+   ```
+
+3. For VOs:
+
+   ```text
+   Validate on construction.
+   Use @dataclass(frozen=True) or an equivalent immutable manual implementation.
+   No I/O.
+   No side effects.
+   ```
+
+4. For Entities:
+
+   ```text
+   Include an identity VO field.
+   Use VO fields only for domain state.
+   Do not use raw primitives for public/domain fields.
+   ```
+
+5. For Errors:
+
+   ```text
+   Extend Exception.
+   Store VO fields only — no raw str, int, float, dict.
+   Provide an error_id property (stable numeric id) for fast machine branching.
+     Ids are allocated in per-feature blocks: common errors use 000X; each
+     feature (a folder with an `agent_*_orchestrator` module) gets its own block:
+     feature 1 uses 1000–1999, feature 2 uses 2000–2999, and so on.
+   Provide an error_code property (plain string identifier) for human-readable
+     error classification.
+   Provide a message property that derives a human-readable description
+     from the stored VOs, error id, and error code.
+   Do not store raw str as a domain payload field.
+   ```
+
+6. For Events:
+
+   ```text
+   Use @dataclass(frozen=True).
+   Use VO payload fields only.
+   Name events as past-tense domain facts.
+   ```
+
+7. For Requests:
+
+   ```text
+   Use a @dataclass with a `verb` discriminator field (e.g., an Enum).
+   Use classmethod factories so callers call CalculatorRequest.delegate(...) instead of
+     instantiating the dataclass directly.
+   VO payload fields only — no raw str or float for domain values.
+   No I/O.
+   ```
+
+8. For Responses:
+
+   ```text
+   Use a @dataclass with optional VO fields that distinguish each outcome.
+   Use classmethod factories so callers call CalculatorResponse.history(...) instead of
+     instantiating the dataclass directly.
+   VO payload fields only — no raw str or float for domain values.
+   No I/O.
+   ```
+
+9. For Constants:
+
+   ```text
+   Use module-level literal assignments only.
+   No functions.
+   No classes.
+   No I/O.
+   No computed values.
+   ```
+
+10. Register the public type in the domain `__init__.py`.
+
+11. Verify the module imports:
+
+    ```bash
+    python -c "import modules.shared.src.<domain>.taxonomy_<domain>_<suffix>"
+    ```
+
+    Example:
+
+    ```bash
+    python -c "import modules.shared.src.order.taxonomy_order_vo"
+    ```
+
+    If your Python package root differs from `modules.shared`, substitute the correct package root while preserving the actual source path layout.
+
+---
+
+## Review
+
+- Import rules respected: no capabilities/agents/surface/root/contract imports, no I/O/network/fs/env/randomness/time modules — § Rules § Import rules.
+- File name follows `taxonomy_<domain>_<suffix>.py` pattern with a valid suffix from the suffix table — § Rules § File-name pattern, § File-name suffix table.
+- VO primitive rules (AES401) satisfied: VOs wrap primitives, no raw `int`/`float`/`str` leakage outside VO fields — § Rules § VO primitive rules.
+- File length within AES302 limit — § Rules § File length.
+- VO shape correct: `Value Object`, `Entity`, `Error`, `Event`, `Request`, `Response` sections use their canonical templates — § Template.
+- Constants live in `taxonomy_<domain>_constant.py`, never in other files — § Template § Constants.
+- Registration: exported in package `__init__.py` with `__all__` + `_layer_symbols` — § Template § Registration.
+- Orphan reachability: no unreachable VO/constant; Phase 2 orphan check passes — § Workflow.
 
 ---
 

@@ -58,13 +58,6 @@ utility couples two helpers that should be independently extractable.
 - Domain-agnostic (no business rules).
 - ≥2 consumers (reusable across modules).
 
-### Workflow
-
-1. Confirm ≥2 consumers, stateless, and domain-agnostic.
-2. Create `utility_<domain>_<role>.rs`.
-3. Register in `mod.rs`.
-4. `cargo check -p <crate-name>`.
-
 ---
 
 ## Template
@@ -105,6 +98,15 @@ pub fn <function_name>(<param_name>: &<Type>) -> <ReturnType> {
 
 ---
 
+## Workflow
+
+1. Confirm ≥2 consumers, stateless, and domain-agnostic.
+2. Create `utility_<domain>_<role>.rs`.
+3. Register in `mod.rs`.
+4. `cargo check -p <crate-name>`.
+
+---
+
 ## Review
 
 - Only free functions — no struct, no impl, no traits, no type aliases — § Rules structure rules.
@@ -114,6 +116,8 @@ pub fn <function_name>(<param_name>: &<Type>) -> <ReturnType> {
 - Used by ≥2 modules — § Rules consumer rule.
 - No `use` from Capabilities, Agent, Surface, or Contract — § Rules import rules.
 - No magic constants — moved to `taxonomy_*_constant.rs` — § Rules constant rule.
+
+---
 
 ## Verify
 

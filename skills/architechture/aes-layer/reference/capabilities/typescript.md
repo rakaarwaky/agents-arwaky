@@ -31,8 +31,11 @@ A utility file **performs a pure operation** — no state, no business rules, ju
 
 ### Import rules
 
-**Allowed imports:** Taxonomy, Contract (`_protocol` only), Utility.
-**Forbidden:** `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants.
+| Rule                           | Value                                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **Allowed imports**            | `shared/*` — taxonomy VOs/constants, `_protocol` contracts, `*_utility` helpers                   |
+| **Mandatory imports (AES202)** | At least one `_protocol` import (Import Matrix row 9)                                             |
+| **Forbidden imports**          | `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants              |
 
 ### Structure rules (TypeScript)
 
@@ -54,16 +57,6 @@ Method placement: protocol interface methods → Block 2. `toString`/static fact
 
 Keep in Block 3 if ANY: uses `this`, domain-specific, single consumer, static factory.
 Extract to utility only if ALL: no `this`, pure, no side effects, domain-agnostic, ≥2 consumers.
-
-### Workflow
-
-1. Confirm implements protocol behavior (not orchestration/data/mechanics).
-2. File imports from `_protocol` module — if missing → flag `CapabilityNoProtocol`.
-3. Create `contract_<name>_protocol.ts` if missing.
-4. Enforce 3-Block with explicit `// ─── Block 1:`, `Block 2:`, `Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
-5. AES403: ≥1 interface implementor, ≤3 types, DI via protocols, shared VOs.
-6. No forbidden imports, no inter-capability deps, no local domain models.
-7. `npx tsc --noEmit`.
 
 ---
 
@@ -110,14 +103,6 @@ export interface I<Name>Protocol {
 
 ---
 
-## Review
-
-- Capability vs Utility boundary respected: file implements one protocol (has state + business rules), stateless pure ops live in `utility_*` — § Rules § Capability vs Utility Boundary.
-- Imports: Taxonomy, Contract (`_protocol` only), Utility — nothing from `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants — § Rules Import rules.
-- ≤3 total types; ≥1 class implements a protocol interface; Block 1 → 2 → 3 order — § Rules § Structure rules (TypeScript), § 3-Block Structure.
-- Block 2 holds only protocol interface method implementations — § Rules § 3-Block Structure.
-- Helper-vs-Utility matrix applied — stateless, domain-agnostic, ≥2 consumers → utility — § Rules § Helper vs Utility Decision Matrix.
-
 ## Section Contract
 
 The `Enforced` column says which rule reports a violation, so you know what the
@@ -126,7 +111,7 @@ checks it — the shape is still the contract, but a violation is caught by revi
 or by `tsc`, not by `scan`.
 
 | Check                                                             | Enforced                                                        |
-| ----------------------------------------------------------------- | -----------------------------------------------------------------|
+| ----------------------------------------------------------------- | --------------------------------------------------------------- |
 | All three `// ─── Block 1:` / `Block 2:` / `Block 3:` banners present, in order, none above 3. | **AES403** `CapabilityBlockMarkers` (MEDIUM)|
 | Block 1 (class) precedes Block 2 (protocol methods).              | **AES403** `CapabilityBlockOrder` (HIGH)                        |
 | ≥1 class implements a protocol interface.                         | **AES403** `CapabilityNoImplementor` (MEDIUM)                   |
@@ -147,6 +132,28 @@ inside a comment, so TypeScript uses the `//` sigil. The colon is load-bearing:
 prose such as `Block 1 (types) -> Block 2` is not a marker, and neither is
 `Sub-Block 4:`. Put the banner above the block it heads, at the same indent as
 the code it introduces.
+
+---
+
+## Workflow
+
+1. Confirm implements protocol behavior (not orchestration/data/mechanics).
+2. File imports from `_protocol` module — if missing → flag `CapabilityNoProtocol`.
+3. Create `contract_<name>_protocol.ts` if missing.
+4. Enforce 3-Block with explicit `// ─── Block 1:`, `Block 2:`, `Block 3:` comments — AES403 `CapabilityBlockMarkers` reports a file whose banners are missing, out of order, or above 3.
+5. AES403: ≥1 interface implementor, ≤3 types, DI via protocols, shared VOs.
+6. No forbidden imports, no inter-capability deps, no local domain models.
+7. `npx tsc --noEmit`.
+
+---
+
+## Review
+
+- Capability vs Utility boundary respected: file implements one protocol (has state + business rules), stateless pure ops live in `utility_*` — § Rules § Capability vs Utility Boundary.
+- Imports: Taxonomy, Contract (`_protocol` only), Utility — nothing from `agent_*`, other `capabilities_*`, `surface_*`, local domain models, magic constants — § Rules Import rules.
+- ≤3 total types; ≥1 class implements a protocol interface; Block 1 → 2 → 3 order — § Rules § Structure rules (TypeScript), § 3-Block Structure.
+- Block 2 holds only protocol interface method implementations — § Rules § 3-Block Structure.
+- Helper-vs-Utility matrix applied — stateless, domain-agnostic, ≥2 consumers → utility — § Rules § Helper vs Utility Decision Matrix.
 
 ---
 

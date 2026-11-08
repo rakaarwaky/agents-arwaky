@@ -47,13 +47,6 @@ utility couples two helpers that should be independently extractable.
 **Keep as private helper** if ANY: uses `this`, domain-specific, single consumer.
 **Extract here** only if ALL: no `this`, pure/I/O-safe, domain-agnostic, ≥2 consumers.
 
-### Workflow
-
-1. Confirm ≥2 consumers, stateless, domain-agnostic.
-2. Create `utility_<domain>_<role>.ts`.
-3. Register in `index.ts`.
-4. `npx tsc --noEmit`.
-
 ---
 
 ## Template
@@ -64,7 +57,7 @@ utility couples two helpers that should be independently extractable.
 Exported functions only — no classes, no interfaces, no enums, no type aliases, no state.
 */
 
-// import type { UserVO } from "./taxonomy_user_vo";  // uncomment if using VOs
+// import type { UserVO } from \"./taxonomy_user_vo\";  // uncomment if using VOs
 
 /** <Description of what this function does> */
 export function <functionName>(<paramName>: string): string {
@@ -96,6 +89,15 @@ export function <functionName>(<paramName>: string): string {
 
 ---
 
+## Workflow
+
+1. Confirm ≥2 consumers, stateless, domain-agnostic.
+2. Create `utility_<domain>_<role>.ts`.
+3. Register in `index.ts`.
+4. `npx tsc --noEmit`.
+
+---
+
 ## Review
 
 - Only exported functions — no class, no interface, no enum, no type alias — § Rules structure rules.
@@ -105,6 +107,8 @@ export function <functionName>(<paramName>: string): string {
 - Used by ≥2 modules — § Rules consumer rule.
 - No import from Capabilities, Agent, Surface, Contract — § Rules import rules.
 - No magic constants — moved to `taxonomy_*_constant.ts` — § Rules constant rule.
+
+---
 
 ## Verify
 

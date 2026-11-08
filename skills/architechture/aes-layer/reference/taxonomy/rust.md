@@ -164,11 +164,7 @@ A leaf VO may privately encapsulate a primitive value (like `String` or `i64`) f
 
 Constants are the explicit exception for literal values because constant files contain compile-time literals, not domain fields.
 
-`_request` and `_response` are a second exception. AES401 is not gated on those
-suffixes, and their role scope `taxonomy(request,response)` permits primitive
-enum discriminants. A request variant carrying a `bool` flag or a `Vec` of
-results, and a response discriminant such as a `&'static str` kind, are both
-correct. Domain *values* still belong in VOs.
+`_request` and `_response` are a second exception. AES401 is not gated on those suffixes, and their role scope `taxonomy(request,response)` permits primitive enum discriminants. A request variant carrying a `bool` flag or a `Vec` of results, and a response discriminant such as a `&'static str` kind, are both correct. Domain *values* still belong in VOs.
 
 ---
 
@@ -182,111 +178,6 @@ FIX: Expand the component or merge this logic into a related module. (min: 5).
 ```
 
 Doc comments count. For constants, each constant should have a descriptive comment line above it — this keeps the file above the minimum while also documenting intent.
-
----
-
-## Workflow
-
-1. Determine type:
-
-   ```text
-   VO
-   Entity
-   Error
-   Event
-   Constant
-   Request
-   Response
-   ```
-
-2. Create the file:
-
-   ```text
-   taxonomy_<domain>_<suffix>.rs
-   ```
-
-   inside:
-
-   ```text
-   crates/shared/src/<domain>/
-   ```
-
-3. For VOs:
-
-   ```text
-   Validate in new().
-   Return Result<Self, DomainError>.
-   Ensure fields are immutable (no pub mut or setters).
-   No I/O.
-   ```
-
-4. For Entities:
-
-   ```text
-   Include an identity VO field.
-   Use VO fields only for domain state.
-   Do not use raw primitives for public/domain fields.
-   ```
-
-5. For Errors:
-
-   ```text
-   Implement std::error::Error and std::fmt::Display (usually via thiserror).
-   Store VO fields only in enum variants.
-   Expose an error_id field (stable numeric id) for fast machine branching.
-     Ids are allocated in per-feature blocks: common errors use 000X; each
-     feature (a folder with an `agent_*_orchestrator.rs`) gets its own block:
-     feature 1 uses 1000–1999, feature 2 uses 2000–2999, and so on.
-     Both the id and the code stay stable across releases.
-   Expose an error_code field (plain string identifier) for human-readable
-     error classification.
-   Provide a message field derived from the stored VOs, error id, and error code
-     so callers can inspect it without parsing the Display output.
-   Do not store raw String or std::io::Error as domain payloads.
-   ```
-
-6. For Events:
-
-   ```text
-   Use standard structs with pub VO fields.
-   Ensure immutability (no setters).
-   Name events as past-tense domain facts.
-   ```
-
-7. For Requests:
-
-   ```text
-   Use a pub enum whose variants carry VO payload fields.
-   Each variant represents one verb/action the aggregate accepts.
-   Implement constructor helper methods on the impl block.
-   No I/O.
-   ```
-
-8. For Responses:
-
-   ```text
-   Use a pub enum whose variants carry VO payload fields.
-   Each variant represents one outcome the caller may inspect.
-   Implement extractor methods that pull out a specific variant's payload.
-   No I/O.
-   ```
-
-9. For Constants:
-
-   ```text
-   Use pub const only.
-   No functions.
-   No lazy_static or once_cell.
-   No I/O.
-   ```
-
-10. Register the module and re-export the public type in the domain `mod.rs`.
-
-11. Verify the crate compiles:
-
-   ```bash
-   cargo check -p shared
-   ```
 
 ---
 
@@ -489,19 +380,11 @@ impl OrderError {
 Every error must expose all four:
 
 - **Field VO** — programmatic access to the domain data that caused the error
-- **Error id** — a stable numeric id such as `1001`, so APIs, database rows,
-  and monitoring queries can correlate on a compact value
-- **Error code** — a stable string name such as `ORDER_NOT_FOUND`, readable in
-  logs without a lookup table
-- **Message** — a human-readable description derived from the error id, the
-  error code, and the stored VOs
+- **Error id** — a stable numeric id such as `1001`, so APIs, database rows, and monitoring queries can correlate on a compact value
+- **Error code** — a stable string name such as `ORDER_NOT_FOUND`, readable in logs without a lookup table
+- **Message** — a human-readable description derived from the error id, the error code, and the stored VOs
 
-Both the error id and the error code stay stable across releases. Renaming or
-reformatting the message is a compatible change; changing the id or the code
-is a breaking one. Allocate ids in per-feature blocks: common errors use the
-`000X` block; each feature — a folder that contains an `agent_*_orchestrator.rs`
-— gets its own block in sequence: feature 1 uses `1000–1999`, feature 2 uses
-`2000–2999`, and so on. Surface-only folders never own an error type.
+Both the error id and the error code stay stable across releases. Renaming or reformatting the message is a compatible change; changing the id or the code is a breaking one. Allocate ids in per-feature blocks: common errors use the `000X` block; each feature — a folder that contains an `agent_*_orchestrator.rs` — gets its own block in sequence: feature 1 uses `1000–1999`, feature 2 uses `2000–2999`, and so on. Surface-only folders never own an error type.
 
 Good:
 
@@ -777,17 +660,6 @@ pub use taxonomy_order_response::OrderResponse;
 
 ---
 
-## Review
-
-- Import rules respected: no capabilities/agents/surface/root/contract imports, no I/O/network/fs/env/randomness/time modules — § Rules § Import rules.
-- File name follows `taxonomy_<domain>_<suffix>.rs` pattern with a valid suffix from the suffix table — § Rules § File-name pattern, § File-name suffix table.
-- VO primitive rules (AES401) satisfied: VOs wrap primitives, no raw primitive leakage outside VO fields — § Rules § VO primitive rules.
-- File length within AES302 limit — § Rules § File length.
-- VO shape correct: `Value Object`, `Entity`, `Error`, `Event`, `Request`, `Response` sections use their canonical templates — § Template.
-- Constants live in `taxonomy_<domain>_constant.rs`, never in other files — § Template § Constants.
-- Registration: exported in shared `mod.rs` — § Template § Registration.
-- Orphan reachability: no unreachable VO/constant; Phase 2 orphan check passes — § Workflow.
-
 ## Section Contract
 
 | Check | Enforcement | Why it belongs here|
@@ -816,6 +688,130 @@ pub use taxonomy_order_response::OrderResponse;
 | Response enums carry VO payload fields in their variants and expose an `into_*` extractor per outcome. | Convention — not machine-checked. The reader verifies this; the linter does not. | Required by AES taxonomy convention; missing it is a defect.|
 | No I/O, network, database, filesystem, environment, randomness, or time retrieval. | Convention — not machine-checked fully. The reader verifies this; the linter does not guarantee it. | Required by AES taxonomy convention; missing it is a defect.|
 | `cargo check -p <crate-name>` passes. | Manual fallback gate. | Required by the Rust compilation check; missing it is a defect.|
+
+---
+
+## Workflow
+
+1. Determine type:
+
+   ```text
+   VO
+   Entity
+   Error
+   Event
+   Constant
+   Request
+   Response
+   ```
+
+2. Create the file:
+
+   ```text
+   taxonomy_<domain>_<suffix>.rs
+   ```
+
+   inside:
+
+   ```text
+   crates/shared/src/<domain>/
+   ```
+
+3. For VOs:
+
+   ```text
+   Validate in new().
+   Return Result<Self, DomainError>.
+   Ensure fields are immutable (no pub mut or setters).
+   No I/O.
+   ```
+
+4. For Entities:
+
+   ```text
+   Include an identity VO field.
+   Use VO fields only for domain state.
+   Do not use raw primitives for public/domain fields.
+   ```
+
+5. For Errors:
+
+   ```text
+   Implement std::error::Error and std::fmt::Display (usually via thiserror).
+   Store VO fields only in enum variants.
+   Expose an error_id field (stable numeric id) for fast machine branching.
+     Ids are allocated in per-feature blocks: common errors use 000X; each
+     feature (a folder with an `agent_*_orchestrator.rs`) gets its own block:
+     feature 1 uses 1000–1999, feature 2 uses 2000–2999, and so on.
+     Both the id and the code stay stable across releases.
+   Expose an error_code field (plain string identifier) for human-readable
+     error classification.
+   Provide a message field derived from the stored VOs, error id, and error code
+     so callers can inspect it without parsing the Display output.
+   Do not store raw String or std::io::Error as domain payloads.
+   ```
+
+6. For Events:
+
+   ```text
+   Use standard structs with pub VO fields.
+   Ensure immutability (no setters).
+   Name events as past-tense domain facts.
+   ```
+
+7. For Requests:
+
+   ```text
+   Use a pub enum whose variants carry VO payload fields.
+   Each variant represents one verb/action the aggregate accepts.
+   Implement constructor helper methods on the impl block.
+   No I/O.
+   ```
+
+8. For Responses:
+
+   ```text
+   Use a pub enum whose variants carry VO payload fields.
+   Each variant represents one outcome the caller may inspect.
+   Implement extractor methods that pull out a specific variant's payload.
+   No I/O.
+   ```
+
+9. For Constants:
+
+   ```text
+   Use pub const only.
+   No functions.
+   No lazy_static or once_cell.
+   No I/O.
+   ```
+
+10. Register the module and re-export the public type in the domain `mod.rs`.
+
+11. Verify the crate compiles:
+
+    ```bash
+    cargo check -p shared
+    ```
+
+    Or if your crate name differs:
+
+    ```bash
+    cargo check -p <crate-name>
+    ```
+
+---
+
+## Review
+
+- Import rules respected: no capabilities/agents/surface/root/contract imports, no I/O/network/fs/env/randomness/time modules — § Rules § Import rules.
+- File name follows `taxonomy_<domain>_<suffix>.rs` pattern with a valid suffix from the suffix table — § Rules § File-name pattern, § File-name suffix table.
+- VO primitive rules (AES401) satisfied: VOs wrap primitives, no raw primitive leakage outside VO fields — § Rules § VO primitive rules.
+- File length within AES302 limit — § Rules § File length.
+- VO shape correct: `Value Object`, `Entity`, `Error`, `Event`, `Request`, `Response` sections use their canonical templates — § Template.
+- Constants live in `taxonomy_<domain>_constant.rs`, never in other files — § Template § Constants.
+- Registration: exported in shared `mod.rs` — § Template § Registration.
+- Orphan reachability: no unreachable VO/constant; Phase 2 orphan check passes — § Workflow.
 
 ---
 

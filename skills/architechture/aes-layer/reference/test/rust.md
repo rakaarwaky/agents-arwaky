@@ -94,14 +94,6 @@ Prefixes: `contract_`, `unit_`, `integration_`, `dogfood_`, `smoke_`, `e2e_`, `a
 | Agent | 60%|
 | Utility | 50%|
 
-### Workflow
-
-1. Analyze crate / app structure.
-2. Write `tests/contract_<crate>.rs`, `tests/unit_<crate>_<module>.rs`, `tests/integration_<crate>.rs`.
-3. Write `tests/dogfood_<pipeline>.rs` (requires live session), then `tests/smoke_<app>.rs`, `tests/e2e_<flow>.rs`, `tests/acceptance_<FR_id>.rs`.
-4. Write `benches/bench_<subject>.rs` + register in `Cargo.toml`.
-5. Run `cargo nextest run --workspace --lib --tests -j 2`, then verify coverage targets met.
-
 ---
 
 ## Template
@@ -178,6 +170,16 @@ Registering a benchmark requires the `[[bench]]` block above **and** workflow st
 
 ---
 
+## Workflow
+
+1. Analyze crate / app structure.
+2. Write `tests/contract_<crate>.rs`, `tests/unit_<crate>_<module>.rs`, `tests/integration_<crate>.rs`.
+3. Write `tests/dogfood_<pipeline>.rs` (requires live session), then `tests/smoke_<app>.rs`, `tests/e2e_<flow>.rs`, `tests/acceptance_<FR_id>.rs`.
+4. Write `benches/bench_<subject>.rs` + register in `Cargo.toml`.
+5. Run `cargo nextest run --workspace --lib --tests -j 2`, then verify coverage targets met.
+
+---
+
 ## Review
 
 - No inline tests in `src/` — all suites live under `tests/`/`benches/` — § Rules placement rules.
@@ -190,7 +192,7 @@ Registering a benchmark requires the `[[bench]]` block above **and** workflow st
 - Benchmarks use criterion, not manual timing loops — § Rules bench rule.
 - Acceptance tests reference FRD/PRD IDs; smoke runs in <5s — § Rules traceability rule.
 
-## Dogfood / Integration Pipeline Tests
+### Dogfood / Integration Pipeline Tests
 
 **Dogfood tests are REQUIRED — not optional.** They validate against LIVE services.
 
@@ -206,6 +208,8 @@ For tests that exercise actual CLI commands against live services/sessions:
 8. **Mark with `#[cfg(feature = "dogfood")]`** for identification.
 
 Dogfood tests skip in CI when services unavailable — but the file MUST exist.
+
+---
 
 ## Verify
 

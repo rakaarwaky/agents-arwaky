@@ -1,18 +1,18 @@
 # AES Contract HOW-TO (Python)
 
-> **Purpose**: State a Python contract's public promises (protocol or aggregate) so outer  
+> **Purpose**: State a Python contract's public promises (protocol or aggregate) so outer 
 > layers can depend on the seam without importing a concretion.
 >
 > **Audience**: Agents and engineers scaffolding AES contract files in the shared domain.
 >
-> **Scope**: Pure ABC definitions in `contract_<concept>_<suffix>.py` — `_protocol` or  
+> **Scope**: Pure ABC definitions in `contract_<concept>_<suffix>.py` — `_protocol` or 
 > `_aggregate` only.
 >
-> **Location**: Shared domain package next to taxonomy, registered in the shared  
+> **Location**: Shared domain package next to taxonomy, registered in the shared 
 > package `__init__.py`.
 >
-> **Length**: One file per feature. A `_protocol` file may declare **one class per**  
-> **capability seam**; each class is **rich** — one named method per operation, each with a  
+> **Length**: One file per feature. A `_protocol` file may declare **one class per** 
+> **capability seam**; each class is **rich** — one named method per operation, each with a 
 > concrete return type. An `_aggregate` file declares **exactly one method**.
 
 ---
@@ -21,23 +21,23 @@
 
 Seven rules. Each one prevents a specific failure mode.
 
-1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`,  
+1. **Suffix is strictly** `_protocol` **or** `_aggregate`**.** Type names: `I<Name>Protocol`, 
  `I<Name>Aggregate`. File: `contract_<concept>_<suffix>.py`.
-2. **ABC only —** `@abstractmethod`**, body is** `...` **or** `pass`**.** Never real code, never  
+2. **ABC only —** `@abstractmethod`**, body is** `...` **or** `pass`**.** Never real code, never 
  private-helper signatures, never convenience API (`AES101`/`AES102`).
-3. **One file per feature, one class per capability seam, each class rich.** A  
- `_protocol` file for a feature with several capabilities declares one ABC per seam —  
- `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` — side by side in the  
- same file. Each class carries **every** method its capability implements, each with its  
- own named signature and **one concrete return type**. Never `execute(op, …)` dispatch,  
+3. **One file per feature, one class per capability seam, each class rich.** A 
+ `_protocol` file for a feature with several capabilities declares one ABC per seam — 
+ `I<Injector>Protocol`, `I<Sender>Protocol`, `I<Stream>Protocol` — side by side in the 
+ same file. Each class carries **every** method its capability implements, each with its 
+ own named signature and **one concrete return type**. Never `execute(op, …)` dispatch, 
  never a `**kwargs` bag, never a union return.
-4. **A capability implements exactly one class, and all of it.** Because each class is  
- scoped to one capability's own operations, a class is never partially implemented: it  
- declares only the methods that capability owns, and that capability defines every one  
- of them. This is why a single file per feature is enough — no per-method splitting, and  
+4. **A capability implements exactly one class, and all of it.** Because each class is 
+ scoped to one capability's own operations, a class is never partially implemented: it 
+ declares only the methods that capability owns, and that capability defines every one 
+ of them. This is why a single file per feature is enough — no per-method splitting, and 
  no `NotImplementedError` stubs.
-5. **Aggregate = exactly one method.** The aggregate is the single entry point the  
- surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to  
+5. **Aggregate = exactly one method.** The aggregate is the single entry point the 
+ surface/root/CLI/MCP calls. All consumer verbs live in the agent, which dispatches to 
  the rich protocol classes. A dump-all `execute(op, …)` aggregate is the violation here.
 6. **Signatures use shared VOs for domain values.** Domain values must not be numeric
    primitives — `int`, `float`, `list[int]`, `dict` — or bare string types — `str` —
@@ -52,32 +52,10 @@ Seven rules. Each one prevents a specific failure mode.
    methods keep one concrete VO return type; the aggregate response enum is the
    sanctioned way to carry heterogeneous results across one `execute()` entry point.
    All methods fully type-annotated.
-7. **Register in shared** `__init__.py` with `__all__` + `_layer_symbols` for harness  
+7. **Register in shared** `__init__.py` with `__all__` + `_layer_symbols` for harness 
  introspection.
 
 ---
-
-## Review
-
-- Suffix is strictly `_protocol` or `_aggregate`; class names `I<Name>Protocol` / `I<Name>Aggregate`, file `contract_<concept>_<suffix>.py` — § Rules rule 1.
-- `class` only — methods end with `:` and a body ellipsis or implementation; never default implementations — § Rules rule 2.
-- One file per feature; one class per capability seam; each class rich — every method its capability owns, one concrete return type each — § Rules rule 3.
-- A capability implements exactly one class, all of it — no partial implementations, no unimplemented stubs — § Rules rule 4.
-- Aggregate = exactly one method (`execute`), never `execute(op, …)` dispatch bag — § Rules rule 5.
-- Shared VOs in signatures — no numeric primitives (`int`, `float`, `list`, `dict`) or bare `str` for domain values; `bool` permitted for toggles only — § Rules rule 6.
-- Register in shared `__init__.py` with `__all__` + `_layer_symbols` — § Rules rule 7.
-
-## Workflow
-
-1. **Determine suffix** — `_protocol` (inward, rich classes) or `_aggregate` (outward, one  
- method).
-2. **List the feature's capability seams** — group the feature's operations by the  
- capability that owns them. One group becomes one class.
-3. **Create file** → `contract_<concept>_<suffix>.py`, one class per seam.
-4. **Draft each class** — every method its capability implements, one concrete return type  
- each.
-5. **Register** in shared `__init__.py` with `__all__` + `_layer_symbols`.
-6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
 
 ## Template
 
@@ -138,9 +116,9 @@ _layer_symbols = {
 
 **One file → one feature → one class per capability seam → many named methods per class.**
 
-Violations: an `execute(op, …)` that dispatches several features behind one name, a  
-`**kwargs` bag, a union return that papers over differing result shapes, a class that  
-declares methods its implementors do not own, or an implementor that leaves a declared  
+Violations: an `execute(op, …)` that dispatches several features behind one name, a 
+`**kwargs` bag, a union return that papers over differing result shapes, a class that 
+declares methods its implementors do not own, or an implementor that leaves a declared 
 method unimplemented (which Python rejects with `TypeError` at instantiation).
 
 ### Aggregate file — exactly one method
@@ -170,9 +148,9 @@ __all__ = ["I<Feature>Aggregate"]
 _layer_symbols = {"I<Feature>Aggregate": I<Feature>Aggregate}
 ```
 
-**The aggregate is the one door consumers knock on.** Consumers never see the protocol  
-classes' method lists; the agent behind the aggregate routes the request to the right  
-capability. Adding a consumer verb = a new variant on `RequestVO` + the agent's dispatch  
+**The aggregate is the one door consumers knock on.** Consumers never see the protocol 
+classes' method lists; the agent behind the aggregate routes the request to the right 
+capability. Adding a consumer verb = a new variant on `RequestVO` + the agent's dispatch 
 branch, not a new aggregate method.
 
 ---
@@ -194,6 +172,32 @@ Every contract file is required to carry the rows that apply. Each exists for on
 | No impl-layer imports                    | Keeps the dependency arrow (capabilities → contract ← agent).                    |
 | `__all__` + `_layer_symbols`             | Harness/loader introspection and explicit public surface.                        |
 | Register in shared `__init__`            | Importable without reaching into private modules.                                |
+
+---
+
+## Workflow
+
+1. **Determine suffix** — `_protocol` (inward, rich classes) or `_aggregate` (outward, one 
+ method).
+2. **List the feature's capability seams** — group the feature's operations by the 
+ capability that owns them. One group becomes one class.
+3. **Create file** → `contract_<concept>_<suffix>.py`, one class per seam.
+4. **Draft each class** — every method its capability implements, one concrete return type 
+ each.
+5. **Register** in shared `__init__.py` with `__all__` + `_layer_symbols`.
+6. **Verify** → `lint-arwaky-cli scan <contract-dir>`.
+
+---
+
+## Review
+
+- Suffix is strictly `_protocol` or `_aggregate`; class names `I<Name>Protocol` / `I<Name>Aggregate`, file `contract_<concept>_<suffix>.py` — § Rules rule 1.
+- `class` only — methods end with `:` and a body ellipsis or implementation; never default implementations — § Rules rule 2.
+- One file per feature; one class per capability seam; each class rich — every method its capability owns, one concrete return type each — § Rules rule 3.
+- A capability implements exactly one class, all of it — no partial implementations, no unimplemented stubs — § Rules rule 4.
+- Aggregate = exactly one method (`execute`), never `execute(op, …)` dispatch bag — § Rules rule 5.
+- Shared VOs in signatures — no numeric primitives (`int`, `float`, `list`, `dict`) or bare `str` for domain values; `bool` permitted for toggles only — § Rules rule 6.
+- Register in shared `__init__.py` with `__all__` + `_layer_symbols` — § Rules rule 7.
 
 ---
 
@@ -227,6 +231,7 @@ runtime shape.
 **Boolean in signatures vs. taxonomy.** `bool` is treated as a primitive in
 `taxonomy_*_entity` field declarations (no carve-out; see
 [../taxonomy/rust.md](../taxonomy/rust.md)).
+
 In contract signatures (`contract_*_protocol` / `contract_*_aggregate`), `bool`
 is permitted only for semantic toggles or predicates (e.g. `enabled: bool`)
 because the signature describes *when* a capability runs, not the domain value
