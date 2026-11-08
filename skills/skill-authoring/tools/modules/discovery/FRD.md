@@ -8,7 +8,15 @@ Last Updated: 2026-11-09
 
 ## Feature Overview
 
-The discovery feature answers read-side questions about the skill pack: which skills exist (list), what one skill says (read), whether the tracked catalog matches the live tree (catalog check), and which skills best match a free-text query (discover). It owns four capabilities — list, read, catalog, finder — and one agent, which dispatches over the `ISkillsDiscoveryAggregate` contract. Nothing in this folder mutates the tree: list/read/catalog are read-only, and discover answers from the catalog with a loud fallback to a live tree scan when the catalog drifts.
+```text
+[Surface] --> [SkillsDiscoveryAgent.execute] --> [lister]
+                                             --> [reader]
+                                             --> [catalog]
+                                             --> [discover] 
+                                             --> [catalog read] 
+```
+
+The discovery feature sits in the agent layer and answers the read-side questions about the skill pack: which skills exist, what one skill says, whether the tracked catalog matches the live tree, and which skills best match a free-text query. It owns four capabilities — list, read, catalog, discover — and one agent that dispatches over the `ISkillsDiscoveryAggregate` contract. Nothing in this feature mutates the skill tree: list, read, and catalog check are read-only, and discover answers from the catalog with a loud fallback to a live tree scan when the catalog drifts.
 
 ## Functional Requirements
 
@@ -32,35 +40,29 @@ The discovery feature shall list every skill record in the pack, one record per 
 
 #### Technical Specification
 
-
 | Aspect       | Detail                                                                         |
 | ------------ | ------------------------------------------------------------------------------ |
-| **Input**    | `SkillsRequest(op=SkillsOp.LIST, root?)`. Source: caller/surface.              |
-| **Output**   | `SkillsResult(records=tuple[SkillRecord], root)`. Destination: caller/surface. |
-| **Protocol** | `ISkillsListerProtocol.list_skills`                                            |
-| **Method**   | `_execute_list`                                                                |
+| **Input**    | `DiscoveryRequest(verb=LIST, root?)`. Source: surface/CLI.                     |
+| **Output**   | `DiscoveryResponse(records, root)`. Destination: surface/CLI.                 |
+| **Protocol** | `ISkillsListerProtocol`                                                        |
+| **Method**   | `list_skills`                                                                  |
 | **Event**    | none                                                                           |
-| **Error**    | `SkillsRootError` (unwired lister) → exit 2                                    |
-
+| **Error**    | unwired lister → `SkillsRootError`, exit 2                                     |
 
 #### Test
 
-
 | Context                         | When Action                            | Then Observable Result                                                             |
 | ------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------- |
-| A pack contains multiple skills | The caller invokes list                | One `SkillRecord` per skill, sorted by name, each with name, description, and path |
-| The pack is empty               | The caller invokes list                | An empty record sequence is returned                                               |
-| An explicit root is supplied    | The caller invokes list with that root | The walk targets the supplied root, not the construction-time root                 |
-
+| A pack contains multiple skills | The caller lists skills                | One `SkillRecord` per skill, sorted by name, each with name, description, and path |
+| The pack is empty               | The caller lists skills                | An empty record sequence is returned                                               |
+| An explicit root is supplied    | The caller lists skills with that root | The walk targets the supplied root, not the construction-time root                 |
 
 #### Metric
-
 
 | Target Metric   | Value     |
 | --------------- | --------- |
 | Record Accuracy | 100%      |
 | List Latency    | &lt; 50ms |
-
 
 ### FR-discovery-002: Read one skill's SKILL.md
 
@@ -84,36 +86,30 @@ The discovery feature shall return the raw `SKILL.md` content for one skill iden
 
 #### Technical Specification
 
-
-| Aspect       | Detail                                                                   |
-| ------------ | ------------------------------------------------------------------------ |
-| **Input**    | `SkillsRequest(op=SkillsOp.READ, query, root?)`. Source: caller/surface. |
-| **Output**   | `SkillsResult(content=SkillContent, root)`. Destination: caller/surface. |
-| **Protocol** | `ISkillsReaderProtocol.show_skill`                                       |
-| **Method**   | `_execute_read`                                                          |
-| **Event**    | none                                                                     |
-| **Error**    | missing query or missing skill → exit 1                                  |
-
+| Aspect       | Detail                                                                     |
+| ------------ | -------------------------------------------------------------------------- |
+| **Input**    | `DiscoveryRequest(verb=READ, query, root?)`. Source: surface/CLI.          |
+| **Output**   | `DiscoveryResponse(content=SkillContent, root)`. Destination: surface/CLI. |
+| **Protocol** | `ISkillsReaderProtocol`                                                    |
+| **Method**   | `show_skill`                                                               |
+| **Event**    | none                                                                       |
+| **Error**    | missing query or missing skill → exit 1                                    |
 
 #### Test
 
-
 | Context                                                        | When Action                        | Then Observable Result                          |
-| -------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------- |
+| -------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------- |
 | A skill exists with frontmatter name `fetch-mcp`               | The caller reads query `fetch-mcp` | The skill's raw `SKILL.md` content is returned  |
 | A skill directory is named `fetch-mcp` and frontmatter matches | The caller reads query `fetch`     | The single matching skill's content is returned |
 | Two skills share prefix `fetch` (e.g. `fetch`, `fetch-mcp`)    | The caller reads query `fetch`     | `None` is returned (ambiguous)                  |
 | No skill matches the query                                     | The caller reads an unknown name   | `None` is returned                              |
 
-
 #### Metric
-
 
 | Target Metric | Value     |
 | ------------- | --------- |
 | Read Accuracy | 100%      |
 | Read Latency  | &lt; 50ms |
-
 
 ### FR-discovery-003: Rebuild and check the catalog
 
@@ -137,37 +133,31 @@ The discovery feature shall rebuild the tracked `catalog.json` from the live tre
 
 #### Technical Specification
 
-
-| Aspect       | Detail                                                                                    |
-| ------------ | ----------------------------------------------------------------------------------------- |
-| **Input**    | `SkillsRequest(op=SkillsOp.CATALOG, flags={check: bool}, root?)`. Source: caller/surface. |
-| **Output**   | `SkillsResult(catalog=..., check=..., root)`. Destination: caller/surface.                |
-| **Protocol** | `ISkillsCatalogProtocol.rebuild` / `ISkillsCatalogProtocol.check`                         |
-| **Method**   | `_execute_catalog`                                                                        |
-| **Event**    | none                                                                                      |
-| **Error**    | drift → exit 3 (clean → exit 0 on check)                                                  |
-
+| Aspect       | Detail                                                                          |
+| ------------ | --------------------------------------------------------------------------------- |
+| **Input**    | `DiscoveryRequest(verb=CATALOG, flags={check: bool}, root?)`. Source: surface/CLI. |
+| **Output**   | `DiscoveryResponse(catalog_report=CatalogReport, catalog_check=CatalogCheckResult, root)`. Destination: surface/CLI. |
+| **Protocol** | `ISkillsCatalogProtocol`                                                          |
+| **Method**   | `rebuild` / `check`                                                               |
+| **Event**    | none                                                                              |
+| **Error**    | drift → exit 3 (clean → exit 0 on check)                                          |
 
 #### Test
 
-
 | Context                                               | When Action                     | Then Observable Result                                         |
-| ----------------------------------------------------- | ------------------------------- | -------------------------------------------------------------- |
+| ----------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------- |
 | The tracked `catalog.json` matches the live tree      | The caller runs catalog check   | `in_sync=True`, exit 0                                         |
 | The tracked `catalog.json` differs from the live tree | The caller runs catalog check   | `in_sync=False`, diff lines reported, exit 3                   |
 | `catalog.json` is missing                             | The caller runs catalog check   | `in_sync=False`, missing-catalog message, exit 3               |
 | `catalog.json` is corrupt JSON                        | The caller runs catalog check   | `in_sync=False`, corrupt-catalog message, exit 3               |
-| Rebuild is invoked                                    | The caller runs catalog rebuild | `catalog.json` is rewritten and legacy `CATALOG.md` is deleted |
-
+| Rebuild is invoked                                     | The caller runs catalog rebuild | `catalog.json` is rewritten and legacy `CATALOG.md` is deleted |
 
 #### Metric
-
 
 | Target Metric            | Value      |
 | ------------------------ | ---------- |
 | Drift Detection Accuracy | 100%       |
 | Catalog Rebuild Latency  | &lt; 500ms |
-
 
 ### FR-discovery-004: BM25F-ranked discovery with drift fallback
 
@@ -194,19 +184,16 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 
 #### Technical Specification
 
-
-| Aspect       | Detail                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------- |
-| **Input**    | `SkillsRequest(op=SkillsOp.DISCOVER, query, flags={limit}, root?)`. Source: caller/surface. |
-| **Output**   | `SkillsResult(matches=..., root)`. Destination: caller/surface.                             |
-| **Protocol** | `ISkillsDiscoverProtocol.discover`                                                          |
-| **Method**   | `_execute_discover`                                                                         |
-| **Event**    | `warning` / `warning_detail` fields on drift                                                |
-| **Error**    | empty query → exit 2                                                                        |
-
+| Aspect       | Detail                                                                              |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Input**    | `DiscoveryRequest(verb=DISCOVER, query, flags={limit}, root?)`. Source: surface/CLI.  |
+| **Output**   | `DiscoveryResponse(discovery=DiscoveryResult, root)`. Destination: surface/CLI.       |
+| **Protocol** | `ISkillsDiscoverProtocol`                                                            |
+| **Method**   | `discover`                                                                            |
+| **Event**    | `warning` / `warning_detail` fields on drift                                          |
+| **Error**    | empty query → exit 2                                                                 |
 
 #### Test
-
 
 | Context                            | When Action              | Then Observable Result                                            |
 | ---------------------------------- | ------------------------ | ----------------------------------------------------------------- |
@@ -217,9 +204,7 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 | An empty query                     | The caller runs discover | Exit 2, usage error message                                       |
 | No row matches the query           | The caller runs discover | Empty match list, exit 0                                          |
 
-
 #### Metric
-
 
 | Target Metric       | Value               |
 | ------------------- | ------------------- |
@@ -227,30 +212,24 @@ The discovery feature shall rank catalog rows against a free-text query using BM
 | Drift Fallback Rate | 100% of drift cases |
 | Discover Latency    | &lt; 100ms          |
 
-
 ## Public Interface
 
-
-| Aspect    | Detail                      |
-| --------- | --------------------------- |
-| Agent     | `SkillsDiscoveryAgent`      |
+| Aspect    | Detail                     |
+| --------- | -------------------------- |
+| Agent     | `SkillsDiscoveryAgent`     |
 | Aggregate | `ISkillsDiscoveryAggregate` |
 | Method    | `execute`                   |
-| Request   | `DiscoveryRequest`          |
-| Response  | `DiscoveryResult`           |
+| Request   | `DiscoveryRequest`         |
+| Response  | `DiscoveryResponse`        |
 
-
-
-| Protocol                  | Method                                                |
-| ------------------------- | ----------------------------------------------------- |
-| `ISkillsListerProtocol`   | `list_skills(root?)`                                  |
-| `ISkillsReaderProtocol`   | `show_skill(query, root?)`                            |
-| `ISkillsCatalogProtocol`  | `rebuild(root)` / `check(root)` / `read(root)`        |
-| `ISkillsDiscoverProtocol` | `discover(query, root, limit)` / `rank(rows, tokens)` |
-
+| Protocol                  | Method                                                  |
+| ------------------------- | --------------------------------------------------------- |
+| `ISkillsListerProtocol`   | `list_skills(root?)`                                     |
+| `ISkillsReaderProtocol`   | `show_skill(query, root?)`                                |
+| `ISkillsCatalogProtocol`  | `rebuild(root)` / `check(root)` / `read(root)`           |
+| `ISkillsDiscoverProtocol` | `discover(query, root, limit)` / `rank(rows, tokens)`    |
 
 ## Reference
-
 
 | Artifact     | Purpose                                         | Link                                     |
 | ------------ | ----------------------------------------------- | ---------------------------------------- |

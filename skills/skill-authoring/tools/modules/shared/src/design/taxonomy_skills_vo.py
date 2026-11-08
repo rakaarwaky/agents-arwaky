@@ -29,19 +29,6 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Final
 
-from shared.src.common.taxonomy_common_vo import DiscoveryMatch
-from shared.src.common.taxonomy_common_vo import (
-    BM25FHit,
-    CatalogCheckResult,
-    CatalogReport,
-    CategoryName,
-    DiscoveryResult,
-    SkillContent,
-    SkillDescription,
-    SkillName,
-    SkillRecord,
-    SkillsJsonPayload,
-)
 from shared.src.common.taxonomy_common_constant import (
     NAME_MAX,
     NAME_MIN,
@@ -411,12 +398,6 @@ def load_lifecycle_config(pack_root: Path | None = None) -> LifecycleConfig:
 
 
 __all__ = [
-    "BM25FHit",
-    "CatalogCheckResult",
-    "CatalogReport",
-    "CategoryName",
-    "DiscoveryMatch",
-    "DiscoveryResult",
     "ISSUE_MESSAGES",
     "RULES",
     "RULE_IDS",
@@ -430,12 +411,7 @@ __all__ = [
     "MutationStep",
     "NewCategoryPlan",
     "Rule",
-    "SkillContent",
     "SkillCreatePlan",
-    "SkillDescription",
-    "SkillName",
-    "SkillRecord",
-    "SkillsJsonPayload",
     "TelemetryRow",
     "ValidationReport",
     "is_valid_skill_name",
