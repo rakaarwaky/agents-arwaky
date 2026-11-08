@@ -97,11 +97,17 @@ def default_aggregate(
         runner=SkillsRunner(),
         default_root=root,
     )
+    _catalog = catalog if catalog is not None else SkillsCatalog()
+    _discover = discover if discover is not None else SkillsDiscover(
+        _catalog, SkillsBm25fRanker()
+    )
+    _lister = lister if lister is not None else SkillsLister()
+    _reader = reader if reader is not None else SkillsPackReader()
     discovery = SkillsDiscoveryAgent(
-        catalog=catalog,
-        discover=discover,
-        lister=lister,
-        reader=reader,
+        catalog=_catalog,
+        discover=_discover,
+        lister=_lister,
+        reader=_reader,
         default_root=root,
     )
     governance = SkillsGovernanceAgent(
