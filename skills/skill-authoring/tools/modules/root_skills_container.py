@@ -23,10 +23,6 @@ from design.agent_design_orchestrator import SkillsDesignAgent
 from design.capabilities_skills_adopter import SkillsAdopter
 from design.capabilities_skills_runner import SkillsRunner
 from discovery.agent_discovery_orchestrator import SkillsDiscoveryAgent
-from discovery.capabilities_discovery_catalog import SkillsCatalog
-from discovery.capabilities_discovery_finder import SkillsDiscover
-from discovery.capabilities_discovery_lister import SkillsLister
-from discovery.capabilities_discovery_reader import SkillsPackReader
 from governance.agent_governance_orchestrator import SkillsGovernanceAgent
 from governance.capabilities_skills_locker import SkillsLocker
 from governance.capabilities_skills_piner import SkillsPiner
@@ -64,7 +60,6 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 from shared.src.storage.utility_skill_pack import default_pack_root
 from storage.agent_storage_orchestrator import SkillsStorageAgent
 from storage.capabilities_skills_backup import SkillsBackup
