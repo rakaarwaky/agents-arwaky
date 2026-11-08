@@ -15,11 +15,10 @@ for _ns in (
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from capabilities_discovery_finder import (
+from shared.src.discovery.taxonomy_discovery_vo import (
     BM25F_FIELD_WEIGHTS,
     SkillsBm25fRanker,
     build_index,
-    rank_bm25f,
     tokenize,
 )
 from shared.src.design.taxonomy_skills_vo import _Row

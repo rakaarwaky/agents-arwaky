@@ -27,10 +27,11 @@ from shared.src.discovery.contract_discovery_protocol import (
     ISkillsListerProtocol,
     ISkillsReaderProtocol,
 )
+from shared.src.discovery.taxonomy_discovery_vo import SkillsBm25fRanker
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
 from agent_discovery_orchestrator import SkillsDiscoveryAgent
 from capabilities_discovery_catalog import SkillsCatalog
-from capabilities_discovery_finder import SkillsBm25fRanker, SkillsDiscover
+from capabilities_discovery_finder import SkillsDiscover
 from capabilities_discovery_lister import SkillsLister
 from capabilities_discovery_reader import SkillsPackReader
 

@@ -135,9 +135,7 @@ def catalog_path(skills_root: Path) -> Path:
 def clean_one_line(value: object) -> str:
     """Collapse whitespace to single spaces and strip the edges.
 
-    Catalog-local single-consumer string mechanic (was imported from the
-    shared ``utility_skills_markdown`` module; moved here because it serves
-    exactly one capability).
+    Catalog-local single-consumer string mechanic.
     """
     return " ".join(str(value).split()).strip()
 

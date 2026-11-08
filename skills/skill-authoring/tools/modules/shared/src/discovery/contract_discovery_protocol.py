@@ -14,9 +14,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
-    SkillsRoot,
+from shared.src.discovery.taxonomy_discovery_request import (
+    DiscoveryQuery,
+    DiscoveryRoot,
 )
 from shared.src.design.taxonomy_skills_vo import (
     BM25FHit,
@@ -33,7 +33,7 @@ class ISkillsListerProtocol(ABC):
     """Read-only listing of the skill pack."""
 
     @abstractmethod
-    def list_skills(self, root: SkillsRoot | None = None) -> Sequence[SkillRecord]:
+    def list_skills(self, root: DiscoveryRoot | None = None) -> Sequence[SkillRecord]:
         """Return one record per skill, sorted by name.
 
         ``root`` overrides the capability's construction-time pack root
@@ -41,7 +41,7 @@ class ISkillsListerProtocol(ABC):
         """
         ...
 
-    def list_skills_json(self, root: SkillsRoot | None = None) -> SkillsJsonPayload:
+    def list_skills_json(self, root: DiscoveryRoot | None = None) -> SkillsJsonPayload:
         """Return the global-skill JSON list as a pure-data dict.
 
         One entry per skill (``name``, ``source``, ``path``, ``loaded``);
@@ -54,7 +54,7 @@ class ISkillsReaderProtocol(ABC):
 
     @abstractmethod
     def show_skill(
-        self, query: SkillQuery, root: SkillsRoot | None = None
+        self, query: DiscoveryQuery, root: DiscoveryRoot | None = None
     ) -> SkillContent | None:
         """Return the raw SKILL.md content for *query*, or None if missing."""
         ...
@@ -64,12 +64,12 @@ class ISkillsCatalogProtocol(ABC):
     """Render, rebuild, check, and read the tracked ``catalog.json``."""
 
     @abstractmethod
-    def rebuild(self, root: SkillsRoot) -> CatalogReport:
+    def rebuild(self, root: DiscoveryRoot) -> CatalogReport:
         """Walk the tree and rewrite the catalog; return the rendered counts."""
         ...
 
     @abstractmethod
-    def check(self, root: SkillsRoot) -> CatalogCheckResult:
+    def check(self, root: DiscoveryRoot) -> CatalogCheckResult:
         """Return ``in_sync`` plus the diff lines and summary message.
 
         On sync: ``in_sync=True``, no diff lines. On drift/missing/
@@ -82,7 +82,7 @@ class ISkillsCatalogProtocol(ABC):
         ...
 
     @abstractmethod
-    def read(self, root: SkillsRoot) -> SkillContent:
+    def read(self, root: DiscoveryRoot) -> SkillContent:
         """Return the raw tracked ``catalog.json`` text, or ``""`` if missing.
 
         A read-only view for the CLI ``catalog --read`` path; never parses,
@@ -98,7 +98,7 @@ class ISkillsDiscoverProtocol(ABC):
 
     @abstractmethod
     def discover(
-        self, query: SkillQuery, root: SkillsRoot, limit: int
+        self, query: DiscoveryQuery, root: DiscoveryRoot, limit: int
     ) -> DiscoveryResult:
         """Search the catalog rows for *query*, returning top *limit* matches.
 

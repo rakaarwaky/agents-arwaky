@@ -5,16 +5,20 @@ import sys
 import time
 from pathlib import Path
 
-_MOD_ROOT = Path(__file__).resolve().parents[4]
-for _ns in (_MOD_ROOT.parent, _MOD_ROOT):
+_TOOLS_ROOT = Path(__file__).resolve().parents[2]
+for _ns in (
+    _TOOLS_ROOT,
+    _TOOLS_ROOT / "shared" / "src",
+    _TOOLS_ROOT / "discovery" / "src",
+):
     if _ns.is_dir() and str(_ns) not in sys.path:
         sys.path.insert(0, str(_ns))
 
-from discovery.capabilities_discovery_finder import (
+from shared.src.design.taxonomy_skills_vo import _Row
+from shared.src.discovery.taxonomy_discovery_vo import (
     SkillsBm25fRanker,
     tokenize,
 )
-from shared.src.design.taxonomy_skills_vo import _Row
 
 
 def bench_rank_bm25f():

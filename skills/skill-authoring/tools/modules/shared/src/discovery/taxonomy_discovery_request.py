@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
+from collections.abc import Mapping
 from typing import NewType
 
 DiscoveryQuery = NewType("DiscoveryQuery", str)

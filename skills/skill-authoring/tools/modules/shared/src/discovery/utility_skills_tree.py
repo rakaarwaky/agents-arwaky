@@ -1,15 +1,13 @@
 """Skill-tree walking and frontmatter parsing (AES utility layer).
 
-Stateless technical readers over a skills root: category discovery, the
-two-level loaders' walk, frontmatter parsing, the DM1/DM2 marker
-exemptions, and non-following recursive file iteration. The business
+Stateless technical readers over a skills root: category discovery,
+the two-level loaders' walk, and frontmatter parsing. Business
 decisions (which issue each shape raises) live in the validator
 capability; this module only reports what is on disk.
 
-Recursive scans use ``os.walk(followlinks=False)`` rather than
-``Path.rglob`` so a symlinked directory is never descended and a
-symlink loop cannot hang a scan (design S6; version-independent — CI
-pins Python 3.12, where ``Path.rglob`` has no ``follow_symlinks``).
+DM1/DM2 marker exemptions and non-following recursive file iteration
+were moved to ``capabilities_skills_linter`` as linter-local helpers
+because they serve exactly one capability.
 
 Split-module note: the consumers of this walker (the skill-design
 feature's lint / catalog / discover / move capabilities) live in

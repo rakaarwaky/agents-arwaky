@@ -330,7 +330,7 @@ class SkillsLinter(ISkillsLinterProtocol):
                 )
 
 
-# ─── Linter-local tree walkers (single-consumer, moved out of utility) ──────
+# Linter-local tree walkers (single-consumer, moved out of utility)
 
 def assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker.
