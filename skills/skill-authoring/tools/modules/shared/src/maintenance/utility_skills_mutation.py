@@ -7,7 +7,7 @@ retired ``capabilities_skills_mutator`` so each mutation capability can
 depend on the shared kernel without a sibling import.
 
 The skill-tree walkers and parsers this file needs live in
-``utility_skills_core`` -- the single documented AES201 exception.
+``utility_discovery_tree`` -- the single documented AES201 exception.
 AES201 forbids utility files importing one another; this module imports
 from the core module (not from a sibling utility) so the dependency
 graph stays acyclic.
@@ -39,8 +39,8 @@ from shared.src.design.taxonomy_skills_vo import (
     MutationStep,
 )
 
-import shared.src.discovery.utility_skills_core as _core
-import shared.src.discovery.utility_skills_tree as _tree
+import shared.src.discovery.utility_discovery_core as _core
+import shared.src.discovery.utility_discovery_tree as _tree
 
 def _assets_container(skills_root: Path) -> set[str]:
     """Category names that carry a declared DM2 asset-container marker."""

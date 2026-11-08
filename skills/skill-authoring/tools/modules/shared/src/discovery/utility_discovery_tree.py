@@ -5,10 +5,11 @@ the two-level loaders' walk, and frontmatter parsing. Business
 decisions (which issue each shape raises) live in the validator
 capability; this module only reports what is on disk.
 
-This module is self-contained — it imports only from the taxonomy
-layer (``shared.src.design``) and the governance error module, never
-from a sibling utility file. The ``relpath`` helper lives here
-directly (single consumer: the capability layer).
+This module imports only from the taxonomy layer
+(``shared.src.common``) and the markdown utility
+(``utility_discovery_markdown``) for the shared string-clean helper;
+the ``relpath`` helper lives here directly (single consumer: the
+capability layer).
 
 Optional PyYAML: load-bearing only when present; the single-line
 fallback keeps the pack readable on a host without it.
@@ -30,6 +31,8 @@ from shared.src.common.taxonomy_common_entity import (
 )
 from shared.src.common.taxonomy_common_error import SkillsRootError
 
+from shared.src.discovery.utility_discovery_markdown import clean_one_line
+
 _yaml_mod: ModuleType | None
 try:
     import yaml as _yaml_mod
@@ -39,7 +42,6 @@ except ImportError:  # pragma: no cover - exercised by the S8 test
 __all__ = [
     "category_dirs",
     "category_summaries",
-    "clean_one_line",
     "parse_frontmatter",
     "relpath",
     "skill_entries",
@@ -52,11 +54,6 @@ def relpath(path: Path, skills_root: Path) -> str:
         return str(path.relative_to(skills_root))
     except ValueError:
         return str(path)
-
-
-def clean_one_line(value: object) -> str:
-    """Collapse whitespace to single spaces and strip the edges."""
-    return " ".join(str(value).split()).strip()
 
 
 def category_dirs(skills_root: Path) -> Iterator[Path]:

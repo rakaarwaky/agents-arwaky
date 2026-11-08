@@ -25,7 +25,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from shared.src.maintenance.utility_skills_mutation import plan_weed
-from shared.src.discovery.utility_skills_tree import (
+from shared.src.discovery.utility_discovery_tree import (
     category_dirs,
     category_summaries,
     parse_frontmatter,

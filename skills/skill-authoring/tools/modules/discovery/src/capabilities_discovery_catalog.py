@@ -34,7 +34,7 @@ from shared.src.discovery.contract_discovery_protocol import (
     ISkillsCatalogProtocol,
 )
 from shared.src.discovery.taxonomy_discovery_request import DiscoveryRoot
-from shared.src.discovery.utility_skills_tree import (
+from shared.src.discovery.utility_discovery_tree import (
     category_summaries,
     skill_entries,
 )

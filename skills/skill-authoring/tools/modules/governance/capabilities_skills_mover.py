@@ -23,7 +23,7 @@ from shared.src.maintenance.utility_skills_mutation import (
     resolve_skill_dir,
     validate_category_name,
 )
-from shared.src.discovery.utility_skills_tree import relpath
+from shared.src.discovery.utility_discovery_tree import relpath
 from shared.src.design.contract_skills_protocol import (
     ISkillsMoverProtocol,
 )

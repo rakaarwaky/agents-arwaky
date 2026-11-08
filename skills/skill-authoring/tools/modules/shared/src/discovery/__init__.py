@@ -17,13 +17,15 @@ from shared.src.discovery.taxonomy_discovery_request import (
     DiscoveryVerb,
 )
 from shared.src.discovery.taxonomy_discovery_response import DiscoveryResponse
-from shared.src.discovery.utility_skills_core import (
+from shared.src.discovery.utility_discovery_core import (
     cross_process_lock,
 )
-from shared.src.discovery.utility_skills_tree import (
+from shared.src.discovery.utility_discovery_markdown import (
+    clean_one_line,
+)
+from shared.src.discovery.utility_discovery_tree import (
     category_dirs,
     category_summaries,
-    clean_one_line,
     parse_frontmatter,
     skill_entries,
 )

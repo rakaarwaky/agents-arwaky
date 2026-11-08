@@ -48,7 +48,7 @@ from shared.src.discovery.taxonomy_discovery_vo import (
     SkillsBm25fRanker,
     tokenize,
 )
-from shared.src.discovery.utility_skills_tree import skill_entries
+from shared.src.discovery.utility_discovery_tree import skill_entries
 
 __all__ = [
     "SkillsDiscover",
