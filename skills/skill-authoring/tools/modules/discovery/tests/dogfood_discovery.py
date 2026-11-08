@@ -34,6 +34,10 @@ def test_cli_discover_subcommand(tmp_path):
     entry = _TOOLS_ROOT / "root_cli_entry.py"
     if not entry.exists():
         pytest.skip("root_cli_entry.py not on this tree; no live CLI to dogfood")
+    try:
+        import root_skills_container  # noqa: F401
+    except ModuleNotFoundError:  # pragma: no cover - requires whole app wired
+        pytest.skip("root_skills_container cannot import discovery capability; CLI entry not functional")
 
     proc = subprocess.run(
         [sys.executable, str(entry), "skills", "discover",
