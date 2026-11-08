@@ -26,9 +26,7 @@ try:
     _src_dirs = [
         _REPO_ROOT / "modules" / "shared" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules" / "shared" / "src",
-        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules" / "shared" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "shared" / "src",
-        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "shared" / "src",
     ]
     for _ext in _src_dirs:
         if _ext.is_dir() and str(_ext) not in _shared_src_pkg.__path__:
@@ -44,9 +42,7 @@ try:
     _cli_src_dirs = [
         _REPO_ROOT / "modules" / "cli" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules" / "cli" / "src",
-        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "app" / "modules" / "cli" / "src",
         _REPO_ROOT / "skills" / "skill-authoring" / "skill-design" / "modules" / "cli" / "src",
-        _REPO_ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules" / "cli" / "src",
     ]
     for _ext in _cli_src_dirs:
         if _ext.is_dir() and str(_ext) not in _cli_src_pkg.__path__:
