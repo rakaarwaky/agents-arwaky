@@ -610,7 +610,7 @@ def cmd_skills(argv: list[str]) -> int:
     from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
-    from skills/skill-authoring/app/modules/root_skills_container import default_aggregate
+    from skills/skill-authoring/tools/modules/root_skills_container import default_aggregate
 
     aggregate = default_aggregate()
     return _skills_surface(list(argv), aggregate)

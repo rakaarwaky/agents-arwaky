@@ -19,7 +19,7 @@ submodule.
 
 - Path: `/home/raka/agents-arwaky`
 - Working tree had local modifications in
-  `skills/skill-authoring/app/modules/shared/src/skills_design/
+  `skills/skill-authoring/tools/modules/shared/src/skills_design/
   taxonomy_skills_vo.py` (unrelated to the submodule repair) plus
   ` M internal/qwen-web-arwaky` (submodule pointer drift, see below).
 
