@@ -65,8 +65,6 @@ class SkillsPrune(ISkillsPruneProtocol):
 
             ts_str = (
                 record.get("last_activity_at")
-                or record.get("last_used_at")
-                or record.get("last_viewed_at")
                 or record.get("created_at")
             )
             is_idle = False
