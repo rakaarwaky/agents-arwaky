@@ -8,7 +8,6 @@ discover.
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
 from discovery.contract_discovery_aggregate import ISkillsDiscoveryAggregate
@@ -32,15 +31,6 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-from shared.src.design.taxonomy_skills_vo import (
-    SkillContent,
-    SkillRecord,
-)
-
-from discovery.capabilities_skills_catalog import SkillsCatalog
-from discovery.capabilities_skills_discover import SkillsBm25fRanker, SkillsDiscover
-from discovery.capabilities_skills_lister import SkillsLister
-from discovery.capabilities_skills_reader import SkillsPackReader
 
 __all__ = [
     "SkillsDiscoveryAgent",
@@ -53,36 +43,28 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
 
     def __init__(
         self,
-        catalog: SkillsCatalog | None = None,
-        discover: SkillsDiscover | None = None,
-        lister: SkillsLister | None = None,
-        reader: SkillsPackReader | None = None,
+        catalog: ISkillsCatalogProtocol | None = None,
+        discover: ISkillsDiscoverProtocol | None = None,
+        lister: ISkillsListerProtocol | None = None,
+        reader: ISkillsReaderProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._catalog = catalog if catalog is not None else SkillsCatalog()
-        self._discover = (
-            discover
-            if discover is not None
-            else SkillsDiscover(self._catalog, SkillsBm25fRanker())
-        )
-        self._lister = lister if lister is not None else SkillsLister()
-        self._reader = reader if reader is not None else SkillsPackReader()
+        self._catalog = catalog
+        self._discover = discover
+        self._lister = lister
+        self._reader = reader
         self._default_root = default_root
 
-    # ─── Block 1: helpers ────────────────────────────────────────
+    # ─── Block 1: Module Declaration ────────────────────────────────────────
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
             raise SkillsRootError(f"discovery capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> Path:
-        if request.root:
-            return Path(request.root)
-        if self._default_root is not None:
-            return Path(self._default_root)
-        return Path()
+    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
+        return request.root or self._default_root
 
-    # ─── Block 2: Aggregate Method Implementation ────────────────
+    # ─── Block 2: Module Contract ─────────────────────────────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
         """Route *request* to the matching discovery capability."""
         try:
@@ -124,7 +106,7 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
             raise KeyError(name)
         return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
-    # ─── Block 3: per-op handlers ────────────────────────────────
+    # ─── Block 3: Module Helpers ──────────────────────────────────────────
     def _execute_list(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """LIST: enumerate every skill record."""
         lister = self._require(self._lister, "lister")
@@ -197,4 +179,5 @@ class SkillsDiscoveryAgent(ISkillsDiscoveryAggregate):
 
     def show_skill(self, name: str, root: SkillsRoot | None = None):
         """Pass-through to the reader (used by the facade)."""
-        return self._reader.show_skill(SkillQuery(name), root)
+        reader = self._require(self._reader, "reader")
+        return cast(ISkillsReaderProtocol, reader).show_skill(SkillQuery(name), root)
