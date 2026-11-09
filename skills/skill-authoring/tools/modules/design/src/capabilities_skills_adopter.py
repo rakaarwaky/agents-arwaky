@@ -20,11 +20,11 @@ from shared.src.storage.utility_skill_pack import default_pack_root
 __all__ = ["SkillsAdopter"]
 
 
-# ─── Block 1: Module Declaration ──────────────────────────
+# ─── Block 1: Module Declaration ───
 class SkillsAdopter(ISkillsAdopterProtocol):
     """Adopter capability: adopt verb."""
 
-    # ─── Block 2: Module Contract ─────────────────────────────
+    # ─── Block 2: Module Contract ───
     def adopt(self, skill: str, root: SkillsRoot | None = None) -> dict:
         pack_root = Path(root) if root is not None else default_pack_root()
         skill_dir = find_skill_dir(skill, pack_root)
@@ -33,6 +33,6 @@ class SkillsAdopter(ISkillsAdopterProtocol):
         set_field(skill_dir, "created_by", "agent")
         return {"skill": skill, "created_by": "agent"}
 
-    # ─── Block 3: Module Helpers ───────────────────────────────
+    # ─── Block 3: Module Helpers ───
     def __repr__(self) -> str:
         return "SkillsAdopter()"
