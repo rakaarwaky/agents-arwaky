@@ -19,5 +19,6 @@ Domain: General knowledge base — interlinked markdown notes.
 | [[git-submodule-repair]] | concept | Broken .git/modules layout: diagnosis, the git-init nesting trap, bare-clone repair | 2026-11-07 |
 | [[git-submodule-topology]] | entity | agents-arwaky submodule map: internal/*, vendor/*, skills app; pin commits; ignore=dirty | 2026-11-07 |
 | [[repo-git-state]] | summary | Point-in-time snapshot 2026-11-07: branches, pin drift, open qwen-web-arwaky decision | 2026-11-07 |
+| [[figcraft-save-file]] | concept | FigCraft save_file headless vs disk file — save_file stores in internal doc store, not a host file; use file.saveAs {data: true} + base64 decode to write real .figcraft to disk | 2026-11-08 |
 
-*13 pages. No pages are orphaned — every page links to at least 2 others.*
+*14 pages. No pages are orphaned — every page links to at least 2 others.*
