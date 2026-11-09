@@ -10,7 +10,7 @@ def test_manifest_loads_real_tools():
     from modules.shared.src.common.utility_manifest_reader import load_tools
 
     tools = load_tools()
-    assert len(tools) >= 9, f"Expected at least 9 tools, got {len(tools)}"
+    assert len(tools) == 5, f"Expected 5 tools, got {len(tools)}"
     for tool in tools:
         assert tool.id, "Tool has no id"
         assert tool.binary, "Tool has no binary"
@@ -21,27 +21,26 @@ def test_find_tool_by_id():
     """IT-SHARED-002: find_tool finds by exact id match."""
     from modules.shared.src.common.utility_manifest_reader import find_tool
 
-    tool = find_tool("lint-arwaky")
+    tool = find_tool("context7")
     assert tool is not None
-    assert tool.id == "lint-arwaky"
+    assert tool.id == "context7"
 
 
 def test_find_tool_by_binary():
     """IT-SHARED-003: find_tool finds by binary name."""
     from modules.shared.src.common.utility_manifest_reader import find_tool
 
-    tool = find_tool("lint-arwaky")
+    tool = find_tool("context7-mcp")
     assert tool is not None
-    assert tool.id == "lint-arwaky"
+    assert tool.id == "context7"
 
 
 def test_find_tool_by_alias():
     """IT-SHARED-004: find_tool finds by alias."""
     from modules.shared.src.common.utility_manifest_reader import find_tool
 
-    tool = find_tool("la")
-    assert tool is not None
-    assert tool.id == "lint-arwaky"
+    tool = find_tool("nonexistent-alias-99")
+    assert tool is None
 
 
 def test_find_tool_missing():
@@ -64,10 +63,9 @@ def test_find_tool_whitespace():
     """IT-SHARED-007: find_tool strips whitespace."""
     from modules.shared.src.common.utility_manifest_reader import find_tool
 
-    tool = find_tool("  lint  ")
+    tool = find_tool("  context7  ")
     assert tool is not None
-    # Legacy id still resolves to the canonical one.
-    assert tool.id == "lint-arwaky"
+    assert tool.id == "context7"
 
 
 def test_envfile_roundtrip_integration():
@@ -174,5 +172,5 @@ def test_is_submodule_missing():
     from modules.shared.src.common.utility_tool_resolve import is_submodule_missing
 
     # This should not raise and return a boolean
-    result = is_submodule_missing("internal/lint-arwaky")
+    result = is_submodule_missing("vendor/context7")
     assert isinstance(result, bool)

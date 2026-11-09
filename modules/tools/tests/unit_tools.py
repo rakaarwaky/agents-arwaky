@@ -353,16 +353,11 @@ class TestAdapterCapabilities:
     """Tests for the per-tool adapter capabilities."""
 
     ADAPTERS = (
-        ("blender", "BlenderToolsAdapter"),
         ("codegraph", "CodegraphToolsAdapter"),
         ("context7", "Context7ToolsAdapter"),
         ("fetch", "FetchToolsAdapter"),
-        ("lint", "LintToolsAdapter"),
         ("9router", "NinerouterToolsAdapter"),
         ("omniroute", "OmnirouteToolsAdapter"),
-        ("qwen_web", "QwenWebToolsAdapter"),
-        ("vision", "VisionToolsAdapter"),
-        ("workspace", "WorkspaceToolsAdapter"),
     )
 
     def test_each_implements_adapter_protocol(self):
@@ -395,8 +390,8 @@ class TestAdapterCapabilities:
 
         from modules.shared.src.common.taxonomy_common_error import ToolUpdateError
 
-        module = import_module("modules.tools.src.capabilities_tools_lint_adapter")
-        adapter = module.LintToolsAdapter()
+        module = import_module("modules.tools.src.capabilities_tools_codegraph_adapter")
+        adapter = module.CodegraphToolsAdapter()
         try:
             adapter.owned_paths(_spec())
             raise AssertionError("Should have raised ToolUpdateError")

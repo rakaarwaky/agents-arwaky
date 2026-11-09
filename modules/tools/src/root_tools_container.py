@@ -7,11 +7,10 @@ carry no per-registry state: each unit is constructed once here and shared
 across orchestrator instances; the daemon aggregate is passed to
 ``install`` explicitly, never held on the adapter.
 
-Every tool id lives in a sibling capability module — the eight
-config-driven providers (blender / vision / qwen-web /
-workspace / codegraph / context7 / fetch / omniroute) plus
-lint — each exporting ``ADAPTER_UNITS``; all are merged into the
-single ``TOOLS_REGISTRY`` below.
+Every tool id lives in a sibling capability module — the six
+config-driven providers (codegraph / context7 / fetch /
+omniroute / 9router) — each exporting ``ADAPTER_UNITS``; all are merged
+into the single ``TOOLS_REGISTRY`` below.
 
 The daemon aggregate is imported lazily inside the factory so that importing
 ``modules.tools`` never forces a sibling daemon import at module load.
@@ -29,12 +28,6 @@ from modules.tools.src.capabilities_tools_9router_adapter import (
 # every adapter capability is constructed here and injected into the
 # agent orchestrator (which must stay capabilities-free). Importing them
 # here also wires them for the AES503 orphan check.
-from modules.tools.src.capabilities_tools_blender_adapter import (
-    ADAPTER_UNITS as _BLENDER_UNITS,
-)
-from modules.tools.src.capabilities_tools_brave_adapter import (
-    ADAPTER_UNITS as _BRAVE_UNITS,
-)
 from modules.tools.src.capabilities_tools_codegraph_adapter import (
     ADAPTER_UNITS as _CODEGRAPH_UNITS,
 )
@@ -45,41 +38,23 @@ from modules.tools.src.capabilities_tools_fetch_adapter import (
     ADAPTER_UNITS as _FETCH_UNITS,
 )
 from modules.tools.src.capabilities_tools_installer import InstallerCapability
-from modules.tools.src.capabilities_tools_lint_adapter import (
-    ADAPTER_UNITS as _LINT_UNITS,
-)
 from modules.tools.src.capabilities_tools_omniroute_adapter import (
     ADAPTER_UNITS as _OMNIROUTE_UNITS,
-)
-from modules.tools.src.capabilities_tools_qwen_web_adapter import (
-    ADAPTER_UNITS as _QWEN_WEB_UNITS,
 )
 from modules.tools.src.capabilities_tools_runner import RunnerCapability
 from modules.tools.src.capabilities_tools_uninstaller import UninstallerCapability
 from modules.tools.src.capabilities_tools_updater import UpdaterCapability
-from modules.tools.src.capabilities_tools_vision_adapter import (
-    ADAPTER_UNITS as _VISION_UNITS,
-)
-from modules.tools.src.capabilities_tools_workspace_adapter import (
-    ADAPTER_UNITS as _WORKSPACE_UNITS,
-)
 
 # All imports above feed TOOLS_REGISTRY at module load time; each is consumed.
 
 #: tool_id -> adapter unit (root composition data; each unit is a
 #: stateless `AdapterUnit` VO of action functions).
 TOOLS_REGISTRY: dict[str, object] = {
-    **_BLENDER_UNITS,
-    **_BRAVE_UNITS,
     **_CODEGRAPH_UNITS,
     **_CONTEXT7_UNITS,
     **_FETCH_UNITS,
-    **_LINT_UNITS,
     **_NINEROUTER_UNITS,
     **_OMNIROUTE_UNITS,
-    **_QWEN_WEB_UNITS,
-    **_VISION_UNITS,
-    **_WORKSPACE_UNITS,
 }
 
 
@@ -93,7 +68,7 @@ def create_tools_feature(root=None) -> IToolsAggregate:
 
     daemons = create_daemon_feature()
     resolved = root or repo_root()
-    # P1-7: the registry is the single API pipeline over all 12 leaf
+    # P1-7: the registry is the single API pipeline over all 6 leaf
     # adapters + shared mechanics; wired here and injected into the action
     # capabilities (dependency inversion: capabilities depend on their
     # rich protocol class, not on a concrete adapter class).

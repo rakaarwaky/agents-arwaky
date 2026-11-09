@@ -33,10 +33,6 @@ SESSION_CONF_9ROUTER = "9router.conf"
 #: absent, so `aa connect` still writes a runnable command per server.
 FALLBACK_MCP_COMMANDS: dict[str, str] = {
     "codegraph": "codegraph-mcp",
-    "vision-arwaky": "vision-arwaky-mcp",
-    "qwen-web-arwaky": "qwen-web-mcp",
-    "blender-arwaky": "blender-mcp",
-    "lint-arwaky": "lint-arwaky-mcp",
     "workspace": "workspace-mcp",
 }
 

@@ -32,15 +32,11 @@ DAEMON_NAMES: dict[str, str] = {
 # Per-tool launcher/alias names the installer registers under $XDG_BIN_HOME.
 # Data source for the remover capability's generic teardown.
 LAUNCHER_NAMES: dict[str, list[str]] = {
-    "blender-arwaky": ["blender-arwaky", "ba", "blender-mcp"],
     "codegraph": ["codegraph-mcp", "codegraph"],
     "context7": ["context7-mcp", "ctx7"],
     "fetch": ["fetch-mcp", "mcp-fetch"],
-    "lint-arwaky": ["lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui", "lac"],
     "omniroute": ["omniroute"],
     "9router": ["9router"],
-    "qwen-web-arwaky": ["qwen-web-arwaky", "qwa", "qwen-web-cli", "qwen-web-mcp", "qwc"],
-    "vision-arwaky": ["vision-arwaky", "vision-arwaky-cli", "va", "vision-arwaky-mcp"],
     "workspace": ["workspace-mcp", "google-workspace-mcp"],
 }
 
@@ -51,10 +47,6 @@ KEEP_CONFIG: frozenset[str] = frozenset()
 # Tool id -> manifest alias (short form; used for alias-targeted operations).
 ALIAS_TABLE: dict[str, str | None] = {
     "workspace": "google-workspace",
-    "vision-arwaky": "va",
-    "qwen-web-arwaky": "qwa",
-    "lint-arwaky": "la",
-    "blender-arwaky": "ba",
 }
 
 # ── Adapter recipe literals (extracted from capabilities_tools_adapter.py) ──
@@ -65,10 +57,6 @@ NODE_IGNORES: tuple[str, ...] = (
     ".venv", "venv", "*.tsbuildinfo",
 )
 
-#: Base name of the qwen-web tool: XDG dirs are `<base>`, the checkout is
-#: `internal/<base>-arwaky`. Not a manifest id — do not fold into the rename.
-QWEN_TOOL_NAME = "qwen-web"
-
 #: First-line env var every generated launcher reads for the repo root.
 ROOT_ENV_VAR = "AGENTS_ARWAKY_ROOT"
 
@@ -77,11 +65,6 @@ INSTALL_STAMP_FILENAME = ".arwaky-install.json"
 
 #: Remote branch probe order when a submodule has no symbolic HEAD.
 FALLBACK_REMOTE_BRANCHES: tuple[str, ...] = ("main", "master", "dev")
-
-#: Qwen-web queue role directories provisioned under the XDG data dir.
-QWEN_ROLE_DIRS: tuple[str, ...] = (
-    "role-architect", "role-business-analyst", "role-tech-lead",
-)
 
 #: pnpm flag appended to a context7 checkout so lifecycle builds run.
 PNPM_DANGEROUS_ALLOW = "dangerouslyAllowAllBuilds"
@@ -97,22 +80,6 @@ FETCH_CLI_ARGS: frozenset[str] = frozenset({
     "html", "markdown", "readable", "txt", "json", "youtube",
     "--help", "-h", "--version", "-v",
 })
-
-# ── lint (cargo — rustup bootstrap + atomic install) ──
-LINT_INTERNAL_DIR_REL = "internal/lint-arwaky"
-LINT_BINARIES: tuple[str, ...] = (
-    "lint-arwaky", "la", "lint-arwaky-cli", "lint-arwaky-mcp", "lint-arwaky-tui",
-)
-LINT_LAUNCHERS: tuple[tuple[str, str], ...] = (
-    ("lint-arwaky", "lint-arwaky"),
-    ("la", "la"),
-    ("lint-arwaky-cli", "lint-arwaky-cli"),
-    ("lint-arwaky-mcp", "lint-arwaky-mcp"),
-    ("lint-arwaky-tui", "lint-arwaky-tui"),
-    ("lac", "lac"),
-)
-#: NOTE: leaf lama merujuk `_BUILD_DEPS` tanpa definisi (NameError) — didefinisikan di sini.
-LINT_BUILD_DEPS: tuple[tuple[str, str], ...] = (("sccache", "sccache"), ("mold", "mold"))
 
 # ── OmniRoute (host-native daemon + launcher) ──
 OMNIROUTE_DATA_DIR_NAME = "omniroute"
@@ -147,10 +114,6 @@ __all__ = [
     "INSTALL_STAMP_FILENAME",
     "KEEP_CONFIG",
     "LAUNCHER_NAMES",
-    "LINT_BINARIES",
-    "LINT_BUILD_DEPS",
-    "LINT_INTERNAL_DIR_REL",
-    "LINT_LAUNCHERS",
     "NINEROUTER_DATA_DIR_NAME",
     "NINEROUTER_ENV_FILENAME",
     "NINEROUTER_INTERNAL_BIN",
@@ -166,8 +129,6 @@ __all__ = [
     "OMNIROUTE_SRC_REL",
     "OMNIROUTE_UNIT_FILE_NAME",
     "PNPM_DANGEROUS_ALLOW",
-    "QWEN_ROLE_DIRS",
-    "QWEN_TOOL_NAME",
     "ROOT_ENV_VAR",
     "RUNNER_FAMILIES",
     "SENTINEL_EXECUTABLE_GONE",
