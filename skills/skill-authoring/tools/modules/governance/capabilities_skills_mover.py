@@ -23,13 +23,15 @@ from shared.src.design.contract_skills_protocol import (
 )
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.design.taxonomy_skills_vo import (
-    CategoryName,
     MutationOutcome,
     MutationPlan,
+)
+from shared.src.common.taxonomy_common_vo import (
+    CategoryName,
     SkillName,
 )
-from shared.src.discovery.utility_skills_tree import relpath
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.discovery.utility_discovery_core import relpath
+from shared.src.common.taxonomy_common_error import (
     MutationConflictError,
     SkillsUsageError,
 )

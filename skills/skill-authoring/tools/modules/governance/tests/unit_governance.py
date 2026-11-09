@@ -65,7 +65,7 @@ def test_agent_unknown_op_returns_usage_error():
 
 def test_agent_missing_capability_raises():
     """UT-GOVERNANCE-005: dispatching to an unwired capability raises."""
-    from shared.src.governance.taxonomy_skills_error import SkillsRootError
+    from shared.src.common.taxonomy_common_error import SkillsRootError
 
     from governance.agent_governance_orchestrator import SkillsGovernanceAgent
 

@@ -26,7 +26,7 @@ from shared.src.design.taxonomy_skills_response import (
 from shared.src.governance.contract_governance_aggregate import (
     ISkillsGovernanceAggregate,
 )
-from shared.src.governance.taxonomy_skills_error import (
+from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
     SkillsUsageError,
