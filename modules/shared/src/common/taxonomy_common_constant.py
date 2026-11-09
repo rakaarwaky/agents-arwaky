@@ -24,12 +24,7 @@ UPDATE_PROVENANCE_VERSION = 1
 
 # --- tool dispatch -------------------------------------------------------------
 #: Runner map per tool (manifest-driven dispatch, avoid hardcoded IDs)
-TOOL_RUNNERS = {
-    "lint-arwaky": "cargo",
-    "vision-arwaky": "uv",
-    "qwen-web-arwaky": "uv",
-    "blender-arwaky": "uv",
-}
+TOOL_RUNNERS = {}
 
 #: Tool resolver overrides (arg value -> manifest tool id)
 INSTALL_OVERRIDES = {
