@@ -4,19 +4,18 @@ Toggles the locked flag on a skill's sidecar record.
 """
 
 from __future__ import annotations
-from shared.src.design.contract_skills_protocol import (
-    ISkillsLockerProtocol,
-)
-
 
 from pathlib import Path
 
-from shared.src.storage.utility_skill_pack import default_pack_root
+from shared.src.design.contract_skills_protocol import (
+    ISkillsLockerProtocol,
+)
 from shared.src.design.taxonomy_skills_request import SkillsRoot
 from shared.src.maintenance.utility_lifecycle_support import (
     find_skill_dir,
     set_field,
 )
+from shared.src.storage.utility_skill_pack import default_pack_root
 
 __all__ = ["SkillsLocker"]
 

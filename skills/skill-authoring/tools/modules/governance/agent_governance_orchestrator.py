@@ -7,22 +7,19 @@ locker, piner, mover. Owns the ops: lock, unlock, pin, unpin, move.
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import cast
 
-from governance.contract_governance_aggregate import ISkillsGovernanceAggregate
-from shared.src.design.contract_skills_protocol import (
-    ISkillsLockerProtocol,
-    ISkillsMoverProtocol,
-    ISkillsPinerProtocol,
-)
 from shared.src.common.taxonomy_common_error import (
     SkillsError,
     SkillsRootError,
     SkillsUsageError,
 )
+from shared.src.design.contract_skills_protocol import (
+    ISkillsLockerProtocol,
+    ISkillsMoverProtocol,
+    ISkillsPinerProtocol,
+)
 from shared.src.design.taxonomy_skills_request import (
-    SkillQuery,
     SkillsOp,
     SkillsRequest,
     SkillsRoot,
@@ -31,14 +28,13 @@ from shared.src.design.taxonomy_skills_response import (
     SkillsExitCode,
     SkillsResult,
 )
-
-from governance.capabilities_skills_locker import SkillsLocker
-from governance.capabilities_skills_mover import SkillsMover
-from governance.capabilities_skills_piner import SkillsPiner
+from shared.src.governance.contract_governance_aggregate import (
+    ISkillsGovernanceAggregate,
+)
 
 __all__ = [
-    "SkillsGovernanceAgent",
     "ISkillsGovernanceAggregate",
+    "SkillsGovernanceAgent",
 ]
 
 
@@ -47,28 +43,26 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
 
     def __init__(
         self,
-        locker: SkillsLocker | None = None,
-        piner: SkillsPiner | None = None,
-        mover: SkillsMover | None = None,
+        locker: ISkillsLockerProtocol | None = None,
+        piner: ISkillsPinerProtocol | None = None,
+        mover: ISkillsMoverProtocol | None = None,
         default_root: SkillsRoot | None = None,
     ) -> None:
-        self._locker = locker if locker is not None else SkillsLocker()
-        self._piner = piner if piner is not None else SkillsPiner()
-        self._mover = mover if mover is not None else SkillsMover()
+        self._locker = locker
+        self._piner = piner
+        self._mover = mover
         self._default_root = default_root
 
-    # ─── Block 1: helpers ────────────────────────────────────────
+    # ─── Block 1: Module Declaration ────────────────────────────────────────
     def _require(self, capability: object, name: str) -> object:
         if capability is None:
             raise SkillsRootError(f"governance capability not wired: {name}")
         return capability
 
-    def _root(self, request: SkillsRequest) -> Path:
+    def _root(self, request: SkillsRequest) -> SkillsRoot | None:
         if request.root:
-            return Path(request.root)
-        if self._default_root is not None:
-            return Path(self._default_root)
-        return Path()
+            return request.root
+        return self._default_root
 
     def _mutate_skill(
         self,
@@ -90,7 +84,7 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
         skill_name = str(request.query).strip()
         try:
             result = getattr(capability, verb)(skill_name, root)
-        except (OSError, SkillsError) as failure:
+        except (OSError, ValueError, SkillsUsageError) as failure:
             return SkillsResult(
                 ok=False,
                 op=op,
@@ -99,7 +93,7 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
             )
         return SkillsResult(ok=True, op=op, message=str(result))
 
-    # ─── Block 2: Module Contract ────────────────
+    # ─── Block 2: Module Contract ────────────────────────────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
         """Route *request* to the matching governance capability."""
         try:
@@ -141,7 +135,7 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
             raise KeyError(name)
         return cast(Callable[[SkillsRequest, SkillsOp], SkillsResult], handler)
 
-    # ─── Block 3: per-op handlers ────────────────────────────────
+    # ─── Block 3: Module Helpers ────────────────────────────────────────
     def _execute_move(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """MOVE: plan/apply a skill to another category."""
         mover = self._require(self._mover, "mover")
@@ -160,10 +154,17 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
         apply = request.apply
         if apply:
             plan = mover.plan_move(skill_name, target, root)
-            result = mover.apply_move(plan)
-        else:
-            result = mover.plan_move(skill_name, target, root)
-        return SkillsResult(ok=True, op=op, move_plan=result, root=root)
+            outcome = mover.apply_move(plan)
+            return SkillsResult(
+                ok=True,
+                op=op,
+                plan=plan,
+                outcome=outcome,
+                root=root,
+                message=str(outcome.message),
+            )
+        plan = mover.plan_move(skill_name, target, root)
+        return SkillsResult(ok=True, op=op, plan=plan, root=root, message=str(plan.kind))
 
     def _execute_lock(self, request: SkillsRequest, op: SkillsOp) -> SkillsResult:
         """LOCK: set locked=True on skill sidecar."""
@@ -185,6 +186,11 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
         piner = self._require(self._piner, "piner")
         return self._mutate_skill(request, op, piner, "unpin", "pinned", False)
 
-    def show_skill(self, name: str, root: SkillsRoot | None = None):
+    def show_skill(self, name: str, root: SkillsRoot | None = None) -> SkillsResult:
         """Governance agent does not expose show_skill."""
-        raise NotImplementedError("governance agent does not expose show_skill")
+        return SkillsResult(
+            ok=False,
+            op=SkillsOp.READ,
+            exit_code=SkillsExitCode.USAGE_ERROR,
+            message=f"governance agent does not expose show_skill for {name}",
+        )
