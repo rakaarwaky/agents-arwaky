@@ -1,25 +1,29 @@
-# Step 5: Design notes (module/persona review)
+# Step 5: Design notes (commit / uncommit / pr / path review)
 
-## Why module mode does not collect a diff
+## Why diff modes read the diff, and path mode reads the files
 
-Diff modes (main, local, branch, PR, stack) review a change set against a base. Module mode reviews the **current state** of a directory in place — there is no base to diff against. Each subagent lists the module's tracked files via `git ls-files <path>` and `read_file`s them. A diff would answer "what changed"; module mode answers "is this module sound."
+Diff modes (`commit`, `uncommit`, `pr`) review a change set. Each subagent receives the unified diff as the primary scope — the `+` lines are the new code, the `-` lines are the removed code. Pre-existing issues untouched by the diff are out of scope, keeping the review focused on what changed.
 
-## Why parallel fan-out, not sequential
+`path` mode reviews the current state of a file or directory in place — there is no base to diff against. Each subagent lists the files and reads them. A diff would answer "what changed"; path mode answers "is this module sound."
 
-Ten personas running sequentially means ten full module-reads, each with its own context window. The personas are independent — no persona's findings feed another's. Running them in parallel (`background: true` on every `spawn_subagent`) cuts wall-clock time by roughly the fan-out factor with no correctness cost: the shared working tree is read-only for all ten, and each writes to its own per-persona file.
+## Why the agent auto-selects 1–3 personas instead of a fixed roster
+
+Running all 10 personas on every review is wasteful: most files are reviewed by a small set of lenses that actually matter. A backend-engineer lens adds little to a pure UI-component change; a security lens adds little to a docs-only diff. The orchestrator reads the diff summary (or directory tree) before launching subagents, picks the 1–3 most relevant personas, and launches only those. This cuts wall-clock time by roughly 3–5× on typical runs while keeping coverage proportional to risk.
+
+If the signal is ambiguous (large mixed-language diff, or unclear scope), the orchestrator falls back to the 3 most general personas: backend-engineer, qa-engineer, software-architect.
 
 ## Why per-persona file names embed BOTH the REVIEW_ID and the persona
 
-`grok-review-<REVIEW_ID>-<persona>.md` prevents collision when two module reviews run in the same scratch directory (different `REVIEW_ID`), and keeps a ten-persona run from clobbering its own siblings (different persona). The `REVIEW_ID` alone is not enough; the persona name alone is not enough.
+`grok-review-<REVIEW_ID>-<persona>.md` prevents collision when two reviews run in the same scratch directory (different `REVIEW_ID`), and keeps a multi-persona run from clobbering its own siblings (different persona). The `REVIEW_ID` alone is not enough; the persona name alone is not enough.
 
 ## Why ERROR-not-abort
 
-A single persona subagent can fail (context window overflow on a very large module, a malformed persona file, a transient subagent error). The other nine personas' findings are still useful and cost nothing to keep. Aborting the whole run because one lens failed would throw away nine successful reviews. The orchestrator records the failed persona as `ERROR` with the exact error text and aggregates the rest.
+A single persona subagent can fail (context window overflow on a very large diff, a malformed persona file, a transient subagent error). The other personas' findings are still useful and cost nothing to keep. Aborting the whole run because one lens failed would throw away the remaining reviews. The orchestrator records the failed persona as `ERROR` with the exact error text and aggregates the rest.
 
-## Why `--all` and the bare form are equivalent
+## Why `pr` mode uses `gh pr diff` and not `git diff`
 
-The bare form (`/review modules/skills` with no flags) and `--all` select all 10 personas. The bare form is the common case ("just review this module"); `--all` is the explicit form for scripts or when the user wants to be unambiguous. They produce identical runs.
+`gh pr diff <n>` fetches the PR head directly from GitHub and shows the full diff against the base branch. It works even when the PR's head branch is not checked out locally. A local `git diff` would require the branch to be present, which is not guaranteed in a worktree.
 
 ## Why no GitHub posting
 
-Module mode has no PR to post to. Findings land in per-persona review files plus a single summary file on disk. If the user wants the findings posted to a PR, that is a separate workflow (a diff mode or a manual `gh api` call) and is out of scope for this skill.
+Findings land in per-persona review files plus a single summary file on disk. If the user wants the findings posted to a PR, that is a separate workflow (a `gh api` call or a dedicated posting skill) and is out of scope for this skill.

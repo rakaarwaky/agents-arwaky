@@ -13,7 +13,7 @@ Summary file structure:
 ```markdown
 # Review Summary
 
-- **Mode**: module
+- **Mode**: <commit | uncommit | pr | path>
 - **Target**: <target>
 - **Files reviewed**: <count> (<list, truncated to 10 if longer>)
 - **Personas run**: <N> selected, <P> completed, <E> errored
@@ -22,10 +22,9 @@ Summary file structure:
 
 | Persona | bugs | suggestions | nits | State |
 |---|---|---|---|---|
-| backend-engineer | 1 | 2 | 0 | completed |
-| qa-engineer | 0 | 1 | 3 | completed |
-| security-engineer | - | - | - | ERROR: <reason> |
-| ...
+| <persona> | 1 | 2 | 0 | completed |
+| <persona> | 0 | 1 | 3 | completed |
+| <persona> | - | - | - | ERROR: <reason> |
 
 ## Totals
 
@@ -37,8 +36,8 @@ Summary file structure:
 "[<persona>] [severity] file:line -- description (truncated to ~100 chars)">
 
 Per-persona review files:
-- <review_file_backend-engineer>
-- <review_file_qa-engineer>
+- <review_file_<persona1>>
+- <review_file_<persona2>>
 - ...
 ```
 
@@ -46,18 +45,22 @@ Per-persona review files:
 
 Present a final report to the user. Items 1 and 2 are always included; item 3 is always included after aggregation; item 4 is included only when at least one persona completed.
 
-1. **Mode + target** — "Module `<target>` reviewed with <N> persona(s) in parallel."
+1. **Mode + target** — one of:
+   - `commit`: "Last commit `<short-hash>` (<subject>) reviewed with <N> persona(s)."
+   - `uncommit`: "Uncommitted working-tree changes reviewed with <N> persona(s)."
+   - `pr`: "PR #<pr-number> reviewed with <N> persona(s)."
+   - `path`: "Path `<target>` reviewed with <N> persona(s)."
 2. **Files reviewed** — count and (if 10 or fewer) the list from `<files_file>`.
 3. **Per-persona table + totals** — exactly the table and totals line from `<summary_file>` (item 5 of Step 3). One row per persona, plus the totals line.
 4. **Deliverable paths** — the absolute path to `<summary_file>` and one line per per-persona review file (only completed personas; ERROR rows list the error instead).
 
-Empty-path exit (Step 1 short-circuit): "No tracked files under `<target>`. Nothing to review." No file paths — nothing was written.
+Empty-path exits (Step 1 short-circuit): "No files to review." No file paths — nothing was written.
 
 ## Cleanup
 
 Cleanup is asymmetric by outcome:
 
-- **Successful run (all personas completed, or some errored):** keep every `<review_file_<persona>>` and `<summary_file>`. Remove only `<files_file>`.
+- **Successful run (all personas completed, or some errored):** keep every `<review_file_<persona>>` and `<summary_file>`. Remove only `<files_file>` and, for diff modes (`commit` / `uncommit` / `pr`), `<diff_file>`.
 - **Empty-path exit (Step 1 short-circuit):** remove nothing — `<files_file>` was never populated and no review files were written.
 
-For the one removal, run the resolved `<PYTHON> <HOST_PY> cleanup <files_file>` with the absolute path. Missing files are allowed. Do not use a shell deletion command.
+For the removals, run the resolved `<PYTHON> <HOST_PY> cleanup <files_file> [diff_file]` with the absolute paths. Missing files are allowed. Do not use a shell deletion command.

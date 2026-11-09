@@ -1,38 +1,67 @@
-# Step 0: Argument parsing (path, persona flags, --all)
+# Step 0: Argument parsing (commit / uncommit / pr N / path <p>)
 
-## Persona roster
+## Argument form
 
-The 10 lens personas, in canonical order. Each maps to a flag of the same name and to `personas/<name>.toml`:
+```
+/review commit
+/review uncommit
+/review pr <pr-number>
+/review path <path>
+```
 
-| Flag | Persona |
-|---|---|
-| `--backend-engineer` | backend-engineer |
-| `--business-analyst` | business-analyst |
-| `--devops-engineer` | devops-engineer |
-| `--frontend-engineer` | frontend-engineer |
-| `--product-engineer` | product-engineer |
-| `--qa-engineer` | qa-engineer |
-| `--security-engineer` | security-engineer |
-| `--software-architect` | software-architect |
-| `--system-analyst` | system-analyst |
-| `--ui-ux-designer` | ui-ux-designer |
+One target, exactly one. No persona flags, no `--all`. Persona selection is automatic (see below).
 
 ## Parsing rules
 
-Parse the raw argument tokens in two phases: extract the persona flags, then resolve the module path.
+Parse the raw argument tokens:
 
-**Phase 1 — persona flag extraction.** Scan the raw tokens for any of the 10 persona flags and for `--all`. For each persona flag found, add its name to the `personas` list and remove all occurrences. `--all` is a boolean `ALL=true` that is also removed. If `--all` appears together with one or more individual persona flags, treat the individual flags as a no-op (the set is all 10 either way) and note it once: "--all already selects every persona; ignoring --qa-engineer etc."
+1. **First token determines the mode.** Map as follows:
 
-**Phase 2 — path resolution.** The first remaining token that is not a flag is the module path. Rules, applied in order:
+   | First token | Mode | Required second token |
+   |---|---|---|
+   | `commit` | last-commit | none |
+   | `uncommit` | uncommitted | none |
+   | `pr` | pr | `<pr-number>` (integer, 1–4096, e.g. `48`) |
+   | `path` | path | `<path>` (one path, directory **or** file, relative to cwd or absolute) |
 
-1. **No path token**: reject with `Module path required. Usage: /review <path> [persona flags].` and stop.
-2. **Multiple path tokens**: reject with `Only one module path may be given.` and stop.
-3. **Path resolves to a file** (`[ -f <path> ]` is true after resolving against cwd): reject with `Path <path> is a file. Give a module, crate, or package directory.` and stop.
-4. **Path does not exist** (`[ -d <path> ]` is false and `[ -f <path> ]` is false): reject with `Path <path> not found under the current directory.` and stop.
-5. **Path exists but has no tracked files**: Step 1 detects this and short-circuits with "No tracked files under `<path>`. Nothing to review."
+2. **`commit` / `uncommit` with extra tokens:** reject with `Extra tokens not allowed: <extras>. Usage: /review commit` (or `uncommit` respectively) and stop.
 
-If `ALL` is true (or no persona flags were given at all), `personas` is the full 10-name roster above in canonical order. Otherwise `personas` is exactly the set of flagged names, in the order the flags were passed.
+3. **`pr` missing or invalid number:** reject with `PR number required. Usage: /review pr <pr-number>` and stop.
 
-**Rejected flags.** Any `--`-prefixed token that is not one of the 10 persona flags or `--all` is rejected with `Unknown flag: <flag>. Valid persona flags: --backend-engineer, --business-analyst, --devops-engineer, --frontend-engineer, --product-engineer, --qa-engineer, --security-engineer, --software-architect, --system-analyst, --ui-ux-designer, --all.` and stop. Do NOT fall through to a default.
+4. **`path` missing second token:** reject with `Path required. Usage: /review path <path>` and stop.
 
-This skill has no `--approve`, `--submit`, `--pr`, `--stack`, or `--main`/`--local`/`--branch` flags. Those forms are retired.
+5. **`path` resolves to a file:** allowed. `mode = path`, `target = <resolved absolute file path>`.
+
+6. **`path` does not exist:** reject with `Path <path> not found.` and stop.
+
+7. **First token not one of `commit`, `uncommit`, `pr`, `path`:** reject with `Unknown target. Usage: /review commit | uncommit | pr <pr-number> | path <path>` and stop.
+
+## Persona selection (automatic, 1–3 per run)
+
+No persona flags. After the target is resolved and the run state is set up (Step 1), the orchestrator (this agent) selects 1–3 personas from the roster below, based on what the target's content tells it:
+
+- `commit` / `uncommit` / `pr` modes: read the diff summary (added/changed file extensions, directory names, file sizes, and the commit/PR title + description if available) before launching subagents. The diff itself gives the orchestrator the signal.
+- `path` mode: read the directory tree or single file content (at least the first ~50 lines or imports) before launching subagents.
+
+Pick 1–3 personas from the roster. Use the most relevant ones for the observed content. Common heuristics:
+
+| Signal observed | Personas to prefer |
+|---|---|
+| Python / Rust / Go backend logic, DB queries, API handlers | backend-engineer, software-architect, qa-engineer |
+| UI / JSX / TSX / CSS / design tokens / component files | frontend-engineer, ui-ux-designer, qa-engineer |
+| Security-sensitive: auth, tokens, crypto, secrets, network endpoints | security-engineer, backend-engineer |
+| Tests / fixtures / mocks / test scaffolding | qa-engineer, system-analyst |
+| CI / Docker / deploy / infra / Terraform / cloud config | devops-engineer, system-analyst |
+| Docs / markdown / product copy / PRD / spec files | product-engineer, business-analyst |
+| Data / schemas / migrations / ETL / analytics | business-analyst, system-analyst |
+| Small or ambiguous diff (< 3 files, single language) | qa-engineer, software-architect |
+
+If the signal is unclear or the diff is large and mixed, fall back to the full 3 most common: backend-engineer, qa-engineer, software-architect.
+
+Store the selected list (ordered, deduplicated, 1–3 entries) as `personas` for Steps 2 and 3.
+
+## Persona roster
+
+The 10 available lens personas:
+
+backend-engineer, business-analyst, devops-engineer, frontend-engineer, product-engineer, qa-engineer, security-engineer, software-architect, system-analyst, ui-ux-designer

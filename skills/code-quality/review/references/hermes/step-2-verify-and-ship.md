@@ -27,6 +27,6 @@ The per-persona files and summary stay in the scratch dir — they are deliverab
 
 Report to the user:
 
-> Module review of <path> complete. <N>/<P> personas completed, <M> errored. <bugs> bugs, <suggestions> suggestions, <nits> nits. Top issues: ... Summary: <abs path>.
+> <Mode> review of <target> complete. <N>/<P> personas completed, <M> errored. <bugs> bugs, <suggestions> suggestions, <nits> nits. Top issues: ... Summary: <abs path>.
 
 Then proceed to Step 3.
