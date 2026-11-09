@@ -49,18 +49,6 @@ from modules.shared.src.tools.taxonomy_tools_constant import (
     LAUNCHER_NAMES as LAUNCHER_NAMES,
 )
 from modules.shared.src.tools.taxonomy_tools_constant import (
-    LINT_BINARIES as LINT_BINARIES,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    LINT_BUILD_DEPS as LINT_BUILD_DEPS,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    LINT_INTERNAL_DIR_REL as LINT_INTERNAL_DIR_REL,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    LINT_LAUNCHERS as LINT_LAUNCHERS,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
     NODE_IGNORES as NODE_IGNORES,
 )
 from modules.shared.src.tools.taxonomy_tools_constant import (
@@ -86,12 +74,6 @@ from modules.shared.src.tools.taxonomy_tools_constant import (
 )
 from modules.shared.src.tools.taxonomy_tools_constant import (
     PNPM_DANGEROUS_ALLOW as PNPM_DANGEROUS_ALLOW,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    QWEN_ROLE_DIRS as QWEN_ROLE_DIRS,
-)
-from modules.shared.src.tools.taxonomy_tools_constant import (
-    QWEN_TOOL_NAME as QWEN_TOOL_NAME,
 )
 from modules.shared.src.tools.taxonomy_tools_constant import (
     ROOT_ENV_VAR as ROOT_ENV_VAR,
