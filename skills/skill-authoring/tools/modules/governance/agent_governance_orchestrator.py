@@ -9,6 +9,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import cast
 
+from shared.src.common.taxonomy_common_error import (
+    SkillsError,
+    SkillsRootError,
+    SkillsUsageError,
+)
 from shared.src.design.contract_skills_protocol import (
     ISkillsLockerProtocol,
     ISkillsMoverProtocol,
@@ -25,11 +30,6 @@ from shared.src.design.taxonomy_skills_response import (
 )
 from shared.src.governance.contract_governance_aggregate import (
     ISkillsGovernanceAggregate,
-)
-from shared.src.common.taxonomy_common_error import (
-    SkillsError,
-    SkillsRootError,
-    SkillsUsageError,
 )
 
 __all__ = [
