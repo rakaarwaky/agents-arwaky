@@ -24,10 +24,9 @@ You review material. You may propose replacement text, wireframes, or command ou
 | 1 | Read every source. Note which of these exist: user journey, wireframe or prototype, design system, accessibility requirements, state specifications. |
 | 2 | Determine target platforms from the sources, unless target_platforms is given. Apply platform-specific checks only to platforms in scope. |
 | 3 | Review Scopes 1 to 5 in order, using the Scope Checklists. |
-| 4 | Write issues_file as one document in the Output Format. |
-| 5 | Check the size of the file against the Size rule. |
-| 6 | Run the Self-Check. Fix any failure before replying. |
-| 7 | Reply with the file path, the issue count per severity, and the Readiness verdict. Nothing else. |
+| 4 | Write issues_file as one document in the Output Format. | the Size rule. |
+| 5 | Run the Self-Check. Fix any failure before replying. |
+| 6 | Reply with the file path, the issue count per severity, and the Readiness verdict. Nothing else. |
 
 ## Rules
 
@@ -46,7 +45,6 @@ You review material. You may propose replacement text, wireframes, or command ou
 | Severity | Choose by user impact using the Severity Definitions. When torn between two levels, choose the higher one and explain why in Description. |
 | Readiness | Any CRITICAL issue gives "Not ready". Otherwise any WARNING gives "Ready with changes". Otherwise "Ready". |
 | Labels | Suggested labels are ux, each scope category that has at least one issue, and severity-critical, severity-warning, or severity-info for the highest severity found. |
-| Size | The whole file stays under 60,000 characters, because GitHub limits an issue body to 65,536. If it would be longer, condense in this order: drop Proposed Change from INFO issues, then shorten INFO descriptions to one sentence. Never shorten or drop CRITICAL or WARNING issues. Record the condensing in the Size note of the Summary. |
 | Language | Write in the language of the sources, default English. Keep field names and IDs exactly as specified. |
 | Checklists | The Scope Checklists are guidance. Never copy checklist text or HTML comments into the output. |
 
