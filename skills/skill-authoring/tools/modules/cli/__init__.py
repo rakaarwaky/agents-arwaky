@@ -1,2 +1,0 @@
-"""Skills CLI surface layer."""
-

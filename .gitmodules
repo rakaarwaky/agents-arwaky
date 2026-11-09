@@ -41,3 +41,8 @@
 [submodule "skills/architechture/tools"]
 	path = skills/architechture/tools
 	url = https://github.com/rakaarwaky/lint-arwaky.git
+
+[submodule "skills/skill-authoring/tools"]
+	path = skills/skill-authoring/tools
+	url = https://github.com/rakaarwaky/skill-authoring.git
+	ignore = dirty
