@@ -5,15 +5,17 @@ lifecycle config.
 """
 
 from __future__ import annotations
-from shared.src.design.contract_skills_protocol import (
-    ISkillsRunnerProtocol,
-)
-
 
 from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from shared.src.design.contract_skills_protocol import (
+    ISkillsRunnerProtocol,
+)
+from shared.src.design.taxonomy_skills_constant import LIFECYCLE_STATES
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import load_lifecycle_config
 from shared.src.maintenance.utility_lifecycle_support import (
     ACTIVE,
     ARCHIVED,
@@ -29,20 +31,17 @@ from shared.src.maintenance.utility_lifecycle_support import (
     _with_lock,
     find_skill_dir,
 )
-from shared.src.storage.utility_skill_pack import default_pack_root, iter_skill_mds
 from shared.src.maintenance.utility_skills_mutation import atomic_write_json
-from shared.src.design.taxonomy_skills_constant import LIFECYCLE_STATES
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.design.taxonomy_skills_vo import load_lifecycle_config
+from shared.src.storage.utility_skill_pack import default_pack_root, iter_skill_mds
 
 __all__ = ["SkillsRunner"]
 
 
-# ─── Block 1: Module Declaration ──────────────
+# ─── Block 1: Module Declaration ──────────────────────────
 class SkillsRunner(ISkillsRunnerProtocol):
     """Runner capability: run/pause/resume verbs."""
 
-# ─── Block 2: Module Contract ─────────────
+    # ─── Block 2: Module Contract ─────────────────────────────
     def apply_automatic_transitions(self, root: SkillsRoot | None = None) -> dict:
         pack_root = Path(root) if root is not None else default_pack_root()
         config = load_lifecycle_config(pack_root)
@@ -155,7 +154,7 @@ class SkillsRunner(ISkillsRunnerProtocol):
 
         _with_lock(path, work)
 
-# ─── Block 3: Module Helpers ─────────
+    # ─── Block 3: Module Helpers ───────────────────────────────
     def _set_state(
         self,
         skill: str,

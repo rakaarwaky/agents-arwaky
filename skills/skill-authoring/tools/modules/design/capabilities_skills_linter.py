@@ -24,27 +24,19 @@ import os
 from collections.abc import Iterator
 from pathlib import Path
 
-from shared.src.maintenance.utility_skills_mutation import plan_weed
-from shared.src.discovery.utility_discovery_core import (
-    category_dirs,
-    category_summaries,
-    parse_frontmatter,
-    relpath,
-    skill_entries,
-)
-from shared.src.design.contract_skills_protocol import ISkillsLinterProtocol
 from shared.src.common.taxonomy_common_constant import (
     CATALOG_FILENAME,
     IGNORED_CATEGORY_DIRS,
 )
+from shared.src.common.taxonomy_common_entity import (
+    CategorySummary,
+    SkillEntry,
+)
+from shared.src.design.contract_skills_protocol import ISkillsLinterProtocol
 from shared.src.design.taxonomy_skills_constant import (
     ASSETS_MARKER_FILENAME,
     MAX_DESCRIPTION_LEN,
     PACK_MARKER_FILENAME,
-)
-from shared.src.common.taxonomy_common_entity import (
-    CategorySummary,
-    SkillEntry,
 )
 from shared.src.design.taxonomy_skills_entity import (
     Issue,
@@ -57,15 +49,23 @@ from shared.src.design.taxonomy_skills_vo import (
     is_valid_skill_name,
     issue_message,
 )
+from shared.src.discovery.utility_discovery_core import (
+    category_dirs,
+    category_summaries,
+    parse_frontmatter,
+    relpath,
+    skill_entries,
+)
+from shared.src.maintenance.utility_skills_mutation import plan_weed
 
 __all__ = ["SkillsLinter"]
 
 
-# ─── Block 1: SkillsLinter class definition ──────────────
+# ─── Block 1: Module Declaration ──────────────────────────
 class SkillsLinter(ISkillsLinterProtocol):
     """Combined lint: 13-rule checks + weed report, optionally category-filtered."""
 
-    # ─── Block 2: Module Contract ───────────
+    # ─── Block 2: Module Contract ─────────────────────────────
     def lint(
         self, root: SkillsRoot, category: str | None = None
     ) -> LintReport:
@@ -78,7 +78,6 @@ class SkillsLinter(ISkillsLinterProtocol):
         """
         skills_root = Path(root)
 
-        # ── 1. 13-rule validator checks ─────────────────────────
         entries = skill_entries(skills_root)
         categories = category_summaries(entries, skills_root)
         assets = assets_container(skills_root)
@@ -99,11 +98,9 @@ class SkillsLinter(ISkillsLinterProtocol):
             categories=len(list(category_dirs(skills_root))),
         )
 
-        # ── 2. Weed report ───────────────────────────────────────
         weed_plan = plan_weed(skills_root)
         weed_lines = weed_plan.lines
 
-        # ── 3. Category filter ───────────────────────────────────
         unfiltered_issues = report.issues
         unfiltered_weed_lines = weed_lines
         if category is not None:
@@ -126,9 +123,7 @@ class SkillsLinter(ISkillsLinterProtocol):
             unfiltered_weed_lines=unfiltered_weed_lines,
         )
 
-    # ── Block 3: Constructors, standard traits, helpers ──────────
-
-    # ── 13-rule checks (ported from the retired validator) ────────
+    # ─── Block 3: Module Helpers ───────────────────────────────
 
     @staticmethod
     def _check_categories(

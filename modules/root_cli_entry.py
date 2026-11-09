@@ -54,9 +54,21 @@ for _skills_ns in (
     ROOT / "skills" / "skill-authoring" / "skill-design" / "app" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-traces" / "modules",
     ROOT / "skills" / "skill-authoring" / "skill-design" / "modules",
+    ROOT / "skills" / "skill-authoring" / "tools" / "modules",
 ):
     if _skills_ns.is_dir() and str(_skills_ns) not in sys.path:
         sys.path.insert(0, str(_skills_ns))
+
+# The skill-authoring tools tree (tools/modules/) has discovery and cli
+# packages with an inner src/ layout; add those so bare module imports
+# like `from discovery.agent_discovery_orchestrator import ...` resolve
+# alongside the flat layout packages (design, governance, maintenance, etc.).
+for _skills_src in (
+    ROOT / "skills" / "skill-authoring" / "tools" / "modules" / "discovery" / "src",
+    ROOT / "skills" / "skill-authoring" / "tools" / "modules" / "cli" / "src",
+):
+    if _skills_src.is_dir() and str(_skills_src) not in sys.path:
+        sys.path.insert(0, str(_skills_src))
 
 # Extend shared.src.__path__ with ALL shared/src trees so
 # shared.src.common.utility_skill_pack etc. resolve regardless of which
@@ -84,6 +96,46 @@ try:
             _shared_src_pkg.__path__.append(str(_ext))
 except ImportError:
     pass
+
+# Bridge the domain-package split in the skill-authoring tools tree:
+# discovery keeps its agent+capability files under src/ while the
+# contracts/taxonomy for every domain live in the shared kernel's
+# same-named domain dir. Extending each domain package's __path__ lets
+# `from <domain>.agent_*_orchestrator import ...` resolve across both
+# halves in one import.
+if os.path.isdir(ROOT / "skills" / "skill-authoring" / "tools" / "modules"):
+    _tm = ROOT / "skills" / "skill-authoring" / "tools" / "modules"
+    _sk = _tm / "shared" / "src"
+    for _pkg_name, _extra in (
+        ("discovery", (
+            _tm / "discovery" / "src",
+            _sk / "discovery",
+        )),
+        ("design", (
+            _sk / "design",
+        )),
+        ("governance", (
+            _sk / "governance",
+        )),
+        ("maintenance", (
+            _sk / "maintenance",
+        )),
+        ("observability", (
+            _sk / "observability",
+        )),
+        ("storage", (
+            _sk / "storage",
+        )),
+    ):
+        try:
+            import importlib
+            _mod = importlib.import_module(_pkg_name)
+            for _extra_path in _extra:
+                _extra_str = str(_extra_path)
+                if _extra_path.is_dir() and _extra_str not in _mod.__path__:
+                    _mod.__path__.append(_extra_str)
+        except ImportError:
+            pass
 
 from modules.shared.src.common.taxonomy_common_vo import (
     Tool,
@@ -607,17 +659,10 @@ def cmd_skills(argv: list[str]) -> int:
     the two together — the design tree itself never imports
     ``skills_traces``.
     """
-    from modules.shared.src.common.utility_skills_tree import skill_entries
-
-    entries = skill_entries(ROOT / "skills")
-    _ = entries
-
     from cli.src.surface_skills_command import (
         cmd_skills as _skills_surface,
     )
-    from skills.skill_authoring.tools.modules.root_skills_container import (
-        default_aggregate,
-    )
+    from root_skills_container import default_aggregate
 
     aggregate = default_aggregate()
     return _skills_surface(list(argv), aggregate)

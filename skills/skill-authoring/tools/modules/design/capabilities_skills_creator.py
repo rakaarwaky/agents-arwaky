@@ -17,35 +17,35 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shared.src.common.taxonomy_common_constant import (
+    CATEGORY_DESCRIPTION_FILENAME,
+)
+from shared.src.common.taxonomy_common_vo import (
+    CategoryName,
+    SkillName,
+)
+from shared.src.design.contract_skills_protocol import (
+    ISkillsCreatorProtocol,
+)
+from shared.src.design.taxonomy_skills_request import SkillsRoot
+from shared.src.design.taxonomy_skills_vo import (
+    NewCategoryPlan,
+    SkillCreatePlan,
+)
 from shared.src.maintenance.utility_skills_mutation import (
     assert_within_root,
     validate_category_name,
     write_category_description,
 )
-from shared.src.design.contract_skills_protocol import (
-    ISkillsCreatorProtocol,
-)
-from shared.src.common.taxonomy_common_constant import (
-    CATEGORY_DESCRIPTION_FILENAME,
-)
-from shared.src.design.taxonomy_skills_request import SkillsRoot
-from shared.src.common.taxonomy_common_vo import (
-    CategoryName,
-    SkillName,
-)
-from shared.src.design.taxonomy_skills_vo import (
-    NewCategoryPlan,
-    SkillCreatePlan,
-)
 
 __all__ = ["SkillsCreator"]
 
 
-# ─── Block 1: Module Declaration ──────────────
+# ─── Block 1: Module Declaration ──────────────────────────
 class SkillsCreator(ISkillsCreatorProtocol):
     """Creates skills and categories in the pack (dry-run by default)."""
 
-    # ─── Block 2: Module Contract ─────────────
+    # ─── Block 2: Module Contract ─────────────────────────────
     def create_skill(
         self,
         skill: SkillName,
@@ -145,6 +145,6 @@ class SkillsCreator(ISkillsCreatorProtocol):
             root=plan.root,
         )
 
-    # ─── Block 3: Module Helpers ─────────
+    # ─── Block 3: Module Helpers ───────────────────────────────
     def __repr__(self) -> str:
         return "SkillsCreator()"
