@@ -28,11 +28,11 @@ from shared.src.maintenance.utility_lifecycle_support import (
 __all__ = ["SkillsPurge"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsPurge(ISkillsPurgeProtocol):
     """Purge capability: archive-TTL cleanup."""
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def purge(
         self,
         skill: str | None = None,
@@ -77,4 +77,4 @@ class SkillsPurge(ISkillsPurgeProtocol):
                 kept.append({"skill": name, "archived_at": str(archived_at)})
 
         return {"purged": purged, "kept": kept, "dry_run": dry_run}
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────

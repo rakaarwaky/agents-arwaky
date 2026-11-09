@@ -35,14 +35,14 @@ logger = logging.getLogger(__name__)
 __all__ = ["SkillsRollback"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsRollback(ISkillsRollbackProtocol):
     """Rollback capability: restore the pack tree from a snapshot."""
 
     def __init__(self, backup: Any) -> None:
         self._backup = backup
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def rollback(self, root: Path, id_: str | None = None) -> dict:
         skills_root = self._backup.resolve_root(root)
         target = self._resolve_snapshot(skills_root, id_)
@@ -130,7 +130,7 @@ class SkillsRollback(ISkillsRollbackProtocol):
             raise SkillsUsageError(f"unknown snapshot id: {id_}")
         return snap
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────
     def _read_manifest(self, snap_dir: Path) -> dict:
         manifest_file = snap_dir / MANIFEST_NAME
         if not manifest_file.is_file():

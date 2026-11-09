@@ -26,7 +26,7 @@ _KNOWN: tuple[DaemonName, ...] = (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class DaemonOrchestrator(IDaemonAggregate):
     """Route daemon actions to the named capability (zero I/O)."""
 
@@ -43,7 +43,7 @@ class DaemonOrchestrator(IDaemonAggregate):
         if ninerouter is not None:
             self._managers["9router"] = ninerouter
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: DaemonRequest) -> DaemonResponse:
         """Route *request* to the matching protocol method; return the response."""
         op = DaemonOp(str(request.op))
@@ -65,7 +65,7 @@ class DaemonOrchestrator(IDaemonAggregate):
             return _from_exit(self._for_unit(_unit(request)).unit_status(_unit(request)))
         raise ValueError(f"Unknown daemon op: {op}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     #: systemd unit filename → daemon id (unit ops accept either form).
     _UNIT_DAEMON: ClassVar[dict[str, str]] = {
         "omniroute.service": "omniroute",

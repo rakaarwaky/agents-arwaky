@@ -65,7 +65,7 @@ __all__ = [
     "write_via_sqlite",
 ]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 
 
 class NineRouterImportOmniroute(I9routerImportOmnirouteProtocol):
@@ -85,7 +85,7 @@ class NineRouterImportOmniroute(I9routerImportOmnirouteProtocol):
         self._stop_fn = stop_fn
         self._start_fn = start_fn
 
-    # ─── Block 2: Protocol Trait Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
 
     def run_import(
         self,
@@ -98,7 +98,7 @@ class NineRouterImportOmniroute(I9routerImportOmnirouteProtocol):
         start = start_fn or self._start_fn or (lambda: None)
         return ExitCode(_run_import(argv, stop, start))
 
-# ─── Block 3: Constructors, Std Traits, Helpers ───────────
+# ─── Block 3: Module Helpers ───────────
 
 
 def run_import(
@@ -228,9 +228,7 @@ def load_secret() -> str | None:
     return None
 
 
-# --------------------------------------------------------------------------- #
 # Masking (never prints plaintext credentials)
-# --------------------------------------------------------------------------- #
 
 def mask_secret(value: str | None) -> str:
     """Mask a secret for logging: ``sk-...abcd`` or ``<empty>``/``<null>``."""
@@ -248,9 +246,7 @@ def mask_secret(value: str | None) -> str:
     return "<masked>"
 
 
-# --------------------------------------------------------------------------- #
 # OmniRoute read (strictly read-only)
-# --------------------------------------------------------------------------- #
 
 def _open_ro(db_path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
@@ -318,9 +314,7 @@ def load_omniroute_nodes(db_path: str = OMNIROUTE_DB_DEFAULT) -> list[dict[str, 
     return [dict(r) for r in rows]
 
 
-# --------------------------------------------------------------------------- #
 # Mapping OmniRoute -> 9router payload shape
-# --------------------------------------------------------------------------- #
 
 def _canonical_id(value: str) -> str:
     """Normalize a connection id (strip whitespace)."""
@@ -432,9 +426,7 @@ def map_connection_to_9router(
     }
 
 
-# --------------------------------------------------------------------------- #
 # Planning (no writes)
-# --------------------------------------------------------------------------- #
 
 def plan_import(
     connections: list[dict[str, Any]],
@@ -522,9 +514,7 @@ def plan_import(
     return plan
 
 
-# --------------------------------------------------------------------------- #
 # Execution (writes to 9router SQLite only)
-# --------------------------------------------------------------------------- #
 
 def _ninerouter_conn(db_path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(db_path)
@@ -705,9 +695,7 @@ def execute_plan(
     return write_via_sqlite(plan["items"], db_path=db_path, dry_run=dry_run)
 
 
-# --------------------------------------------------------------------------- #
 # CLI entry
-# --------------------------------------------------------------------------- #
 
 def _run_import(
     argv: list[str],

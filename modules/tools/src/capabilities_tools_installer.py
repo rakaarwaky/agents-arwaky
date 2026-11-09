@@ -29,7 +29,7 @@ from modules.shared.src.common.taxonomy_common_vo import (
 from modules.shared.src.tools.contract_tools_protocol import IToolsInstallerProtocol
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class InstallerCapability(IToolsInstallerProtocol):
     """Business action install(spec, dry_run): provision + register launcher."""
 
@@ -41,7 +41,7 @@ class InstallerCapability(IToolsInstallerProtocol):
         # (single API pipeline) instead of going through an adapter facade.
         self._registry = dict(registry) if registry is not None else {}
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
 
     def install(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> InstallResult:
         """Install via the injected registry (single API pipeline).
@@ -98,7 +98,7 @@ class InstallerCapability(IToolsInstallerProtocol):
         result = self._register_launcher(spec, result)
         return result
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───
+    # ─── Block 3: Module Helpers ───
     def __repr__(self) -> str:
         return "InstallerCapability()"
     def _register_launcher(

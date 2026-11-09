@@ -27,14 +27,14 @@ from modules.shared.src.common.utility_toml_write import write_toml
 from modules.shared.src.config.contract_config_protocol import IConfigReaderProtocol
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ConfigWriter(IConfigReaderProtocol):
     """Load / save / inspect / help capability."""
 
     def __init__(self, usage: HelpText | None = None) -> None:
         self._usage = usage if usage is not None else HelpText("")
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def load(self, path: Path) -> ConfigTuple:
         """Read *path*; returns ``(data, format)``."""
         return self.load_file(path)
@@ -62,7 +62,7 @@ class ConfigWriter(IConfigReaderProtocol):
         """Return the usage text the agent injected."""
         return self._usage
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "ConfigWriter()"
 

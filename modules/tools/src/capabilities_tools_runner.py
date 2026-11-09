@@ -35,14 +35,14 @@ from modules.shared.src.tools.taxonomy_tools_constant import (
 from modules.shared.src.tools.taxonomy_tools_vo import ExitCode
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class RunnerCapability(IToolsRunnerProtocol):
     """Business action run(spec, args, root): discover + exec, return exit code."""
 
     def __init__(self, root: Path | None = None) -> None:
         self._root = root
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def run(self, spec: ToolSpec, args: list[str], root: Path | None = None) -> ExitCode:
         """Discover the executable and launch it; return the child's exit code."""
         # Sub-step 1: discover the concrete launch path; None -> return 1.
@@ -63,7 +63,7 @@ class RunnerCapability(IToolsRunnerProtocol):
         base = root or self._root or repo_root
         return self._discover(spec, base)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "RunnerCapability()"
 

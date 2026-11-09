@@ -44,11 +44,11 @@ from shared.src.design.taxonomy_skills_vo import (
 __all__ = ["SkillsMover"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsMover(ISkillsMoverProtocol):
     """Plans and applies a move of a skill to another category."""
 
-    # ─── Block 2: Protocol Method Implementation ─────────────
+    # ─── Block 2: Module Contract ─────────────
     def plan_move(
         self, skill: SkillName, target: CategoryName, root: SkillsRoot
     ) -> MutationPlan:
@@ -100,6 +100,6 @@ class SkillsMover(ISkillsMoverProtocol):
         shutil.move(str(plan.source), str(plan.destination))
         return MutationOutcome(message="moved")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "SkillsMover()"

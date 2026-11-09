@@ -99,7 +99,7 @@ class SkillsGovernanceAgent(ISkillsGovernanceAggregate):
             )
         return SkillsResult(ok=True, op=op, message=str(result))
 
-    # ─── Block 2: Aggregate Method Implementation ────────────────
+    # ─── Block 2: Module Contract ────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
         """Route *request* to the matching governance capability."""
         try:

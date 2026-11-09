@@ -65,7 +65,7 @@ __all__ = ["SkillsLinter"]
 class SkillsLinter(ISkillsLinterProtocol):
     """Combined lint: 13-rule checks + weed report, optionally category-filtered."""
 
-    # ─── Block 2: Protocol Method Implementation ───────────
+    # ─── Block 2: Module Contract ───────────
     def lint(
         self, root: SkillsRoot, category: str | None = None
     ) -> LintReport:

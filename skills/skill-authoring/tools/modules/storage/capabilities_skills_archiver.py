@@ -42,7 +42,7 @@ from storage.capabilities_skills_restore import SkillsRestore
 
 __all__ = ["SkillsArchiver"]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsArchiver(ISkillsArchiverProtocol):
     """Plans and applies an archive of a skill into ``_archive/``.
 
@@ -54,7 +54,7 @@ class SkillsArchiver(ISkillsArchiverProtocol):
     def __init__(self, restore: SkillsRestore | None = None) -> None:
         self._restore = restore if restore is not None else SkillsRestore()
 
-    # ─── Block 2: Protocol Method Implementation ─────────────
+    # ─── Block 2: Module Contract ─────────────
     def plan_archive(self, skill: SkillName, root: SkillsRoot) -> MutationPlan:
         """Resolve an archive; the skill lands at ``_archive/<cat>/<skill>/``."""
         skills_root = Path(root)
@@ -94,6 +94,6 @@ class SkillsArchiver(ISkillsArchiverProtocol):
         self._restore.archive(skill_name, root)
         return MutationOutcome(message="archived")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "SkillsArchiver()"

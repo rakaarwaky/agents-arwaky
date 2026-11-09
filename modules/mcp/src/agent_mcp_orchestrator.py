@@ -21,7 +21,7 @@ from modules.shared.src.mcp.taxonomy_mcp_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class McpOrchestrator(IMcpAggregate):
     """Single entry point over the MCP generator; dispatch happens here."""
 
@@ -34,7 +34,7 @@ class McpOrchestrator(IMcpAggregate):
         self._list = list_cap
         self._write = write_cap
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: McpRequest) -> McpResponse:
         """Route *request* to the matching protocol method; return the response."""
         op = McpOp(str(request.op))
@@ -55,7 +55,7 @@ class McpOrchestrator(IMcpAggregate):
             return McpResponse(self._write.validate(output))
         return McpResponse(ExitCode(1))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     def __repr__(self) -> str:
         return "McpOrchestrator()"
 

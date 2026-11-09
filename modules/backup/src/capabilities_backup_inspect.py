@@ -37,11 +37,11 @@ def cmd_help() -> int:
     return 0
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class TarBackupInspect(IBackupInspectProtocol):
     """Read-only backup store ops: list / status / help."""
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def list_archives(self) -> BackupOutcome:
         """Return the archives visible to this gateway plus their print lines."""
         lines = cmd_list()
@@ -60,6 +60,6 @@ class TarBackupInspect(IBackupInspectProtocol):
         """Show backup usage information."""
         return ExitCode(cmd_help())
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "TarBackupInspect()"

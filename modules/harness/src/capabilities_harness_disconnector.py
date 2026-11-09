@@ -31,7 +31,7 @@ from modules.shared.src.harness.contract_harness_protocol import (
 )
 from modules.shared.src.harness.taxonomy_harness_vo import DisconnectOpts
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 
 class HarnessDisconnector(IHarnessDisconnectProtocol):
     """Registry-keyed disconnect capability (composition root injects adapters)."""
@@ -40,7 +40,7 @@ class HarnessDisconnector(IHarnessDisconnectProtocol):
         """Store the adapter registry for per-harness-id lookups."""
         self._adapters = adapters
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
 
     def disconnect(self, harness_ids: tuple[str, ...], dry_run: bool = False) -> int:
         """FR-002: remove MCP servers, env keys, and router references.
@@ -96,7 +96,7 @@ class HarnessDisconnector(IHarnessDisconnectProtocol):
         return "HarnessDisconnector()"
 
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ───
+# ─── Block 3: Module Helpers ───
 
 def _copy_matches_pack(dest_dir: Path, src_dir: Path) -> bool:
     """True when a provisioned copy is still byte-identical to its pack source."""

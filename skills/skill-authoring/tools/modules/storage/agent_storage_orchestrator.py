@@ -76,7 +76,7 @@ class SkillsStorageAgent(ISkillsStorageAggregate):
             return Path(self._default_root)
         return Path()
 
-    # ─── Block 2: Aggregate Method Implementation ────────────────
+    # ─── Block 2: Module Contract ────────────────
     def execute(self, request: SkillsRequest) -> SkillsResult:
         """Route *request* to the matching storage capability."""
         try:

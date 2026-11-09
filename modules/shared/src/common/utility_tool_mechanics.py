@@ -52,9 +52,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import AdapterUnit, ToolLifecycl
 ROOT = REPO_ROOT
 
 
-# ---------------------------------------------------------------------------
 # Git submodule helpers (inlined from utility_git_submodule, AES201)
-# ---------------------------------------------------------------------------
 def _run_quiet(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
     """Run a command silently, return result."""
     return subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
@@ -149,9 +147,7 @@ def ensure_source(root: Path, src_rel: str) -> Path:
 
 
 
-# ---------------------------------------------------------------------------
 # Top-level factories (DRY core — dipakai di seluruh adapter)
-# ---------------------------------------------------------------------------
 def make_satisfied(bin_name: str) -> Callable:
     """Factory: satisfied probe — cek keberadaan satu launcher di XDG bin."""
     return lambda spec, root=None: (bin_home() / bin_name).exists()
@@ -200,9 +196,7 @@ def make_update(lifecycle_fn: Callable) -> Callable:
     return lambda spec, root: lifecycle_fn("update", root or ROOT, None)
 
 
-# ---------------------------------------------------------------------------
 # Pure path / process helpers
-# ---------------------------------------------------------------------------
 def generic_owned(
     spec,
     launcher_names: list[str],
@@ -256,9 +250,7 @@ def symlink_alias(alias: str, target: Path) -> Path:
     return a
 
 
-# ---------------------------------------------------------------------------
 # Launcher writers
-# ---------------------------------------------------------------------------
 def write_generic_launcher(tool_name: str, content: str, aliases: list[str] | None = None) -> Path:
     """Write a generic launcher with aliases. Returns launcher path."""
     ensure_bin_home()
@@ -321,9 +313,7 @@ def write_uv_launchers(
     return created
 
 
-# ---------------------------------------------------------------------------
 # venv lifecycle (uv_venv family: blender / vision / qwen-web)
-# ---------------------------------------------------------------------------
 def _write_install_stamp(app_dir: Path, tool: str, submodule_dir: Path) -> None:
     """Record what was deployed so rollback/audit is possible."""
     stamp = {
@@ -482,9 +472,7 @@ def _uv_project_lifecycle(
     return created
 
 
-# ---------------------------------------------------------------------------
 # Node-family lifecycle (shared by config-driven node tools)
-# ---------------------------------------------------------------------------
 def node_tool_lifecycle(
     action: str,
     root: Path,
@@ -533,9 +521,7 @@ def node_tool_lifecycle(
     return artifacts
 
 
-# ---------------------------------------------------------------------------
 # Generic unit builder (config-driven recipes → AdapterUnit)
-# ---------------------------------------------------------------------------
 def build_adapter_unit(name: str, config: ToolLifecycleConfig) -> AdapterUnit:
     """Build the complete adapter unit for one config-driven tool recipe.
 

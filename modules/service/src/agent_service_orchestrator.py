@@ -20,7 +20,7 @@ from modules.shared.src.service.taxonomy_service_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ServiceOrchestrator(IServiceAggregate):
     """Single entry point over the service managers; dispatch happens here."""
 
@@ -32,7 +32,7 @@ class ServiceOrchestrator(IServiceAggregate):
         self._control = control
         self._inspect = inspect
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: ServiceRequest) -> ServiceResponse:
         """Route *request* to the matching subsystem; return the response."""
         op = ServiceOp(str(request.op))
@@ -50,7 +50,7 @@ class ServiceOrchestrator(IServiceAggregate):
             return ServiceResponse(self._inspect.help())
         raise ValueError(f"Unknown service op: {op}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     def __repr__(self) -> str:
         return "ServiceOrchestrator()"
 

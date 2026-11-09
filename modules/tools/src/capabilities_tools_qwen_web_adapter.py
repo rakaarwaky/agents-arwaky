@@ -41,7 +41,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class QwenWebToolsAdapter(IToolsAdapterProtocol):
     """qwen-web actions behind the tools adapter protocol (AES403 implementor)."""
 
@@ -51,7 +51,7 @@ class QwenWebToolsAdapter(IToolsAdapterProtocol):
         """Default to this adapter's own unit registry when *units* is omitted."""
         self._units = dict(ADAPTER_UNITS) if units is None else units
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
         """True when the installed binary satisfies the manifest."""
         return satisfied_unit(self._units, spec, self._display, root)
@@ -75,11 +75,9 @@ class QwenWebToolsAdapter(IToolsAdapterProtocol):
 
 
 
-# ---------------------------------------------------------------------------
 # Recipe (uv_venv lifecycle + Playwright post-install)
-# ---------------------------------------------------------------------------
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ──────────
+# ─── Block 3: Module Helpers ──────────
 
 def _qwen_post_install(python_bin, source) -> None:
     print("  [install] Installing Playwright Chromium...")

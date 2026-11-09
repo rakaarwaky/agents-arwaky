@@ -20,7 +20,7 @@ from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 from modules.shared.src.doctor.taxonomy_doctor_constant import OPTIONAL, REQUIRED
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class EnvDiagnosticRunner(IDoctorProtocol):
     """PATH check and required/optional toolchain detection."""
 
@@ -28,7 +28,7 @@ class EnvDiagnosticRunner(IDoctorProtocol):
         """Prepare the XDG bin home required for binary lookups."""
         ensure_path()
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def run(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
         """Check PATH and toolchain binaries."""
         _ = flags
@@ -40,7 +40,7 @@ class EnvDiagnosticRunner(IDoctorProtocol):
         print(f"{GREEN()}Diagnostics complete.{RESET()}")
         return ExitCode(0)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def _check_toolchain(self) -> None:
         target_bin = str(bin_home())
         if target_bin in os.environ.get("PATH", "").split(os.pathsep):

@@ -31,7 +31,7 @@ from modules.shared.src.harness.taxonomy_harness_constant import (
 from modules.shared.src.harness.taxonomy_harness_vo import SkillsOpts
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class HarnessSkills(IHarnessSkillsProtocol):
     """Registry-keyed skills provisioning (composition root injects adapters)."""
 
@@ -39,10 +39,10 @@ class HarnessSkills(IHarnessSkillsProtocol):
         """Store the adapter registry for per-harness-id provisioning."""
         self._adapters = adapters
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
 
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def provision_skills(self, harness_ids: tuple[str, ...], copy: bool = False,
                          dry_run: bool = False, force: bool = False) -> int:
         """FR-003: link or copy the pack into each harness's skill dir.

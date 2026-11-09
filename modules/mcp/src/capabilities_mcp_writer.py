@@ -21,14 +21,14 @@ from modules.shared.src.mcp.taxonomy_mcp_vo import (
 
 __all__ = ["McpConfigWriter"]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class McpConfigWriter(IMcpWriteProtocol):
     """Write the unified MCP client config and aliases."""
 
     def __init__(self) -> None:
         self._root = repo_root()
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def generate(self, output: Path) -> ExitCode:
         """Write the unified MCP client config to *output*; return exit code."""
         original_argv = list(sys.argv)
@@ -58,7 +58,7 @@ class McpConfigWriter(IMcpWriteProtocol):
         except (json.JSONDecodeError, OSError):
             return ExitCode(1)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def _main(self) -> int:
         """Original generate_config.py body — kept as-is."""
         manifest = load_mcp_manifest(self._root)

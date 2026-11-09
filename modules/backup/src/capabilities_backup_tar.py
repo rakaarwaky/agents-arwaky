@@ -13,13 +13,6 @@ import threading
 from datetime import UTC, datetime
 from pathlib import Path
 
-from modules.backup.src.backup_core import (
-    BACKUP_DIRNAME,
-    TARBALL_NAME,
-    _new_snapshot_name,
-    utc_iso_stamp,
-    write_snapshot,
-)
 from modules.shared.src.backup.contract_backup_protocol import IBackupControlProtocol
 from modules.shared.src.backup.taxonomy_backup_constant import (
     BACKUP_STORE,
@@ -36,13 +29,20 @@ from modules.shared.src.backup.taxonomy_backup_vo import (
     RestoreResult,
 )
 from modules.shared.src.common.taxonomy_common_vo import data_home
+from modules.shared.src.common.utility_backup_integrity import (
+    BACKUP_DIRNAME,
+    TARBALL_NAME,
+    _new_snapshot_name,
+    utc_iso_stamp,
+    write_snapshot,
+)
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class TarBackupGateway(IBackupControlProtocol):
     """tar/untar backup & restore with progress reporting."""
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
 
     def backup(self, tool: BackupToolQuery, dest: BackupDestination = DEST_DEFAULT) -> BackupResult:
         """Create a local tar.gz archive in the requested destination."""
@@ -53,7 +53,7 @@ class TarBackupGateway(IBackupControlProtocol):
         rc = cmd_restore([str(tool), str(archive)])
         return RestoreResult(rc == 0, str(tool), str(archive), "", "tar restore completed" if rc == 0 else "tar restore failed")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "TarBackupGateway()"
 

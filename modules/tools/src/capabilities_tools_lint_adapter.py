@@ -51,7 +51,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class LintToolsAdapter(IToolsAdapterProtocol):
     """lint actions behind the tools adapter protocol (AES403 implementor)."""
 
@@ -63,7 +63,7 @@ class LintToolsAdapter(IToolsAdapterProtocol):
 
 
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
         """True when the installed binary satisfies the manifest."""
         return satisfied_unit(self._units, spec, self._display, root)
@@ -84,11 +84,9 @@ class LintToolsAdapter(IToolsAdapterProtocol):
         """Update *spec* to the manifest pin; return the rebuilt paths."""
         return update_unit(self._units, spec, root, self._display)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
 
-# ---------------------------------------------------------------------------
 # Build helpers (cargo — rustup bootstrap + atomic install)
-# ---------------------------------------------------------------------------
 def _lint_bootstrap_rustup() -> bool:
     """Install rust toolchain via rustup (non-interactive). Best effort."""
     fd, script = tempfile.mkstemp(prefix="rustup-init-", suffix=".sh")

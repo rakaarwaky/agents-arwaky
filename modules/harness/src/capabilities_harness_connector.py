@@ -47,7 +47,7 @@ from modules.shared.src.harness.taxonomy_harness_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class HarnessConnector(IHarnessConnectProtocol):
     """Registry-keyed connect capability (composition root injects adapters)."""
 
@@ -62,7 +62,7 @@ class HarnessConnector(IHarnessConnectProtocol):
         self._daemon_status_fn = daemon_status_fn
         self._skills = skills
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def connect(self, harness_ids: tuple[str, ...], force: bool = False, dry_run: bool = False,
                 mcp_only: bool = False, skills_only: bool = False, env_only: bool = False,
                 router: bool = False, copy_skills: bool = False) -> int:
@@ -233,7 +233,7 @@ class HarnessConnector(IHarnessConnectProtocol):
         return "HarnessConnector()"
 
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ───
+# ─── Block 3: Module Helpers ───
 
 def _router_v1(url: str) -> str:
     base = url.rstrip("/")

@@ -181,9 +181,7 @@ class TestHarnessLeafAdapters:
         assert adapter.execute("satisfied", ("fake",), {}) == 0
 
 
-# ---------------------------------------------------------------------------
 # Dual-gateway (OmniRoute primary + 9router secondary) wiring
-# ---------------------------------------------------------------------------
 def _isolate_harness_home(tmp_path, monkeypatch):
     """Redirect every harness/XDG home into ``tmp_path`` for a stateless run."""
     from pathlib import Path

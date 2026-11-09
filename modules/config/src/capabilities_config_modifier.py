@@ -30,14 +30,14 @@ from modules.shared.src.common.utility_config_engine import (
 from modules.shared.src.config.contract_config_protocol import IConfigModifierProtocol
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ConfigModifier(IConfigModifierProtocol):
     """Merge / env-set / removal capability."""
 
     def __init__(self, usage: HelpText | None = None) -> None:
         self._usage = usage if usage is not None else HelpText("")
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def merge_servers(
         self,
         path: Path,
@@ -71,7 +71,7 @@ class ConfigModifier(IConfigModifierProtocol):
         """Return the usage text the agent injected."""
         return self._usage
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "ConfigModifier()"
 

@@ -27,14 +27,14 @@ __all__ = [
 ]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class McpConfigLister(IMcpListProtocol):
     """Read the manifest + env files for read-only discovery."""
 
     def __init__(self) -> None:
         self._root = repo_root()
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def list_servers(self) -> McpServerInfos:
         """MCP-enabled tools from the manifest (read-only)."""
         manifest = load_mcp_manifest(self._root)
@@ -60,6 +60,6 @@ class McpConfigLister(IMcpListProtocol):
         except subprocess.CalledProcessError:
             return ExitCode(1)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "McpConfigLister()"

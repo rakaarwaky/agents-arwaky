@@ -28,11 +28,11 @@ from shared.src.maintenance.utility_lifecycle_support import (
 __all__ = ["SkillsPrune"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsPrune(ISkillsPruneProtocol):
     """Prune capability: idle-skill archiving."""
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def prune(
         self,
         root: SkillsRoot | None = None,
@@ -83,4 +83,4 @@ class SkillsPrune(ISkillsPruneProtocol):
                 kept.append({"skill": name, "state": state})
 
         return {"pruned": pruned, "kept": kept}
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────

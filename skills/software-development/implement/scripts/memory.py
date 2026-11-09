@@ -27,7 +27,6 @@ helper centralises:
     ``MAX_RECENT_RUNS`` entries.
 
 Subcommands
------------
 ``path``      Print the resolved memory file path.
 ``read``      Print the memory file contents (empty output if file is missing).
 ``snapshot``  Print the parsed file as JSON, so the orchestrator never has to
@@ -36,7 +35,6 @@ Subcommands
               under an exclusive lock, and print summary stats as pretty JSON.
 
 Update spec (stdin)
--------------------
 ::
 
     {
@@ -61,7 +59,6 @@ Malformed input fails fast with a clear message and exit code 4 — the helper
 never silently drops malformed entries.
 
 File permissions
-----------------
 Both the memory file and the lock file are written and then ``chmod``ded to
 mode ``0o600`` (owner read/write only) on a best-effort basis. The memory
 file may contain security-review patterns and ``key_patterns`` drawn from
@@ -75,7 +72,6 @@ not depend on the mode); in the typical single-user case both files end
 up at ``0o600`` regardless of the process umask.
 
 Platform support
-----------------
 POSIX (Linux, macOS, BSD) and Windows. Locking uses ``fcntl.flock`` +
 ``O_CLOEXEC`` on POSIX and ``msvcrt.locking`` on Windows.
 
@@ -84,7 +80,6 @@ lazy via ``from __future__ import annotations`` on 3.7+, but stdlib type
 introspection of those hints requires 3.9+).
 
 Exit codes
-----------
 0  success
 1  unexpected I/O error not otherwise classified
 2  workspace id could not be determined (cwd unreadable, ``$HOME`` unset)
@@ -108,9 +103,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-# ---------------------------------------------------------------------------
 # Constants
-# ---------------------------------------------------------------------------
 
 MEMORY_DIR_NAME = "implement-memory"
 MAX_PATTERNS_PER_CATEGORY = 25
@@ -140,9 +133,7 @@ DEFAULT_HEADER = [
 SEVERITY_ORDER = ("bug", "suggestion", "nit")
 
 
-# ---------------------------------------------------------------------------
 # Exceptions
-# ---------------------------------------------------------------------------
 
 
 class MemoryHelperError(Exception):
@@ -169,9 +160,7 @@ class SpecError(MemoryHelperError):
     exit_code = 4
 
 
-# ---------------------------------------------------------------------------
 # Workspace identification
-# ---------------------------------------------------------------------------
 
 
 def _git(*args: str) -> str | None:
@@ -349,9 +338,7 @@ def memory_paths(*, create_dir: bool = False) -> dict[str, Path]:
     }
 
 
-# ---------------------------------------------------------------------------
 # Input sanitisation
-# ---------------------------------------------------------------------------
 
 
 def sanitize_one_line(text: str) -> str:
@@ -368,9 +355,7 @@ def sanitize_one_line(text: str) -> str:
     return re.sub(r"[\r\n\t]+", " ", text).strip()
 
 
-# ---------------------------------------------------------------------------
 # Type validation helpers
-# ---------------------------------------------------------------------------
 
 
 def _require_str(value: Any, field: str) -> str:
@@ -405,9 +390,7 @@ def _require_int(value: Any, field: str) -> int:
     return value
 
 
-# ---------------------------------------------------------------------------
 # Markdown parsing & rendering
-# ---------------------------------------------------------------------------
 
 _SECTION_COMMON_ISSUES_RE = re.compile(r"^##\s+Common Issues\s*$")
 _SECTION_RECENT_RUNS_RE = re.compile(r"^##\s+Recent Runs\s*$")
@@ -555,9 +538,7 @@ def render_memory_file(state: dict[str, Any]) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
-# ---------------------------------------------------------------------------
 # Merge logic
-# ---------------------------------------------------------------------------
 
 
 _PUNCT_TAIL_RE = re.compile(r"[.;:,!?\s]+$")
@@ -805,9 +786,7 @@ def _merge_recent_run(state: dict[str, Any], run: dict[str, Any], stats: dict[st
         del state["recent_runs"][MAX_RECENT_RUNS:]
 
 
-# ---------------------------------------------------------------------------
 # File I/O with locking
-# ---------------------------------------------------------------------------
 
 
 def _atomic_write(path: Path, content: str) -> None:
@@ -933,9 +912,7 @@ def _release_lock(fd: int) -> None:
         pass
 
 
-# ---------------------------------------------------------------------------
 # Subcommands
-# ---------------------------------------------------------------------------
 
 
 def _build_snapshot(state: dict[str, Any], *, exists: bool) -> dict[str, Any]:
@@ -1033,9 +1010,7 @@ def cmd_update(args: argparse.Namespace) -> int:
         _release_lock(fd)
 
 
-# ---------------------------------------------------------------------------
 # Entry point
-# ---------------------------------------------------------------------------
 
 
 def main(argv: list[str] | None = None) -> int:

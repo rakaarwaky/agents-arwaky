@@ -25,7 +25,7 @@ from modules.shared.src.harness.contract_harness_protocol import (
 from modules.shared.src.harness.taxonomy_harness_vo import ExitCode
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class GrokBuildHarnessAdapter(IHarnessProviderProtocol):
     """Grok Build provider behind the harness protocol (AES403 implementor)."""
 
@@ -33,7 +33,7 @@ class GrokBuildHarnessAdapter(IHarnessProviderProtocol):
         """Hold the provider spec registry; fall back to the default when absent."""
         self._units = dict(units) if units is not None else dict(ADAPTER_UNITS)
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def execute(
         self,
         op: str,
@@ -44,14 +44,12 @@ class GrokBuildHarnessAdapter(IHarnessProviderProtocol):
         return dispatch_provider_op(self._units, op, targets, flags, label="grok-build adapter")
 
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return f"GrokBuildHarnessAdapter(providers={len(self._units)})"
 
 
-# ---------------------------------------------------------------------------
 # Provider spec (one registered instance per harness id)
-# ---------------------------------------------------------------------------
 @dataclass(frozen=True)
 class GrokBuildAdapter:
     """Grok Build provider data (TOML config, custom-API provider entries)."""

@@ -23,7 +23,7 @@ from modules.shared.src.backup.taxonomy_backup_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class BackupOrchestrator(IBackupAggregate):
     """Coordinates the backup control and inspect subsystems; dispatch happens here."""
 
@@ -35,7 +35,7 @@ class BackupOrchestrator(IBackupAggregate):
         self._control = control
         self._inspect = inspect_cap
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: BackupRequest) -> BackupResponse:
         """Route *request* to the matching protocol method; return the response."""
         op = BackupOp(str(request.op))

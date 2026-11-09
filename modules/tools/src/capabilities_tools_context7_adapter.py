@@ -35,7 +35,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class Context7ToolsAdapter(IToolsAdapterProtocol):
     """context7 actions behind the tools adapter protocol (AES403 implementor)."""
 
@@ -47,7 +47,7 @@ class Context7ToolsAdapter(IToolsAdapterProtocol):
 
 
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
         """True when the installed binary satisfies the manifest."""
         return satisfied_unit(self._units, spec, self._display, root)
@@ -68,11 +68,9 @@ class Context7ToolsAdapter(IToolsAdapterProtocol):
         """Update *spec* to the manifest pin; return the rebuilt paths."""
         return update_unit(self._units, spec, root, self._display)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
 
-# ---------------------------------------------------------------------------
 # Recipe (node lifecycle + per-tool hooks)
-# ---------------------------------------------------------------------------
 def _context7_write_launchers(app_dir: Path, is_update: bool) -> list[Path]:
     """Write one launcher per CONTEXT7_LAUNCHER_ENTRIES (warn on missing)."""
     created = []

@@ -21,7 +21,7 @@ from modules.shared.src.service.taxonomy_service_vo import (
 
 __all__ = ["ServiceInspect"]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ServiceInspect(IServiceInspectProtocol):
     """Service inspection capability: status / logs / help."""
 
@@ -30,7 +30,7 @@ class ServiceInspect(IServiceInspectProtocol):
             set_daemon_aggregate(daemons)
         self._daemons = daemons
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def status(self) -> ExitCode:
         """Report the health of every registered service. Return the exit code."""
         return ExitCode(cmd_status())
@@ -43,6 +43,6 @@ class ServiceInspect(IServiceInspectProtocol):
         """Print the service command usage. Return the exit code."""
         return ExitCode(cmd_help())
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "ServiceInspect()"

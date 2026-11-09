@@ -23,14 +23,14 @@ from shared.src.maintenance.utility_lifecycle_support import (
 __all__ = ["SkillsRestore"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsRestore(ISkillsRestoreProtocol):
     """Restore capability: archive <-> active moves."""
 
     def __init__(self, reanchor=None) -> None:
         self._reanchor = reanchor
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def archive(self, skill: str, root: SkillsRoot | None = None) -> dict:
         pack_root = Path(root) if root is not None else default_pack_root()
         return archive_skill(skill, pack_root)
@@ -41,7 +41,7 @@ class SkillsRestore(ISkillsRestoreProtocol):
         if reanchor is not None and not callable(reanchor):
             reanchor = None
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────
         def _reanchor(skill_name: str, pack_root_path: Path) -> None:
             if callable(reanchor):
                 reanchor(skill_name, SkillsRoot(pack_root_path))

@@ -36,7 +36,7 @@ __all__ = [
     "cmd_help",
 ]
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ServiceControl(IServiceControlProtocol):
     """Service mutation capability: start / stop / restart."""
 
@@ -45,7 +45,7 @@ class ServiceControl(IServiceControlProtocol):
             set_daemon_aggregate(daemons)
         self._daemons = daemons
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def start(self, target: ServiceTarget = TARGET_ALL) -> ExitCode:
         """Start the named service(s). Return the exit code."""
         return ExitCode(cmd_start(str(target)))
@@ -58,12 +58,11 @@ class ServiceControl(IServiceControlProtocol):
         """Restart the named service(s). Return the exit code."""
         return ExitCode(cmd_restart(str(target)))
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "ServiceControl()"
 
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
 def main(argv: list[str]) -> int:
     """Entry point for standalone service command execution."""
     if not argv or argv[0] in ("help", "-h", "--help"):

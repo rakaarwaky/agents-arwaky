@@ -112,9 +112,7 @@ def _build_rPr(style_op: dict) -> str:
     return "<w:rPr>" + "".join(parts) + "</w:rPr>"
 
 
-# ---------------------------------------------------------------------------
 # Operation implementations
-# ---------------------------------------------------------------------------
 
 
 def op_replace_text(raw: str, op: dict) -> tuple[str, str]:
@@ -444,9 +442,7 @@ def op_add_paragraph(raw: str, op: dict) -> tuple[str, str]:
     return raw, f"add_paragraph: {len(new_paragraphs)} paragraph(s) appended"
 
 
-# ---------------------------------------------------------------------------
 # Dispatcher
-# ---------------------------------------------------------------------------
 
 OP_HANDLERS = {
     "replace_text": op_replace_text,

@@ -36,14 +36,14 @@ from modules.shared.src.tools.taxonomy_tools_constant import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ───
+# ─── Block 1: Module Declaration ───
 class UninstallerCapability(IToolsUninstallerProtocol):
     """Business action uninstall(spec, owned_paths, dry_run): remove + verify."""
 
     def __init__(self, daemons: object | None = None) -> None:
         self._daemons = daemons
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def uninstall(
         self,
         spec: ToolSpec,
@@ -58,7 +58,7 @@ class UninstallerCapability(IToolsUninstallerProtocol):
         # gets verified so residuals are surfaced, not hidden.
         return self._verify(spec, result, owned_paths)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ───
+    # ─── Block 3: Module Helpers ───
     def _remove(
         self,
         spec: ToolSpec,

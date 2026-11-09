@@ -29,7 +29,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class WorkspaceToolsAdapter(IToolsAdapterProtocol):
     """workspace actions behind the tools adapter protocol (AES403 implementor)."""
 
@@ -39,7 +39,7 @@ class WorkspaceToolsAdapter(IToolsAdapterProtocol):
         """Default to this adapter's own unit registry when *units* is omitted."""
         self._units = dict(ADAPTER_UNITS) if units is None else units
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
         """True when the installed binary satisfies the manifest."""
         return satisfied_unit(self._units, spec, self._display, root)
@@ -63,11 +63,9 @@ class WorkspaceToolsAdapter(IToolsAdapterProtocol):
 
 
 
-# ---------------------------------------------------------------------------
 # Recipe (uv_project lifecycle; google-workspace-mcp aliases workspace-mcp)
-# ---------------------------------------------------------------------------
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ──────────
+# ─── Block 3: Module Helpers ──────────
 
 config = ToolLifecycleConfig(
     lifecycle="uv_project",

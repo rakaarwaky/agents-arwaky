@@ -257,10 +257,8 @@ def test_help_flags():
         assert proc.returncode == 0 and "usage" in proc.stdout.lower()
 
 
-# ---------------------------------------------------------------------------
 # parity features: render, run-merge replace, chart ops, duplication,
 # polish (background/hyperlink/slide-number/footer), notes editing
-# ---------------------------------------------------------------------------
 
 def run_raw(script, *args):
     env = dict(os.environ, LC_ALL="C", PYTHONIOENCODING="utf-8")

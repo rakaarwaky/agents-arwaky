@@ -47,7 +47,7 @@ __all__ = [
 #: `STORAGE_ENCRYPTION_KEY` encrypts provider credentials; this is a genuine
 #: last resort and never replaces a key that already decrypts an existing database.
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class NinerouterDaemonManager(IDaemonProtocol):
     """AES facade: exposes 9router host-native daemon actions via IDaemonProtocol.
 
@@ -57,7 +57,7 @@ class NinerouterDaemonManager(IDaemonProtocol):
     def __init__(self, root=None, daemons: object | None = None, import_omni=None) -> None:
         self._import_omni = import_omni
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def install_unit(self, unit: DaemonUnit) -> ExitCode:
         """Enable and start the 9router.service systemd user unit."""
         del unit  # 9router owns a single unit; the caller passes it for routing
@@ -123,7 +123,7 @@ class NinerouterDaemonManager(IDaemonProtocol):
         return "NinerouterDaemonManager()"
 
 
-# ─── Block 3: Constructors, Std Traits, Helpers ───────────
+# ─── Block 3: Module Helpers ───────────
 def _run(cmd, **kw):
     return run_cmd(cmd, **kw)
 

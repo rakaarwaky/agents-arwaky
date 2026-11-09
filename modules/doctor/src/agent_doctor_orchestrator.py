@@ -15,7 +15,7 @@ from modules.shared.src.doctor.contract_doctor_aggregate import IDoctorAggregate
 from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class DoctorOrchestrator(IDoctorAggregate):
     """Coordinate the two diagnostic runners (zero I/O; surface renders)."""
 
@@ -24,7 +24,7 @@ class DoctorOrchestrator(IDoctorAggregate):
         self._env = env_runner
         self._tools = tools_runner
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: DoctorRequest) -> DoctorResponse:
         """Route *request* to the matching protocol method; return the response."""
         op = DoctorOp(str(request.op))
@@ -41,7 +41,7 @@ class DoctorOrchestrator(IDoctorAggregate):
             raise ValueError(f"Unknown doctor op: {op}")
         return DoctorResponse(success=int(code) == 0, exit_code=code, report=request.report)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     def __repr__(self) -> str:
         return "DoctorOrchestrator()"
 

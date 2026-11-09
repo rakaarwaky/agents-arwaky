@@ -29,7 +29,7 @@ from modules.shared.src.common.taxonomy_common_vo import (
 from modules.shared.src.tools.contract_tools_protocol import IToolsUpdaterProtocol
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class UpdaterCapability(IToolsUpdaterProtocol):
     """Business action update(spec, dry_run): bump + record transition."""
 
@@ -39,7 +39,7 @@ class UpdaterCapability(IToolsUpdaterProtocol):
         # P1-7: action calls route through the injected registry directly.
         self._registry = dict(registry) if registry is not None else {}
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def update(self, spec: ToolSpec, adapter: object | None = None, dry_run: bool = False) -> UpdateResult:
         """Bump the tool to its manifest pin and record the transition."""
         registry = self._registry
@@ -52,7 +52,7 @@ class UpdaterCapability(IToolsUpdaterProtocol):
         result = self._record(spec, result)
         return result
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "UpdaterCapability()"
 

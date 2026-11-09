@@ -53,7 +53,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ToolsOrchestrator(IToolsAggregate):
     """Zero-I/O aggregate over all tool-lifecycle capabilities.
 
@@ -88,7 +88,7 @@ class ToolsOrchestrator(IToolsAggregate):
         self._uninstaller = uninstaller
         self._runner = runner
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: ToolRequest) -> ToolResponse:
         """Route *request* to the capability that owns the op; return the response."""
         op = ToolsOp(str(request.op))
@@ -113,7 +113,7 @@ class ToolsOrchestrator(IToolsAggregate):
             return ToolResponse(executable=ToolExecutable(found) if found is not None else None)
         raise ValueError(f"Unknown tools op: {op}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     # Action-typed error — each verb raises its own domain error.
     _ACTION_ERRORS: ClassVar[dict[str, type[Exception]]] = {
         "install": ToolInstallError,

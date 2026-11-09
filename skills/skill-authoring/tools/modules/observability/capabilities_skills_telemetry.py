@@ -30,11 +30,11 @@ from shared.src.maintenance.utility_lifecycle_support import (
 __all__ = ["SkillsTelemetry"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsTelemetry(ISkillsTelemetryProtocol):
     """Telemetry capability: sidecar reads, bumps, and the curated report."""
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def seed_record_if_missing(self, skill: str, root: SkillsRoot) -> None:
         skills_root = Path(root)
         skill_dir = find_skill_dir(skill, skills_root)
@@ -91,7 +91,7 @@ class SkillsTelemetry(ISkillsTelemetryProtocol):
     def view(self, skill: str, root: SkillsRoot) -> None:
         self._bump(skill, root, "views")
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────
     def _bump(
         self,
         skill: str,

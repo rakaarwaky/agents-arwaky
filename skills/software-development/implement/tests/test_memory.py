@@ -37,9 +37,7 @@ memory = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(memory)
 
 
-# ---------------------------------------------------------------------------
 # Shared helpers
-# ---------------------------------------------------------------------------
 
 
 def _run_helper(repo_dir: Path, *args: str, stdin: str = "", env: dict | None = None):
@@ -80,9 +78,7 @@ def _git_init(repo_dir: Path, remote: str | None = None) -> None:
         )
 
 
-# ---------------------------------------------------------------------------
 # Pure-function tests (no subprocess; in-process module)
-# ---------------------------------------------------------------------------
 
 
 class TestCanonicalizeRemote(unittest.TestCase):
@@ -531,9 +527,7 @@ class TestSnapshotPayload(unittest.TestCase):
         self.assertEqual(payload["recent_runs"][0]["date"], "2026-04-23")
 
 
-# ---------------------------------------------------------------------------
 # Subprocess / CLI tests (run helper as a child process with isolated $HOME)
-# ---------------------------------------------------------------------------
 
 
 class CLIBase(unittest.TestCase):
@@ -786,9 +780,7 @@ class TestCLI(CLIBase):
         self.assertNotIn("Traceback", err)
 
 
-# ---------------------------------------------------------------------------
 # Concurrency smoke test
-# ---------------------------------------------------------------------------
 
 
 def _concurrent_worker(args):
@@ -831,9 +823,7 @@ class TestConcurrency(CLIBase):
             self.assertEqual(e["count"], 1)
 
 
-# ---------------------------------------------------------------------------
 # Documentation drift checks
-# ---------------------------------------------------------------------------
 
 
 class TestDocsConsistency(unittest.TestCase):

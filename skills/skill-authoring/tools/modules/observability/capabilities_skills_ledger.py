@@ -40,11 +40,11 @@ logger = logging.getLogger(__name__)
 __all__ = ["SkillsLedger"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsLedger(ISkillsLedgerProtocol):
     """Ledger capability: append / read / compact / rollback."""
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def ledger_append(self, root: SkillsRoot | Path, entry: dict) -> dict:
         stored = dict(entry)
         stored.setdefault("id", str(uuid.uuid4()))
@@ -252,7 +252,7 @@ class SkillsLedger(ISkillsLedgerProtocol):
         }
 
     @staticmethod
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────
     def _digest_matches(src: Path, digest: str) -> bool:
         from hashlib import sha256 as _sha256
 

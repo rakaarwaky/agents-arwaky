@@ -40,7 +40,7 @@ from modules.shared.src.tools.taxonomy_tools_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class FetchToolsAdapter(IToolsAdapterProtocol):
     """fetch actions behind the tools adapter protocol (AES403 implementor)."""
 
@@ -50,7 +50,7 @@ class FetchToolsAdapter(IToolsAdapterProtocol):
         """Default to this adapter's own unit registry when *units* is omitted."""
         self._units = dict(ADAPTER_UNITS) if units is None else units
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def satisfied(self, spec: ToolSpec, root: Path | None = None) -> bool:
         """True when the installed binary satisfies the manifest."""
         return satisfied_unit(self._units, spec, self._display, root)
@@ -74,11 +74,9 @@ class FetchToolsAdapter(IToolsAdapterProtocol):
 
 
 
-# ---------------------------------------------------------------------------
 # Recipe (node lifecycle + dual-dist launcher writer)
-# ---------------------------------------------------------------------------
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ──────────
+# ─── Block 3: Module Helpers ──────────
 
 def _fetch_write_launchers(app_dir: Path, is_update: bool) -> list[Path]:
     """Write python launchers routing argv between dist/index.js and dist/cli.js."""

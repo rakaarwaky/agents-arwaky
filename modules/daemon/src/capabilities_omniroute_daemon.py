@@ -57,7 +57,7 @@ from modules.shared.src.tools.taxonomy_tools_constant import OMNIROUTE_ENV_FILEN
 #: decrypts an existing database.
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class OmnirouteDaemonManager(IDaemonProtocol):
     """AES facade: exposes OmniRoute host-native daemon actions via IDaemonProtocol.
 
@@ -67,7 +67,7 @@ class OmnirouteDaemonManager(IDaemonProtocol):
     def __init__(self, root=None, daemons: object | None = None) -> None:
         pass
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def install_unit(self, unit: DaemonUnit) -> ExitCode:
         """Enable and start the omniroute.service systemd user unit."""
         del unit  # OmniRoute owns a single unit; the caller passes it for routing
@@ -83,7 +83,7 @@ class OmnirouteDaemonManager(IDaemonProtocol):
         del unit  # OmniRoute owns a single unit; the caller passes it for routing
         return ExitCode(cmd_service_status())
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def start(self) -> ExitCode:
         """Bring the gateway up via systemd or a detached host process."""
         return ExitCode(cmd_start())

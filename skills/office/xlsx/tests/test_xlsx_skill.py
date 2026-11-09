@@ -253,9 +253,7 @@ def test_help_and_errors():
     assert json.loads(bad.stderr)["ok"] is False
 
 
-# ---------------------------------------------------------------------------
 # Reference-aware restructuring (xlsx_restructure.py)
-# ---------------------------------------------------------------------------
 
 RESTRUCTURE_SPEC = {
     "defined_names": {"SalesRange": "'Data'!$B$2:$B$4"},
@@ -392,9 +390,7 @@ def test_restructure_insert_cols(restructure_book):
     assert "A7:C7" in merged                    # merge expanded across col B
 
 
-# ---------------------------------------------------------------------------
 # Tables, defined names, hyperlinks, notes, protection (edit + read paths)
-# ---------------------------------------------------------------------------
 
 def test_tables_create_append_list(tmp_path):
     spec = {"sheets": [{"name": "T",
@@ -505,9 +501,7 @@ def test_sheet_protection(tmp_path):
     assert ws.protection.sheet is True and ws["B1"].protection.locked is False
 
 
-# ---------------------------------------------------------------------------
 # Headless recalculation (xlsx_recalc.py) — branches on soffice presence
-# ---------------------------------------------------------------------------
 
 def test_recalc_reports_json_both_ways(tmp_path):
     spec = {"sheets": [{"name": "R", "rows": [[2], [3]],

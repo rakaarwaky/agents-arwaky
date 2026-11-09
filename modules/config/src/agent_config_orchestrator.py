@@ -20,7 +20,7 @@ from modules.shared.src.config.contract_config_protocol import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ConfigOrchestrator(IConfigAggregate):
     """Config agent: single-execute aggregate over reader + modifier seams."""
 
@@ -32,7 +32,7 @@ class ConfigOrchestrator(IConfigAggregate):
         self._writer = writer
         self._modifier = modifier
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: ConfigRequest) -> ConfigResult:
         """Route *request* to the owning capability; return the response."""
         try:
@@ -66,7 +66,7 @@ class ConfigOrchestrator(IConfigAggregate):
             return ConfigResult(False, None, str(exc))
         return ConfigResult(False, None, f"Unknown config op: {op}")
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     def __repr__(self) -> str:
         return "ConfigOrchestrator()"
 

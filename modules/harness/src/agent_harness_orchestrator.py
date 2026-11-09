@@ -26,7 +26,7 @@ from modules.shared.src.harness.taxonomy_harness_vo import (
 )
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class HarnessOrchestrator(IHarnessAggregate):
     """Resolve raw CLI tokens and route each request to its capability."""
 
@@ -41,7 +41,7 @@ class HarnessOrchestrator(IHarnessAggregate):
         self._disconnector = disconnector
         self._skills = skills
 
-    # ─── Block 2: Aggregate Method Implementation ──────────
+    # ─── Block 2: Module Contract ──────────
     def execute(self, request: HarnessRequest) -> HarnessResponse:
         """Resolve the request's targets and route its op to its capability."""
         flags = request.flags or {}
@@ -91,7 +91,7 @@ class HarnessOrchestrator(IHarnessAggregate):
         """Every supported harness id (canonical)."""
         return tuple(ALL_HARNESS_IDS)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────
+    # ─── Block 3: Module Helpers ─────
     def __repr__(self) -> str:
         return "HarnessOrchestrator()"
 

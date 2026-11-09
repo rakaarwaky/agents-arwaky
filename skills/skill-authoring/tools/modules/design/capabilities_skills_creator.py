@@ -41,11 +41,11 @@ from shared.src.design.taxonomy_skills_vo import (
 __all__ = ["SkillsCreator"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsCreator(ISkillsCreatorProtocol):
     """Creates skills and categories in the pack (dry-run by default)."""
 
-    # ─── Block 2: Protocol Method Implementation ─────────────
+    # ─── Block 2: Module Contract ─────────────
     def create_skill(
         self,
         skill: SkillName,
@@ -145,6 +145,6 @@ class SkillsCreator(ISkillsCreatorProtocol):
             root=plan.root,
         )
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "SkillsCreator()"

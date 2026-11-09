@@ -36,11 +36,11 @@ logger = logging.getLogger(__name__)
 __all__ = ["SkillsBackup"]
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class SkillsBackup(ISkillsBackupProtocol):
     """Backup capability: snapshot create / prune."""
 
-# ─── Block 2: Protocol Method Implementation ─────────────
+# ─── Block 2: Module Contract ─────────────
     def create_snapshot(self, root: Path, *, _prune: bool = True) -> Path:
         skills_root = self._require_root(root)
         backup_root = self._backup_root(skills_root)
@@ -114,7 +114,7 @@ class SkillsBackup(ISkillsBackupProtocol):
         d.mkdir(parents=True, exist_ok=True)
         return d
 
-# ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+# ─── Block 3: Module Helpers ─────────
     def _keep_count(self, skills_root: Path) -> int:
         config = load_lifecycle_config(skills_root)
         val = getattr(config, "backup_keep", DEFAULT_KEEP)

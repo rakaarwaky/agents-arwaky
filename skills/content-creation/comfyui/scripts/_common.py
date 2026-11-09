@@ -63,9 +63,7 @@ SLOW_OUTPUT_NODES = {
     "CogVideoSampler", "LTXVideoSampler",
 }
 
-# ---------------------------------------------------------------------------
 # Output node catalog (extensible — community packs add their own)
-# ---------------------------------------------------------------------------
 OUTPUT_NODES: set[str] = {
     # Built-in
     "SaveImage", "PreviewImage",
@@ -84,9 +82,7 @@ OUTPUT_NODES: set[str] = {
     "Save3D",
 }
 
-# ---------------------------------------------------------------------------
 # Folder aliases — handle ComfyUI's gradual folder renames
-# ---------------------------------------------------------------------------
 # When `check_deps.py` queries `/models/<folder>` and gets 404 / empty,
 # it tries each alias in turn. Critical for Comfy Cloud which has fully
 # migrated to the new naming (unet → diffusion_models, clip → text_encoders).
@@ -104,9 +100,7 @@ def folder_aliases_for(folder: str) -> list[str]:
     return FOLDER_ALIASES.get(folder, [folder])
 
 
-# ---------------------------------------------------------------------------
 # Model-loader catalog: class_type -> (input field, model folder)
-# ---------------------------------------------------------------------------
 # A loader can have multiple fields (e.g., DualCLIPLoader has clip_name1 and
 # clip_name2). We list them with explicit entries. The folder name is the
 # *canonical* one; FOLDER_ALIASES is consulted when querying.
@@ -158,10 +152,8 @@ MODEL_LOADERS: dict[str, list[tuple[str, str]]] = {
     "ModelSamplingFlux":        [],  # parametric only
 }
 
-# ---------------------------------------------------------------------------
 # Param patterns: (class_type, field_name) -> friendly_name
 # Order matters — first match wins for naming. Use _meta.title for disambiguation.
-# ---------------------------------------------------------------------------
 PARAM_PATTERNS: list[tuple[str, str, str]] = [
     # ---- Prompts ----
     ("CLIPTextEncode", "text", "prompt"),

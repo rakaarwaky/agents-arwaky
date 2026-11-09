@@ -26,7 +26,7 @@ from modules.shared.src.common.utility_tool_resolve import (
 from modules.shared.src.doctor.contract_doctor_protocol import IDoctorProtocol
 
 
-# ─── Block 1: Class Definition & Constructor ──────────────
+# ─── Block 1: Module Declaration ──────────────
 class ToolsDiagnosticRunner(IDoctorProtocol):
     """Submodule-missing check + binary readiness table."""
 
@@ -34,7 +34,7 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
         """Prepare the XDG bin home required for binary lookups."""
         ensure_path()
 
-    # ─── Block 2: Protocol Method Implementation ──────────────
+    # ─── Block 2: Module Contract ──────────────
     def run(self, flags: Mapping[str, bool | str] | None = None) -> ExitCode:
         """Print a tool readiness table or JSON summary and return exit code 0."""
         json_mode = bool((flags or {}).get("json"))
@@ -82,6 +82,6 @@ class ToolsDiagnosticRunner(IDoctorProtocol):
         print(sep)
         return ExitCode(0)
 
-    # ─── Block 3: Dunder Methods, Factories & Helpers ─────────
+    # ─── Block 3: Module Helpers ─────────
     def __repr__(self) -> str:
         return "ToolsDiagnosticRunner()"
