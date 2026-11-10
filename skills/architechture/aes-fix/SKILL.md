@@ -13,7 +13,7 @@ argument-hint: '<target-path> [rule-code]'
 - **Cite the checker name**, not just the rule code, when pointing at implementation (e.g. `NamingConventionChecker` for AES101).
 - **Every reference ends with a Verify step** naming the exact command.
 - **Turn progress gates.** Run `lint-arwaky-cli report` once at the start of the turn (baseline) and once at the end (delta). A positive delta means the run added problems; the turn is not done.
-- **Orchestration and ship** are part of `step-0-setup.md`: group violations by owning member, spawn one subagent per member with its own violations and rule reference links, verify the delta, then open a PR and merge to main.
+- **Orchestration and ship** are part of `step-0-setup.md`: collect all violations, spawn one subagent in a single worktree with the rule reference links, verify the delta, then open a PR and merge to main.
 - **Completion.** The end-of-turn report shows zero or negative delta for every touched rule and the PR is merged to main.
 
 ## Routing
