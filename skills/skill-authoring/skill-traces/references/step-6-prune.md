@@ -6,9 +6,9 @@ After a run completes, clean up the raw session store so it doesn't grow unbound
 
 ```bash
 # Keep only the 100 most recent session dirs (default)
-stc traces prune
+sac traces prune
 ```
 
-Sessions are ordered by directory mtime, newest first. The oldest directories are deleted; the newest N are kept intact so the next `stc traces collect` can still scan recent history. If the store already has N or fewer session dirs, nothing is removed.
+Sessions are ordered by directory mtime, newest first. The oldest directories are deleted; the newest N are kept intact so the next `sac traces collect` can still scan recent history. If the store already has N or fewer session dirs, nothing is removed.
 
-Run `stc traces prune` after every completed `--learn` or `--evolve` pass, or schedule it on a timer for unattended use.
+Run `sac traces prune` after every completed `--learn` or `--evolve` pass, or schedule it on a timer for unattended use.

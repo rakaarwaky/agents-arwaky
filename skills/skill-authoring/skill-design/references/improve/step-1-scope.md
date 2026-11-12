@@ -15,13 +15,13 @@ Some skill trees are embedded into a compiled artifact (for example a Rust `incl
 
 ## Commands
 
-- `sdc read <name>` — read the target `SKILL.md` before editing so the edit preserves its intent.
-- `sdc lint --category <name>` — preview the target's lint issues scoped to its category before the edit; the lint gate runs again after.
-- **Absolute path as argument**: when the user passes a full filesystem path (e.g. `/repo/skills/web-design`), resolve its last segment as the category name and scope `sdc lint --category <name>` accordingly. The `sdc` CLI does not accept a bare path — only the category name. Verify the path is a directory containing `SKILL.md` files (a category directory) before proceeding; a path pointing at a single skill's directory scopes the run to that one skill.
+- `sac read <name>` — read the target `SKILL.md` before editing so the edit preserves its intent.
+- `sac lint --category <name>` — preview the target's lint issues scoped to its category before the edit; the lint gate runs again after.
+- **Absolute path as argument**: when the user passes a full filesystem path (e.g. `/repo/skills/web-design`), resolve its last segment as the category name and scope `sac lint --category <name>` accordingly. The `sac` CLI does not accept a bare path — only the category name. Verify the path is a directory containing `SKILL.md` files (a category directory) before proceeding; a path pointing at a single skill's directory scopes the run to that one skill.
 
 ## Dry-run before `--apply` on mutation verbs
 
-`sdc move`, `sdc archive`, and `sdc create` are dry-run by default and write only with `--apply`. Before running one against the live repo skills tree:
+`sac move`, `sac archive`, and `sac create` are dry-run by default and write only with `--apply`. Before running one against the live repo skills tree:
 
 1. Run the verb without `--apply` and read the `[DRY-RUN]` plan to confirm the source exists and the destination is where it should be.
 2. `--apply` against the live tree moves real files under `skills/` and rebuilds `catalog.json`. After any exploratory or wrong `--apply` on the live tree, restore: `git restore -- skills/<moved-path>`, `rm -rf skills/<destination-dir>`, then `git restore skills/catalog.json`.

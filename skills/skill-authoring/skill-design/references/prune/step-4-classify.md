@@ -14,7 +14,7 @@ Each cluster is one of:
 - **shared tooling / bounded purpose** — two skills that wrap the same underlying tooling or share a narrow, overlapping purpose consolidate into one folder in Phase 2; the surviving folder keeps the more complete body and absorbs the other's scenario-specific rules into `references/`.
 - **same domain ≠ same job** — two skills that share domain keywords or tooling names (e.g., GitHub issues) are not duplicates; keep them separate when they own different completion criteria or opposite direction of flow (one initiates/create, the other consumes/works existing). Compare the job each skill performs and its output artifact before labeling a cluster.
 
-Detect duplicates and obsolete skills with `sdc lint`; obsolete skills are archived into `_archive/` (never permanently deleted unless `--hard-delete` is explicitly passed).
+Detect duplicates and obsolete skills with `sac lint`; obsolete skills are archived into `_archive/` (never permanently deleted unless `--hard-delete` is explicitly passed).
 
 Phase 1 removes true duplicates; Phase 2 consolidates variants and shared tooling — never skip Phase 1 (`step-0-overview.md` classification rules).
 
@@ -22,7 +22,7 @@ Phase 1 removes true duplicates; Phase 2 consolidates variants and shared toolin
 
 Descriptions that rhyme are not proof of duplication — before archiving a candidate, prove the two skills own the same job with the same content:
 
-- `sdc discover <domain>` to list the candidates, then diff the scenario content, not the frontmatter. The decisive check is the procedure body (the step files under each skill's `references/`):
+- `sac discover <domain>` to list the candidates, then diff the scenario content, not the frontmatter. The decisive check is the procedure body (the step files under each skill's `references/`):
 
 ```bash
 diff <(sed -n '<proc range> p' skills/<cat>/<a>/references/<scenario>.md) \
@@ -32,10 +32,10 @@ diff <(sed -n '<proc range> p' skills/<cat>/<a>/references/<scenario>.md) \
 - **Byte-equivalent or near-equivalent bodies** (differences are only wording like "connector skill" vs "connector") = true duplicate → archive the less complete one in Phase 1; the more complete body (usually the umbrella's) already owns the scenario, so the dropped folder is dropped, not merged.
 - **Different bodies or genuinely distinct completion criteria** = separate jobs or a variant → keep separate or consolidate in Phase 2, do not archive.
 
-Do not rely on `sdc lint` for this — it flags structural issues (name mismatch, unlinked references), not semantic overlap. `sdc discover` + the content diff is the duplicate test.
+Do not rely on `sac lint` for this — it flags structural issues (name mismatch, unlinked references), not semantic overlap. `sac discover` + the content diff is the duplicate test.
 
 ## Completion
 
 - Every cluster has exactly one class label.
-- `sdc lint` ran and flagged duplicates and obsolete skills.
+- `sac lint` ran and flagged duplicates and obsolete skills.
 - Phase order is respected: Phase 1 is planned before Phase 2.

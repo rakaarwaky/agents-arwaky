@@ -6,9 +6,9 @@ Read every skill in the audit root so Step 3 can cluster on full knowledge.
 
 ## Commands
 
-- `sdc list` — enumerate every skill in the pack; one row per skill (name + description).
-- `sdc read <name>` — read a skill's full `SKILL.md` when the list row is not enough to judge scope or overlap.
-- `sdc discover <query>` — find skills that share the same tooling or purpose before classifying a cluster (Step 4).
+- `sac list` — enumerate every skill in the pack; one row per skill (name + description).
+- `sac read <name>` — read a skill's full `SKILL.md` when the list row is not enough to judge scope or overlap.
+- `sac discover <query>` — find skills that share the same tooling or purpose before classifying a cluster (Step 4).
 
 ## Completion
 

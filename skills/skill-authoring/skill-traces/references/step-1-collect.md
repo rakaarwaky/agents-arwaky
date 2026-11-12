@@ -1,8 +1,8 @@
 # Step 1: Collect
 
-The collector scans the session store under `$GROK_HOME` (default `~/.grok`). If `stc traces collect` reports `kept: 0` / `seen: 0` despite recent activity, re-run with `--grok-home <path>` pointing at the populated session store — a scan root with no sessions yields a run the workflow cannot launch (`count` 0 pauses the run).
+The collector scans the session store under `$GROK_HOME` (default `~/.grok`). If `sac traces collect` reports `kept: 0` / `seen: 0` despite recent activity, re-run with `--grok-home <path>` pointing at the populated session store — a scan root with no sessions yields a run the workflow cannot launch (`count` 0 pauses the run).
 
-Run `stc traces collect` into a run dir. The collector writes `manifest.json` (sessions seen / kept / dropped by reason, window and filters used) and `sessions/NNNN-<id>.json` (kept session records).
+Run `sac traces collect` into a run dir. The collector writes `manifest.json` (sessions seen / kept / dropped by reason, window and filters used) and `sessions/NNNN-<id>.json` (kept session records).
 
 `scan_sessions` drops records for: no_summary, summary_unreadable, subagent, headless, excluded_cwd, older_than_window, no_human_turns, repeated_single_turn, smoke_test, beyond_limit. The `--min-turns` flag (default `3`, constant `TRACE_COLLECT_MIN_TURNS`) is applied per session: sessions with fewer human turns than the threshold are dropped before record writing.
 
@@ -11,12 +11,12 @@ A narrow window does not affect creation — a phrase repeated in 3 sessions is 
 Read the last run's usage report:
 
 ```bash
-stc traces usage --run-dir <RUN>
+sac traces usage --run-dir <RUN>
 ```
 
 Then materialize the deterministic files the workflow reads:
 
-    stc traces materialize --run-dir <RUN>
+    sac traces materialize --run-dir <RUN>
 
 This writes `usage.json` (per-skill `count`, `sessions`, `in_slash_mru`, `unused_loaded`) and `phrases.json` (`exact_prompts`, `prompt_stems_12_words`, `repeated_instruction_lines`) into the run dir. Section 3 of the report is derived from `usage.json`; the phrase sections are derived from `phrases.json` — never recounted by an agent.
 
@@ -25,7 +25,7 @@ This writes `usage.json` (per-skill `count`, `sessions`, `in_slash_mru`, `unused
 Skills-only: no plugins, MCP servers, workflows, or hooks. Per-skill use counts and
 the `unused_loaded` verdict come from `usage.json` in the run dir; repeated-phrase
 material (exact prompts, 12-word stems, repeated instruction lines) comes from
-`phrases.json`. Both are written by `stc traces materialize` into the run dir
+`phrases.json`. Both are written by `sac traces materialize` into the run dir
 before the workflow launches, so mappers and reducers read them off disk instead of
 recounting the `sessions/*.json` records by hand. Coverage counts and window params
 come from `manifest.json`.
@@ -49,7 +49,7 @@ The repeated-phrase candidates are confirmed against `phrases.json` (`exact_prom
 recount them by hand. Mine them with:
 
 ```bash
-stc traces phrases --run-dir <RUN>
+sac traces phrases --run-dir <RUN>
 ```
 
 ## 2. Friction (the harness failed the user)
@@ -77,7 +77,7 @@ exceed ~5 in one run, stop and ask Raka first.
 
 Never counted by an agent. Per-skill `count`, `sessions`, `last_used`, `in_slash_mru`,
 and the `unused_loaded` list are read from `usage.json` in the run dir — the
-deterministic material `stc traces materialize` writes before launch. A skill in
+deterministic material `sac traces materialize` writes before launch. A skill in
 `unused_loaded` (count 0 across the window, absent from slash MRU) is a retirement
 candidate. Cross-check against `.grok/USER.md` keep list before emitting a delete.
 The safety argument is what still does the job: another loaded copy or a
