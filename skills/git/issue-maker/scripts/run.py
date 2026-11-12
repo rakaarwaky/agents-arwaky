@@ -377,7 +377,7 @@ def run(repo_root: str,
     try:
         result = _run_validate(str(repo), ledger_path, report_path)
     except GhAuthError:
-        log("GH_AUTH_REQUIRED: resolve auth with the github-auth skill, or pass --dry-run")
+        log("GH_AUTH_REQUIRED: resolve auth with the github-workflow skill, or pass --dry-run")
         return 1
 
     violations = result.get("violations", [])

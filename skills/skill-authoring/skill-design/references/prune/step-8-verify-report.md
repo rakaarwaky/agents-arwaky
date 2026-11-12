@@ -34,13 +34,13 @@ ROLLBACK TARGET:
 - <snapshot commit SHA or stash ref>
 
 VERIFY:
-- `sdc list` — confirm the expected skill count (N remain, dropped folders absent)
-- `sdc lint` — 0 shared names, all frontmatter parses, no empty categories
-- `sdc catalog` — rebuilt; all surviving skills and references resolve
+- `sac list` — confirm the expected skill count (N remain, dropped folders absent)
+- `sac lint` — 0 shared names, all frontmatter parses, no empty categories
+- `sac catalog` — rebuilt; all surviving skills and references resolve
 ```
 
 ## Completion
 
-- All three VERIFY commands pass: `sdc list` count, `sdc lint` clean, `sdc catalog` rebuilt.
+- All three VERIFY commands pass: `sac list` count, `sac lint` clean, `sac catalog` rebuilt.
 - The report carries the MERGED, KEPT SEPARATE, DELETED, and ROLLBACK TARGET sections.
 - On any hard failure the snapshot is restored and the offending merge re-ran.

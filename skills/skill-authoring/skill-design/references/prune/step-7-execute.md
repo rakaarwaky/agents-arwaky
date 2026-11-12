@@ -40,14 +40,14 @@ referenced in the surviving body are deleted.
 
 ## Archive dropped duplicates
 
-Dropped duplicates are archived into `_archive/` via `sdc archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. The archive rewrites the moved files as `_archive/<category>/<skill>/...archived` and leaves the source directory deleted. Rebuild the catalog after archiving with `sdc catalog --build` (read the current state with `sdc catalog --read`) — not the bare `sdc catalog` verb; the builder must run so `CATALOG.md` and `catalog.json` both drop the archived skill and stay in sync.
+Dropped duplicates are archived into `_archive/` via `sac archive CATEGORY/SKILL --apply`, never permanently deleted unless `--hard-delete` is explicitly passed. The archive rewrites the moved files as `_archive/<category>/<skill>/...archived` and leaves the source directory deleted. Rebuild the catalog after archiving with `sac catalog --build` (read the current state with `sac catalog --read`) — not the bare `sac catalog` verb; the builder must run so `CATALOG.md` and `catalog.json` both drop the archived skill and stay in sync.
 
 ## Manual merge notes
 
 When performing a merge by hand instead of through `skill-design --prune`:
 
-- **Sync both trees.** The live skill tree (`~/.hermes/skills/<category>/<skill>/`) and any linked worktree copy must both receive the merge. `skill_manage(action='delete', absorbed_into=<survivor>)` removes the dropped skill from the live tree; the worktree deletion is a separate `git rm`/`git commit` step. A merge applied to only one tree leaves dangling references that fail `sdc lint`.
-- **skill_manage delete.** `skill_manage(action='delete', absorbed_into=<survivor>)` is the Hermes-native way to remove a dropped skill from the live tree; `sdc archive CATEGORY/SKILL --apply` is the CLI equivalent. Either works, but do not run both for the same skill.
+- **Sync both trees.** The live skill tree (`~/.hermes/skills/<category>/<skill>/`) and any linked worktree copy must both receive the merge. `skill_manage(action='delete', absorbed_into=<survivor>)` removes the dropped skill from the live tree; the worktree deletion is a separate `git rm`/`git commit` step. A merge applied to only one tree leaves dangling references that fail `sac lint`.
+- **skill_manage delete.** `skill_manage(action='delete', absorbed_into=<survivor>)` is the Hermes-native way to remove a dropped skill from the live tree; `sac archive CATEGORY/SKILL --apply` is the CLI equivalent. Either works, but do not run both for the same skill.
 - **Staging discipline for merges.** The index is shared with parallel agents. After `git add <path>`, verify `git diff --cached --name-only` lists only your task files; unstage anything else with `git reset HEAD -- <path>`. Never `git add -A` or `git commit -a`. If a commit sweeps in unrelated pre-staged files, `git reset HEAD~1 -- <unrelated paths>` then `git commit --amend --no-edit` scopes it back to your task files only; verify with `git show --stat <sha>`.
 
 ## Empty Category Cleanup

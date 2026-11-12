@@ -128,9 +128,9 @@ If git credentials are already configured (via credential.helper store), the tok
 # (the pack is symlinked at ~/.hermes/skills, ~/.qwen/skills and ~/.config/opencode/skills,
 # so resolve the root rather than hardcoding one).
 for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
-  [ -f "$R/github/github-auth/scripts/git-credential-token.py" ] && break
+  [ -f "$R/github/github-workflow/scripts/git-credential-token.py" ] && break
 done
-uv run python "$R/github/github-auth/scripts/git-credential-token.py"
+uv run python "$R/github/github-workflow/scripts/git-credential-token.py"
 
 ```text
 
@@ -143,7 +143,7 @@ re-implementing the chain:
 
 ```bash
 for R in "${HERMES_HOME:-$HOME/.hermes}/skills" "$HOME/.qwen/skills" "$HOME/.config/opencode/skills" "$HOME/agents-arwaky/skills"; do
-  [ -f "$R/github/github-auth/scripts/gh-env.sh" ] && source "$R/github/github-auth/scripts/gh-env.sh" && break
+  [ -f "$R/github/github-workflow/scripts/gh-env.sh" ] && source "$R/github/github-workflow/scripts/gh-env.sh" && break
 done
 echo "AUTH_METHOD=$GH_AUTH_METHOD"
 echo "OWNER=$GH_OWNER REPO=$GH_REPO"

@@ -41,7 +41,7 @@ that share a disposition (for example "9 zero-use user skills -> ask"). `items`
 carries `{name, path, protected, referenced_by, count, last_used}` per member. One
 question with three options: **apply to all** (run the group's `action` on every
 item), **pick items** (expand into `multi_select` questions of at most eight items
-each), or **skip all** (defer). Record one `stc traces state decide` line per
+each), or **skip all** (defer). Record one `sac traces state decide` line per
 item either way, with the group id in `--path` so a later run can tell the batch
 apart.
 
@@ -49,16 +49,16 @@ apart.
 
 - Undo for `create` is deleting `<user skills dir>/<name>/`; for `edit` and
   `delete` it is the trash copy. Pass the trash path as `--undo` to
-  `stc traces state decide`.
+  `sac traces state decide`.
 - Never print secrets; created and edited skill files must not carry tokens, keys,
   or credentials quoted from the traces.
 
 ## Lifecycle status
 
-The status machine over `GROK_HOME/learn/state.json` is driven by `stc traces state set`:
+The status machine over `GROK_HOME/learn/state.json` is driven by `sac traces state set`:
 
 ```
-stc traces state set --run-dir <RUN> --status running
+sac traces state set --run-dir <RUN> --status running
 ```
 
 Set `running` when the apply phase begins. The `done` status is written by `clear` (step 0) when a run completes or is abandoned.
@@ -71,7 +71,7 @@ the same trash dir (for example a workflow `.rhai` file or a `hooks/*` file the
 action touched), use:
 
 ```
-stc traces state trash --run-name <run name> <path> [<path> ...]
+sac traces state trash --run-name <run name> <path> [<path> ...]
 ```
 
 Only `skills/<name>` directories, `workflows/*.rhai` files, and `hooks/*` files
@@ -82,11 +82,11 @@ After applying changes, restrict the modified skill files to owner-only so no
 secret leaked into a trace record can be read by other users:
 
 ```
-stc traces state restrict <path> [<path> ...]
+sac traces state restrict <path> [<path> ...]
 ```
 
 This chmods each path to `0600` where the OS supports it.
 
-Then record every decision with `stc traces state decide --run-dir <RUN>
+Then record every decision with `sac traces state decide --run-dir <RUN>
 --id <id> --kind skill --action create|edit|delete|propose|ask|group --target
 <name> --path <path> --decision applied|rejected|deferred [--undo <trash path>]`.

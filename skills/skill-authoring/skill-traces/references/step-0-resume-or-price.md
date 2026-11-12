@@ -1,14 +1,14 @@
 # Step 0: Resume or price
 
-Run `stc traces state get`. Exit code 3 means a run is pending — resume it instead of starting over.
+Run `sac traces state get`. Exit code 3 means a run is pending — resume it instead of starting over.
 
 When the user abandons a pending run and wants to discard it, clear the status:
 
 ```
-stc traces state clear --run-dir <RUN>
+sac traces state clear --run-dir <RUN>
 ```
 
-Then run `stc traces collect` into a run dir. The collector's window filters are real CLI flags with these defaults:
+Then run `sac traces collect` into a run dir. The collector's window filters are real CLI flags with these defaults:
 
 - `--since-last` — sessions since the last completed trace run (on by default via the constant `TRACE_COLLECT_SINCE_LAST`)
 - `--min-turns N` — drop sessions with fewer than N human turns (default `3`, constant `TRACE_COLLECT_MIN_TURNS`)

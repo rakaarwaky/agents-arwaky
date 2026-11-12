@@ -12,7 +12,7 @@ Default to the repo's `skills` root, a specific category, or the user's path. Re
 
 ```bash
 # List the skill tree to confirm the root is a valid directory
-sdc list
+sac list
 ```
 
 ## Completion

@@ -15,8 +15,8 @@ Resolve the real directory for the chosen scope from the harness config or repo 
 
 ## Commands
 
-- `sdc list` — check the existing pack before naming; a new skill must not collide with an existing name or duplicate a description.
-- `sdc discover <query>` — find skills that already cover the requested job; if a close match exists, route to `--improve` instead of `--create`.
+- `sac list` — check the existing pack before naming; a new skill must not collide with an existing name or duplicate a description.
+- `sac discover <query>` — find skills that already cover the requested job; if a close match exists, route to `--improve` instead of `--create`.
 
 ## Completion
 

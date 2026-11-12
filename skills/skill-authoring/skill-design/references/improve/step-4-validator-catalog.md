@@ -1,8 +1,8 @@
 # Improve — Step 4: Validator catalog
 
-**Goal:** you can map every `sdc lint` rule to what it checks and how to satisfy it, and know how to run lint whole-pack or scoped to a category.
+**Goal:** you can map every `sac lint` rule to what it checks and how to satisfy it, and know how to run lint whole-pack or scoped to a category.
 
-Run `sdc lint` (whole pack) or `sdc lint --category <name>` (scoped) to see which of the rules below fire.
+Run `sac lint` (whole pack) or `sac lint --category <name>` (scoped) to see which of the rules below fire.
 
 
 | Rule                                                      | Meaning                                                                                                                                                                                                                                                                                                                        |
@@ -20,12 +20,12 @@ Run `sdc lint` (whole pack) or `sdc lint --category <name>` (scoped) to see whic
 | `missing-category-description`                            | A category folder has no `DESCRIPTION.md`.                                                                                                                                                                                                                                                                                     |
 | `empty-category-description`                              | A category `DESCRIPTION.md` has no description text.                                                                                                                                                                                                                                                                           |
 | `empty-category`                                          | A category folder contains no skills.                                                                                                                                                                                                                                                                                          |
-| `reference-not-linked`                                    | Every file in `references/` must be linked from the `SKILL.md` body or Routing table. Unlinked reference files are dead weight the agent will never find. Mechanically, the checker lists each skill's `references/` tree and requires that file's **basename** to appear somewhere in `SKILL.md` — markdown link, bare path mention, or plain text all count; there is no link-parsing, so a Routing-table row (`[`references/improve/step-12-apply.md`](references/improve/step-12-apply.md)`) and a backticked `references/foo.md` in the body both satisfy it. To fix: for each flagged file, read its first ~25 lines and add one sentence at the top of the matching `##` section (body) or one Routing-table row (pipeline steps) — `[`references/<file>.md`](references/<file>.md)` + one clause of what the reference covers — so the link is discoverable, not just name-dropped. Verify with `sdc lint` (whole pack) or `sdc lint --category <name>` before declaring the fix done. |
+| `reference-not-linked`                                    | Every file in `references/` must be linked from the `SKILL.md` body or Routing table. Unlinked reference files are dead weight the agent will never find. Mechanically, the checker lists each skill's `references/` tree and requires that file's **basename** to appear somewhere in `SKILL.md` — markdown link, bare path mention, or plain text all count; there is no link-parsing, so a Routing-table row (`[`references/improve/step-12-apply.md`](references/improve/step-12-apply.md)`) and a backticked `references/foo.md` in the body both satisfy it. To fix: for each flagged file, read its first ~25 lines and add one sentence at the top of the matching `##` section (body) or one Routing-table row (pipeline steps) — `[`references/<file>.md`](references/<file>.md)` + one clause of what the reference covers — so the link is discoverable, not just name-dropped. Verify with `sac lint` (whole pack) or `sac lint --category <name>` before declaring the fix done. |
 
 
 ## What lint does NOT check
 
-`sdc lint` is a mechanical gate on frontmatter, naming, placement, uniqueness, and reference linking. It does **not** verify:
+`sac lint` is a mechanical gate on frontmatter, naming, placement, uniqueness, and reference linking. It does **not** verify:
 
 - **Dangling cross-skill refs** — `related_skills:` and sibling mentions are existence-checked manually, not by lint. Resolve each named skill against the tree; lint will not flag a ref to a skill that does not exist.
 - **Body shape** — the three-section rule (`# Title` / `## Rules` / `## Routing`) is enforced by convention and the pre-publish checklist, not by any lint rule. A body that drifts into prose sections still passes lint.

@@ -1,7 +1,7 @@
 ---
 name: github-workflow
-description: "GitHub auth, repos, issues, PRs, Mergify, releases."
-when-to-use: "Use for any GitHub task: auth setup (gh CLI or git-only), repo clone/create/fork/configure, issue-to-PR pipeline, PR watch/fix/merge, Mergify stacked PRs and merge queue, release prep and publish, recovery of failed release runs."
+description: "Umbrella for GitHub auth, repo management, issues, PRs, Mergify, and releases. Subsumes github-auth and repo-manager."
+when-to-use: "Use for any GitHub task: auth setup (gh CLI or git-only), repo clone/create/fork/configure, issue-to-PR pipeline, PR watch/fix/merge, Mergify stacked PRs and merge queue, release prep and publish, recovery of failed release runs. This skill now includes the auth helper scripts (gh-env.sh, git-credential-token.py) formerly in github-auth."
 argument-hint: "<auth | repo | issue | pr | mergify | release> <subcommand> [flags]"
 ---
 
@@ -28,6 +28,8 @@ HTTPS tokens, SSH keys, `gh` CLI login (browser and device flow). Run `git --ver
 - **gh not installed:** git-only method (HTTPS PAT or SSH key, no sudo needed).
 - **Token scopes:** `repo`, `workflow`, `read:org` (90-day expiration recommended).
 - **Git identity:** configure `user.name` and `user.email`; required for commits.
+
+Auth helper scripts live in `scripts/`: `gh-env.sh` (auth + repo detection, exports `GH_AUTH_METHOD`, `GITHUB_TOKEN`, `GH_OWNER_REPO`, etc.) and `git-credential-token.py` (extracts a token from the git credential store). Source `gh-env.sh` rather than re-implementing the fallback chain.
 
 ### 2. Repo — clone, create, fork, configure
 Clone/create/fork repos; manage remotes, releases, settings, secrets, Actions CI via `gh`.
