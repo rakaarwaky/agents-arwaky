@@ -4,6 +4,7 @@ description: "Watch a GitHub PR end to end. Two lanes: Hermes orchestrates and s
 when-to-use: "Triggers on \"/pr-babysit\". Phrasing: \"watch PR 123 until green\", \"babysit PR 123 and merge when ready\", \"fix issue #123 and open a PR\", \"keep fixing PR 123 until it can merge\", \"pr-babysit add --ship 123\"."
 argument-hint: "add [--ship] <number> | check <number> | ship on <number> | fix <number>"
 disable-model-invocation: true
+created_by: curator
 ---
 # PR Babysitter
 

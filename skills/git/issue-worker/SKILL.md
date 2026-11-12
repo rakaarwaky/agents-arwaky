@@ -3,6 +3,7 @@ name: issue-worker
 description: "issue worker: analyze open GitHub issues and take each one from backlog to a PR opened to main — Hermes verifies at HEAD and runs the decision quiz, then 1 issue → 1 Orca worktree → Grok Build implements → Hermes verifies → Hermes pushes branch + opens a (draft) PR to main → close/reopen the issue per result. Never merges. Takes EXISTING issues to PRs; does not create issues (that is /issue-maker's domain). CRUD recipes stay as reference only; the spine is verify → decide → isolate → delegate → verify → PR."
 argument-hint: <issue-number> [<issue-number>...]
 disable-model-invocation: true
+created_by: curator
 ---
 
 # Issue Worker — issue → PR

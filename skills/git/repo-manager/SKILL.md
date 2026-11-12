@@ -1,8 +1,9 @@
 ---
 name: repo-manager
 description: Clone/create/fork repos; manage remotes, releases, settings, secrets, and Actions CI via gh.
-when-to-use: Create, clone, fork, configure, and manage GitHub repositories — remotes, settings, secrets, releases, and Actions CI via gh.
-argument-hint: <owner/repo> [--public|--private] [--clone] [--description <text>]
+when-to-use: Clone/create/fork repos; manage remotes, releases, settings, secrets, and Actions CI via gh. Not for GitHub auth (that's github-auth) or issue/PR lifecycle (that's issue-worker/pr-babysit).
+argument-hint: <clone | create | fork | setting | action> [flags]
+created_by: curator
 ---
 
 # GitHub Repository Management

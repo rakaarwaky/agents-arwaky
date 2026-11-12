@@ -3,6 +3,7 @@ name: brave-setup
 description: Install the baa CLI, initialize its XDG workspace, verify prerequisites, and troubleshoot common Brave automation failures on Linux.
 when-to-use: "Use when the user wants to install or repair the baa CLI and its prerequisites, initialize the XDG state/data workspace, resolve XDG path issues, or debug CDP connection failures, Local State locks, and Safe Storage key errors. Not for provisioning profiles (account-manager), importing credentials (password-manager), or Google session scripting."
 argument-hint: "<install | init | doctor> [--dir PATH]"
+created_by: curator
 ---
 
 # Brave Setup (`baa init`)

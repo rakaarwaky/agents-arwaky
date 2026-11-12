@@ -3,6 +3,7 @@ name: password-manager
 description: "Import and export browser credentials as Chromium Password Manager CSVs via the baa CLI: import a CSV into the Login Data DBs, or export saved passwords back to CSV."
 when-to-use: "Use when the user wants to import credentials from a CSV into local Brave/Chromium Login Data databases, or export saved browser passwords back to a CSV file. Not for headless scraping without profiles, non-Chromium browsers, or cloud password managers. Profile provisioning and Google session scripting belong to the sibling account-manager skill; setup and troubleshooting belong to brave-setup."
 argument-hint: "<import | export> <path> [--profile <name>] [--csv FILE]"
+created_by: curator
 ---
 
 # Password Manager (`baa password`)

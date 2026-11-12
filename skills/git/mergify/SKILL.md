@@ -3,6 +3,7 @@ name: mergify
 description: Mergify CLI surface — stacked PRs, merge queue, CI insights, config validation, mergify events.
 when-to-use: Run any Mergify workflow — push or stack commits/PRs, diagnose merge-queue PRs, Depends-On/Merge-After/scheduled freezes, JUnit upload and quarantine, scopes detection, write or validate .mergify.yml, browse Mergify events.
 argument-hint: <stack|queue|freeze|ci|tests|config|events> [--token <token>] [--repository <owner/repo>]
+created_by: curator
 ---
 
 # Mergify

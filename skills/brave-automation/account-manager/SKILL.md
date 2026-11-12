@@ -3,6 +3,7 @@ name: account-manager
 description: "Manage Brave browser profiles and Google sessions via the baa CLI: create, list, verify, and reset isolated accounts, plus scripted Google login, logout, and session checks."
 when-to-use: "Use when the user wants to create or manage local Brave/Chromium accounts, provision or verify isolated browser profiles from profile.csv, script Google login or logout in a named profile, or check a saved Google session. Not for headless scraping without profiles, non-Chromium browsers, or cloud password managers. Setup, credential import/export, and troubleshooting belong to the sibling brave-setup and password-manager skills."
 argument-hint: "<list | create | login | logout> [subcommand] [NAMES] [--profile <name>] [--email <email>] [--password <password>] [--csv FILE]"
+created_by: curator
 ---
 
 # Account Manager (`baa account`)
