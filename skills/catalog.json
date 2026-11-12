@@ -223,9 +223,9 @@
       "category": "figcraft"
     },
     {
-      "name": "github-auth",
-      "description": "GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login (browser and device flow).",
-      "when_to_use": "When gh is not authenticated or git lacks a token — run gh auth login (browser or device flow) or configure a git HTTPS token/SSH key so the agent can push, open PRs, and read issues via gh or git.",
+      "name": "github-workflow",
+      "description": "Umbrella for GitHub auth, repo management, issues, PRs, Mergify, and releases. Subsumes github-auth and repo-manager.",
+      "when_to_use": "Use for any GitHub task: auth setup (gh CLI or git-only), repo clone/create/fork/configure, issue-to-PR pipeline, PR watch/fix/merge, Mergify stacked PRs and merge queue, release prep and publish, recovery of failed release runs.",
       "category": "git"
     },
     {
@@ -256,12 +256,6 @@
       "name": "releasing",
       "description": "Release, cut a release, ship a new version, publish or tag a release for the mergify CLI, recover a failed release run.",
       "when_to_use": "Cut a CalVer release of the mergify CLI autonomously — bump via the bump script, open and merge a release prep PR, build and publish the draft through GitHub workflows, and recover failed release runs. Triggers: \"release\", \"cut a release\", \"ship a new version\", \"publish a release\", \"tag a version\", \"release run recovery\".",
-      "category": "git"
-    },
-    {
-      "name": "repo-manager",
-      "description": "Clone/create/fork repos; manage remotes, releases, settings, secrets, and Actions CI via gh.",
-      "when_to_use": "Create, clone, fork, configure, and manage GitHub repositories — remotes, settings, secrets, releases, and Actions CI via gh.",
       "category": "git"
     },
     {
