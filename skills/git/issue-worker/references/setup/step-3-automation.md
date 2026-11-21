@@ -10,7 +10,19 @@ Do not combine multiple repositories into a single monolithic automation.
 3. **Targeted maintenance**: Issue intake can be paused or disabled (`orca automations disable <id>`) per project during migrations or maintenance without affecting active projects.
 4. **Focused audit**: Run history and error tracking in `orca automations runs --id <id>` are strictly scoped to the repository.
 
-## Step 3.1 — Check whether the repo automation already exists
+## Step 3.1 — Prerequisite: verify GitHub connector
+
+Before creating GitHub event automations, confirm Ina has GitHub connected:
+
+```bash
+orca bot list
+```
+
+Look for `bot:Ina-IssueWorker`.
+- If `Linked: GitHub` appears, proceed to Step 3.2.
+- If `Linked: nothing` appears, run `orca bot connectors --offer github` in Ina's chat or enable GitHub in Ina's bot settings in Orca so the Connect card appears for Raka.
+
+## Step 3.2 — Check whether the repo automation already exists
 
 Query current automations:
 
@@ -20,16 +32,18 @@ orca automations list --json | jq -r --arg name "Ina issue event watcher [<owner
 
 If an automation ID is returned, the repository already has an active watcher. Report that it is already covered and stop.
 
-## Step 3.2 — Resolve numeric repository and owner IDs
+## Step 3.3 — Resolve numeric repository and owner IDs
 
 ```bash
 gh api repos/<owner>/<repo> --jq '{id, owner_id: .owner.id}'
 ```
 
-Record `id` as `REPO_ID` and `owner_id` as `OWNER_ID`. The scoped ref format is:
+Record `id` as `REPO_ID` and `owner_id` as `OWNER_ID`.
+Note: `<OWNER_ID>` must be the GitHub user account ID (`245127434` for `rakaarwaky`), never an organization ID.
+The scoped ref format is:
 `github:<OWNER_ID>:<REPO_ID>`
 
-## Step 3.3 — Create dedicated repository automation
+## Step 3.4 — Create dedicated repository automation
 
 Create the dedicated automation for this repository using `orca automations create`:
 
@@ -39,29 +53,37 @@ orca automations create \
   --name "Ina issue event watcher [<owner>/<repo>]" \
   --runs-in new \
   --results-to thread \
-  --on "github.issue_opened in=github:<OWNER_ID>:<REPO_ID>" \
+  --on "github.issue_opened in=github:<OWNER_ID>:<REPO_ID> from=me" \
   --on "github.issue_commented in=github:<OWNER_ID>:<REPO_ID>" \
   --on "github.assigned in=github:<OWNER_ID>:<REPO_ID>" \
   --on "github.mentioned in=github:<OWNER_ID>:<REPO_ID>" \
-  --prompt "/issue-worker work <owner>/<repo> <subject>
+  --prompt '/issue-worker work <owner>/<repo> <subject>
 
 ## Step 1: Identify the Issue
 Extract the issue number from the trigger event (<subject> or event payload).
 
-## Step 2: Watchlist gate
+## Step 2: Author gate (security — never skip)
+Check the author of the issue:
+gh issue view <number> -R <owner>/<repo> --json author --jq .author.login
+
+If author is NOT `rakaarwaky`, stop immediately and end with NO_REPLY — only Raka issues are processed.
+
+## Step 3: Watchlist gate
 Verify that <owner>/<repo> is active in repo.json. If absent, report and stop.
 
-## Step 3: Run Issue Worker
+## Step 4: Run Issue Worker
 Run the work lane:
 - Verify the issue reproduction at HEAD on default branch.
 - Cluster related issues into implementation cohorts.
 - Create an isolated Orca worktree and delegate fix implementation via /implement.
 - Independently verify test suite passes in the worktree.
 - Push the fix branch and open a draft pull request via gh pr create --draft.
-- Report the draft PR URL to item mail and this thread."
+- Report the draft PR URL to item mail and this thread.
+
+End with NO_REPLY unless you need your owner to decide something.'
 ```
 
-## Step 3.4 — Verify registration
+## Step 3.5 — Verify registration
 
 ```bash
 orca automations list --json | jq '.result.automations[] | select(.name=="Ina issue event watcher [\(<owner>/<repo>)]")'
@@ -69,7 +91,7 @@ orca automations list --json | jq '.result.automations[] | select(.name=="Ina is
 
 Confirm the automation is active with all four issue events scoped strictly to `github:<OWNER_ID>:<REPO_ID>`.
 
-## Step 3.5 — Teardown on repo removal
+## Step 3.6 — Teardown on repo removal
 
 When `/issue-worker setup remove <owner>/<repo>` is invoked:
 1. Locate the automation ID:
@@ -87,4 +109,4 @@ The setup workflow is complete:
 1. Registered in `repo.json` ([step-0-add-repo.md](step-0-add-repo.md))
 2. Issue tracking audited ([step-1-presetup.md](step-1-presetup.md))
 3. Standard triage labels verified ([step-2-setup-labels.md](step-2-setup-labels.md))
-4. Dedicated 1-repo event automation active ([step-3-automation.md](step-3-automation.md))
+4. Dedicated 1-repo event automation active with author gate ([step-3-automation.md](step-3-automation.md))

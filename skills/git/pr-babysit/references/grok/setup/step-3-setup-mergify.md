@@ -56,7 +56,26 @@ If declined, set `MERGIFY_AVAILABLE="declined"` and stop.
 
 ## Write `.github/mergify.yml`
 
-Substitute all `<...>` placeholders with values from step 1 (presetup) and
+Before writing the new config, check for and remove any old Mergify config
+locations that would cause Mergify to detect **multiple configurations** and
+refuse to run:
+
+| Old location | Action |
+|--------------|--------|
+| `.mergify.yml` (repository root) | Delete |
+| `.mergify.yaml` (repository root) | Delete |
+| `.github/workflows/mergify.yml` | Delete (Mergify never reads it; GitHub Actions treats it as invalid) |
+
+```bash
+for f in .mergify.yml .mergify.yaml .github/workflows/mergify.yml; do
+  if [ -f "$f" ]; then
+    git rm -f "$f"
+    echo "Removed old Mergify config: $f"
+  fi
+done
+```
+
+Then substitute all `<...>` placeholders with values from step 1 (presetup) and
 step 2 (CI check names):
 
 | Placeholder | Source | Default |
