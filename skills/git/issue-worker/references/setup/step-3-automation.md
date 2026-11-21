@@ -53,10 +53,12 @@ orca automations create \
   --name "Ina issue event watcher [<owner>/<repo>]" \
   --runs-in new \
   --results-to thread \
-  --on "github.issue_opened in=github:<OWNER_ID>:<REPO_ID> from=me" \
-  --on "github.issue_commented in=github:<OWNER_ID>:<REPO_ID>" \
+  --on "github.issue_opened in=github:<OWNER_ID>:<REPO_ID>" \
+  --on "github.comment in=github:<OWNER_ID>:<REPO_ID>" \
   --on "github.assigned in=github:<OWNER_ID>:<REPO_ID>" \
   --on "github.mentioned in=github:<OWNER_ID>:<REPO_ID>" \
+  --on "github.issue_closed in=github:<OWNER_ID>:<REPO_ID>" \
+  --on "github.labeled in=github:<OWNER_ID>:<REPO_ID>" \
   --prompt '/issue-worker work <owner>/<repo> <subject>
 
 ## Step 1: Identify the Issue
@@ -89,7 +91,7 @@ End with NO_REPLY unless you need your owner to decide something.'
 orca automations list --json | jq '.result.automations[] | select(.name=="Ina issue event watcher [\(<owner>/<repo>)]")'
 ```
 
-Confirm the automation is active with all four issue events scoped strictly to `github:<OWNER_ID>:<REPO_ID>`.
+Confirm the automation is active with all six issue events scoped strictly to `github:<OWNER_ID>:<REPO_ID>`.
 
 ## Step 3.6 — Teardown on repo removal
 
