@@ -49,7 +49,7 @@ Release lane (`release.yaml: ready` repos):
 | Step 1 | [`references/release/step-1-prep-pr.md`](references/release/step-1-prep-pr.md) | Release prep PR in an Orca worktree: create worktree, run bump/changelog, push branch, open PR with `release` label, watch CI, auto-approve and merge with admin, retire worktree. |
 | Step 2 | [`references/release/step-2-preflight.md`](references/release/step-2-preflight.md) | Pre-flight checks: verify main is clean (CI green, no leftover draft release), report what ships since the previous tag. Stop on anything red. |
 | Step 3 | [`references/release/step-3-build-draft.md`](references/release/step-3-build-draft.md) | Trigger the repo's own release workflow (tag-driven), watch it, verify the release carries the expected assets. |
-| Step 4 | [`references/release/step-4-publish.md`](references/release/step-4-publish.md) | Draft-based repos only: undraft the release and watch the publish job. No-op for the two watched repos (they publish directly in Step 3). |
+| Step 4 | [`references/release/step-4-publish.md`](references/release/step-4-publish.md) | Draft-based repos: undraft the release (`gh release edit --draft=false --latest`) and verify it becomes public. |
 | Step 5 | [`references/release/step-5-verify.md`](references/release/step-5-verify.md) | Verify the release is live (not a draft) with the expected assets; report final status and URL. |
 
 Setup lane (`release.yaml: need-setup` repos):
@@ -62,4 +62,4 @@ Setup lane (`release.yaml: need-setup` repos):
 | Setup 3 | [`references/setup/step-3-setup-release.md`](references/setup/step-3-setup-release.md) | Copy `templates/release.yml` into the repo. If the repo already has release workflows, merge them into a single `release.yml` and delete the rest. Base branch is `main`. |
 | Setup 4 | [`references/setup/step-4-setup-bump.md`](references/setup/step-4-setup-bump.md) | Scaffold `scripts/bump.sh` that stamps the version, runs git-cliff, trims to 2 releases, and commits. |
 | Setup 5 | [`references/setup/step-5-open-pr.md`](references/setup/step-5-open-pr.md) | Open the setup PR with the `setup` label, mark all three `repo.json` fields `"ready"` after merge, then run the release lane. |
-| Setup 6 | [`references/setup/step-6-automation.md`](references/setup/step-6-automation.md) | Update the Orca release automation's `in` filter to include the new repo's `github:<owner-id>:<repo-id>` so `pr_merged` events fire. |
+| Setup 6 | [`references/setup/step-6-automation.md`](references/setup/step-6-automation.md) | Create dedicated per-repository Orca release automation for the new repo |

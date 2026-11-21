@@ -24,3 +24,14 @@ Run `gh repo view <owner>/<repo> --json name,defaultBranch` and confirm the GitH
 ## Do not modify repo.json without owner instruction
 
 The SOUL.md rule says "Never modify `repo.json` without owner instruction." Confirm with Raka before adding a new repo entry.
+
+## Remove repository and automation
+
+When removing a repository from the release watchlist:
+1. Remove its entry from `/home/raka/.agents/develop/repo.json`.
+2. Delete its dedicated release automation:
+```bash
+AUTO_ID=$(orca automations list --json | jq -r --arg name "Risa auto-release [<owner>/<repo>]" '.result.automations[] | select(.name==$name) | .id')
+[ -n "$AUTO_ID" ] && orca automations remove "$AUTO_ID"
+```
+Report that the repository was removed and its automation was deleted.

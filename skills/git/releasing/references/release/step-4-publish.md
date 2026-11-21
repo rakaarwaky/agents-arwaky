@@ -2,14 +2,14 @@
 
 **Worktree rule:** the undraft/publish command itself runs from the Orca worktree where the release prep happened — never the main clone. The main clone stays clean.
 
-Most repos (including the two watched ones) publish directly in Step 3's workflow — there is no separate draft/publish split, so Step 4 is a no-op for them. Proceed straight to [step-5-verify.md](step-5-verify.md).
+Repos configured with `draft: true` on their release step (such as `psd-timelapse` using `softprops/action-gh-release`) produce a draft GitHub release that must be undrafted to become public. Repos that publish live releases directly can skip straight to [step-5-verify.md](step-5-verify.md).
 
-For a repo that builds a **draft** release and needs a separate undraft step (e.g. a `softprops/action-gh-release` draft, or a registry that must be undrafted after build):
+To undraft and publish the release:
 
 The publish step is irreversible and outward-facing. Proceed straight through:
 
 ```shell
-gh release edit "$tag" --draft=false --latest -R <owner>/<repo>
+gh release edit "$NEW_VERSION" --draft=false --latest -R <owner>/<repo>
 ```
 
 Watch the publish job (~5–10 min):

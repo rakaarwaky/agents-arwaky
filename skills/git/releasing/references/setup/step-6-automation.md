@@ -1,73 +1,62 @@
-# Setup step 6 — automation registration
+# Setup step 6 — Dedicated Repo Release Automation (setup lane)
 
-Update the Orca release automation's repo scope so events from the new repo fire.
+Each repository has its own dedicated Orca release automation named `Risa auto-release [<owner>/<repo>]`.
+Do not combine multiple repositories into a single monolithic automation.
 
-## Why this step exists
+## Why 1 automation per repository
 
-Risa's release automation ("Risa auto-release on PR merge", id `e6e330a1`) triggers on `github.pr_merged`. Its `in` filter currently only includes repos already registered in `repo.json`. When you add a new repo via [step-0-add-repo.md](step-0-add-repo.md), the automation does not yet know about it — so `pr_merged` events for that repo will be silently ignored until you update the automation. This is the same gap Nany flagged in the pr-babysit setup lane.
+1. **Isolation**: Adding or configuring a release pipeline for one repository leaves other repositories undisturbed.
+2. **Clean removal**: When removing a repository from the release watchlist, removing its automation is an atomic `orca automations remove <id>` call.
+3. **Independent control**: If a repository's release pipeline is frozen or undergoing hotfixes, that repository's release watcher can be disabled (`orca automations disable <id>`) without blocking releases on other projects.
+4. **Clean audit trail**: Run logs and failure diagnostics in `orca automations runs --id <id>` isolate events to the specific repository.
 
 ## When to run this step
 
-Run this **after** the setup PR is merged and `repo.json` fields are set to `"ready"`, but **before** the release lane runs on the new repo. The release lane reads `repo.json`; the automation reads its own `in` list. Both must include the new repo.
+Run this **after** the setup PR is merged and `repo.json`'s `release.yaml` field is set to `"ready"`.
 
 ## What to do
 
-### 1. Find the automation ID
+### 1. Check whether the repo automation already exists
 
-```shell
-orca automations list --json | jq -r '.result.automations[] | select(.name == "Risa auto-release on PR merge") | .id'
+```bash
+orca automations list --json | jq -r --arg name "Risa auto-release [<owner>/<repo>]" '.result.automations[] | select(.name==$name) | .id'
 ```
 
-Expected: `e6e330a1-3925-4f75-884a-30e92a5569ad`
+If an ID is returned, the automation already exists. Verify its state and stop.
 
-### 2. Get the current `in` list for pr_merged
+### 2. Resolve numeric repository and owner IDs
 
-```shell
-orca automations show e6e330a1-3925-4f75-884a-30e92a5569ad --json \
-  | jq -r '.result.automation.on[] | select(.event=="pr_merged") | .in'
+```bash
+gh api repos/<owner>/<repo> --jq '{id, owner_id: .owner.id}'
 ```
 
-Example output:
-```
-["github:184019079:1206546093", "github:184019079:1274832767"]
-```
+Record `id` as `REPO_ID` and `owner_id` as `OWNER_ID`. The scoped ref format is:
+`github:<OWNER_ID>:<REPO_ID>`
 
-### 3. Resolve the new repo's GitHub ref
+### 3. Create the dedicated repository automation
 
-Get the immutable numeric GitHub repo ID from `gh api`:
-
-```shell
-gh api repos/<owner>/<repo> --jq '{id,full_name}'
-```
-
-Record `id` as `<repo-id>` and `full_name` as `<owner>/<repo>`.
-
-If the new repo is a sibling of an existing watched repo (same owner/org), the `in` entry format is `github:<owner-id>:<repo-id>`. Use `gh api orgs/<org-name> --jq '.id'` if you don't know the owner ID.
-
-### 4. Update the automation's `in` list
-
-Use `orca automations edit` with the extended `--on` rule. Pass every event type (not just pr_merged) because edit replaces the entire `on` list when invoked:
-
-```shell
-orca automations edit e6e330a1-3925-4f75-884a-30e92a5569ad \
-  --on 'github.pr_merged github:184019079:1206546093/github:184019079:1274832767/github:184019079:<new-repo-id>' \
-  --json
+```bash
+orca automations create \
+  --bot Risa-AutoRelease \
+  --name "Risa auto-release [<owner>/<repo>]" \
+  --runs-in new \
+  --results-to thread \
+  --on "github.pr_merged in=github:<OWNER_ID>:<REPO_ID>" \
+  --prompt "A PR merged on <owner>/<repo>. First check the author: run gh pr view <pr> -R <owner>/<repo> --json author,labels --jq '{author:.author.login, labels:[.labels[].name]}'. If author.login is not 'rakaarwaky', end with NO_REPLY — only Raka's PRs are released. Then check the labels: if 'release' is in the labels list, end with NO_REPLY — this is a release prep PR from Risa's own cycle. If author is rakaarwaky AND 'release' label is absent, proceed: draft release notes following the 'Release notes style' section in the releasing skill (references/step-0-version-bump.md). Read repo.json to confirm this is a watched repo. Check the last release tag, list all merged PRs since then (skip any with the release label), draft notes in three groups (New / Fixed / Changed), post the draft in this thread, then proceed to publish the release using the releasing skill. Label the prep PR with 'release' before merging."
 ```
 
-If there are additional event types on the automation, preserve them by reading the full list first:
+### 4. Verify
 
-```shell
-orca automations show e6e330a1-3925-4f75-884a-30e92a5569ad --json \
-  | jq -r '.result.automation.on[] | "\(.[source]).\(.[event]) \(.[in]|join("/"))"'
+```bash
+orca automations list --json | jq '.result.automations[] | select(.name=="Risa auto-release [\(<owner>/<repo>)]")'
 ```
 
-Then repeat all lines above, appending `<new-repo-id>` to each line's `in` list.
+Confirm the automation is active with `github.pr_merged` scoped strictly to `github:<OWNER_ID>:<REPO_ID>`.
 
-### 5. Verify
+### 5. Teardown on repo removal
 
-```shell
-orca automations show e6e330a1-3925-4f75-884a-30e92a5569ad --json \
-  | jq '.result.automation.on[] | select(.event=="pr_merged") | .in'
+When a repository is retired or removed from the release watchlist:
+```bash
+AUTO_ID=$(orca automations list --json | jq -r --arg name "Risa auto-release [<owner>/<repo>]" '.result.automations[] | select(.name==$name) | .id')
+[ -n "$AUTO_ID" ] && orca automations remove "$AUTO_ID"
 ```
-
-Confirm the new `github:<owner-id>:<repo-id>` entry appears.

@@ -46,7 +46,9 @@ The prep PR commits the version stamp and changelog that the workflow reads; it 
 5. Auto-approve and merge with admin:
 
    ```shell
-   gh pr review <pr-number> --approve
+   # If PR author differs from current token user:
+   gh pr review <pr-number> --approve 2>/dev/null || true
+   # Admin squash merge directly:
    gh pr merge <pr-number> --admin --squash
    ```
 

@@ -21,16 +21,15 @@ IF the tag is missing -> go back to [step-1-prep-pr.md](step-1-prep-pr.md) step 
 The standard pipeline is a single self-contained `release.yml`:
 
 1. A `create-tag` job watches for merged PRs with the `release` label whose title starts with `chore(release):`.
-2. On merge, it creates the `vX.Y.Z` tag and pushes it.
-3. The tag push triggers the build → test → smoke-test → publish jobs in the same workflow.
-
-To trigger it manually with a known version (if the tag already exists):
+2. On merge, it derives the semantic version and pushes the `vX.Y.Z` tag.
+3. Because tags pushed via GitHub Actions `GITHUB_TOKEN` do not trigger downstream workflows (GitHub's recursive loop prevention), or if the push event is delayed, dispatch the release workflow explicitly targeting the tag reference:
 
 ```shell
-gh workflow run release.yml -f tag="$NEW_VERSION" -R <owner>/<repo>
+# Dispatch the workflow directly against the newly created tag:
+gh workflow run release.yml -R <owner>/<repo> --ref "$NEW_VERSION"
 ```
 
-There is no draft/publish split here — the workflow publishes directly. Watch the single run:
+Watch the run:
 
 ```shell
 gh run list --workflow=release.yml -R <owner>/<repo> --limit 1

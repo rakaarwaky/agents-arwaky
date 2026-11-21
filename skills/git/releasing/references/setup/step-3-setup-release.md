@@ -26,6 +26,27 @@ If the repo has any existing release workflow(s) (e.g. `auto-release.yml`, `tag-
    - Provenance: add only if the repo publishes to a registry (PyPI, npm, crates.io)
 5. **Base branch is `main`**, not `develop`.
 
+## Automated Tag Triggers and Token Configuration
+
+GitHub Actions suppresses downstream workflows when tags are pushed using the default `GITHUB_TOKEN` to prevent recursive event loops.
+
+1. **Autonomous Tag Push (`BOT_RELEASE_TOKEN`):**
+   - Provide a repository secret `BOT_RELEASE_TOKEN` (a Personal Access Token with `contents: write` scope).
+   - In `release.yml`, pass:
+     ```yaml
+     env:
+       GITHUB_TOKEN: ${{ secrets.BOT_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+     ```
+   - When `BOT_RELEASE_TOKEN` is present, GitHub Actions registers the tag push as an external user event and triggers `push.tags` build/publish jobs automatically.
+   - If `BOT_RELEASE_TOKEN` is absent, the workflow safely falls back to `GITHUB_TOKEN`, and Risa triggers the build via `gh workflow run release.yml --ref "$NEW_VERSION"`.
+
+2. **Branch Guard on Workflow Dispatch:**
+   - Ensure `prepare-release` executes only on `main`:
+     ```yaml
+     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+     ```
+   - This prevents manual tag workflow dispatches (`--ref vX.Y.Z`) from accidentally running the PR preparation job.
+
 ## CI gate
 
 Add or keep a `ci.yml` that runs tests + build on every push and PR. The test shards in `ci.yml` are the authoritative gate — they run on every PR and block merges. The release workflow's `build` job assumes CI has already passed; it does not re-run the full test suite.
