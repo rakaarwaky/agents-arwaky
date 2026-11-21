@@ -48,7 +48,7 @@ The prep PR commits the version stamp and changelog that the workflow reads; it 
    ```shell
    # If PR author differs from current token user:
    gh pr review <pr-number> --approve 2>/dev/null || true
-   # Admin squash merge directly:
+   # Admin squash merge directly (mandatory: always use --squash so the commit subject retains chore(release): for create-tag):
    gh pr merge <pr-number> --admin --squash
    ```
 

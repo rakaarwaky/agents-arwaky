@@ -21,17 +21,18 @@ IF the tag is missing -> go back to [step-1-prep-pr.md](step-1-prep-pr.md) step 
 The standard pipeline is a single self-contained `release.yml`:
 
 1. A `create-tag` job watches for merged PRs with the `release` label whose title starts with `chore(release):`.
-2. On merge, it derives the semantic version and pushes the `vX.Y.Z` tag.
-3. Because tags pushed via GitHub Actions `GITHUB_TOKEN` do not trigger downstream workflows (GitHub's recursive loop prevention), or if the push event is delayed, dispatch the release workflow explicitly targeting the tag reference:
+2. On merge, it derives the semantic version and pushes the `vX.Y.Z` tag using `BOT_RELEASE_TOKEN` (or `GITHUB_TOKEN`).
+3. If `BOT_RELEASE_TOKEN` is configured, GitHub Actions recognizes the tag push as an external user event and triggers the `push.tags` build/publish run automatically. If `BOT_RELEASE_TOKEN` is absent or the event does not trigger within 20s, dispatch manually:
 
 ```shell
-# Dispatch the workflow directly against the newly created tag:
+# 1. Check if the push run started automatically (give it 10-15s after tag push):
+gh run list --workflow=release.yml -R <owner>/<repo> --limit 1
+
+# If an automatic push run is already active or completed for this tag, watch it:
+gh run watch <run-id> -R <owner>/<repo> --exit-status
+
+# 2. Fallback: only if no run was triggered (BOT_RELEASE_TOKEN absent):
 gh workflow run release.yml -R <owner>/<repo> --ref "$NEW_VERSION"
-```
-
-Watch the run:
-
-```shell
 gh run list --workflow=release.yml -R <owner>/<repo> --limit 1
 gh run watch <run-id> -R <owner>/<repo> --exit-status
 ```

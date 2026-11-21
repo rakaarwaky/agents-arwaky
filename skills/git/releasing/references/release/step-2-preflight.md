@@ -3,7 +3,7 @@
 Before triggering the workflow, verify main is clean:
 
 ```shell
-gh run list --workflow=ci.yaml --branch main --limit 1    # main is green
+gh run list --workflow=ci.yml --branch main --limit 1    # main is green (or ci.yaml if named so)
 gh release list --limit 3                                  # no leftover draft
 git log --oneline $(git describe --tags --abbrev=0)..origin/main  # what ships
 ```
