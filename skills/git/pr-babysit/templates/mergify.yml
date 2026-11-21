@@ -51,18 +51,6 @@ priority_rules:
 {% endif %}
 
 pull_request_rules:
-{% if include_keep_up_to_date %}
-  - name: keep-prs-up-to-date
-    conditions:
-      - base = <BASE_BRANCH>
-      - -draft
-      - -merged
-      - -closed
-      - -conflict
-    actions:
-      update: {}
-{% endif %}
-
   - name: warn-on-conflicts
     conditions:
       - conflict
