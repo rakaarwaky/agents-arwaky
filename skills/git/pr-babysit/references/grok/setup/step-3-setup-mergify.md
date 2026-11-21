@@ -1,6 +1,6 @@
 # Step 3 — Setup Mergify (setup lane)
 
-Write `.github/workflows/mergify.yml` from the template, using the repo facts
+Write `.github/mergify.yml` from the template, using the repo facts
 and customization answers from step 1 and the CI check names from step 2.
 
 This step writes and commits the config in the worktree. It does NOT open the
@@ -48,13 +48,13 @@ no new file, no PR.
 ## Ask the user (when `"none"` or `"installed"`)
 
 > PR <number> targets a repo without Mergify merge-queue configuration.
-> To use Mergify auto-merge, I'll add a `.github/workflows/mergify.yml` with a merge-queue rule
+> To use Mergify auto-merge, I'll add a `.github/mergify.yml` with a merge-queue rule
 > modeled on the lint-arwaky role model, customized for this repo.
 > Proceed?
 
 If declined, set `MERGIFY_AVAILABLE="declined"` and stop.
 
-## Write `.github/workflows/mergify.yml`
+## Write `.github/mergify.yml`
 
 Substitute all `<...>` placeholders with values from step 1 (presetup) and
 step 2 (CI check names):
@@ -88,7 +88,7 @@ Commit on a dedicated branch. Do not open the pull request here.
 
 ```bash
 git checkout -b chore/configure-mergify-rules
-git add .github/workflows/mergify.yml
+git add .github/mergify.yml
 git commit -m "ci: configure Mergify auto-merge rules"
 git push origin chore/configure-mergify-rules
 ```
@@ -96,7 +96,7 @@ git push origin chore/configure-mergify-rules
 ## Report to Hermes
 
 > Mergify: configured
-> Config file: .github/workflows/mergify.yml
+> Config file: .github/mergify.yml
 > Branch: chore/configure-mergify-rules (pushed)
 > Base branch: <BASE_BRANCH>
 > CI checks: <comma-separated>

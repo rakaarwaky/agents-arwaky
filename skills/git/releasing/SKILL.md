@@ -35,7 +35,7 @@ Pick the lane from `repo.json`'s `release.yaml` field before running any step:
 | `repo.json` `release.yaml` | Lane | What to run |
 |---|---|---|
 | `"ready"` (or absent — default for known repos) | **release** | The steps under [`references/release/`](references/release/step-0-version-bump.md) |
-| `"need-setup"` | **setup** | The steps under [`references/setup/`](references/setup/step-0-audit.md) first; after the repo has a full pipeline, set `release.yaml` to `"ready"` and run the release lane |
+| `"need-setup"` | **setup** | The steps under [`references/setup/`](references/setup/step-0-add-repo.md) first; after the repo has a full pipeline, set `release.yaml` to `"ready"` and run the release lane |
 
 A repo is "ready" when it has: (1) a version scheme stamped in a config file, (2) a release workflow in `.github/workflows/`, (3) a `cliff.toml` changelog source with git-cliff installed, and (4) a bump script. The setup lane is for new repos.
 

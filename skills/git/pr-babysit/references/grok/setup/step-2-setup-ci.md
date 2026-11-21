@@ -79,12 +79,13 @@ yamllint .github/workflows/ci.yml
 ## Commit and push
 
 ```bash
+git checkout -b chore/add-ci-workflow
 git add .github/workflows/ci.yml
 git commit -m "ci: add standard CI workflow for <language>"
-git push origin main
+git push origin chore/add-ci-workflow
 ```
 
-If pushing to main fails, create a PR instead.
+Open a pull request from `chore/add-ci-workflow` targeting `<BASE_BRANCH>` so the workflow change is reviewed before landing. Do not push directly to `<BASE_BRANCH>`.
 
 ## Verify
 

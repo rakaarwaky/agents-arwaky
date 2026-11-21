@@ -53,8 +53,16 @@ After `setup add`, the pipeline continues with step 1 (presetup) in `setup/` to 
 
 When the user runs `/pr-babysit setup remove <repo>`:
 
-## Step 0.4 — Remove repository from watchlist
+## Step 0.4 — Remove repository from watchlist and automation
 
-Read `/home/raka/.agents/develop/repo.json`, find the entry where `owner` and `name` match `<owner/repo>`, and remove it from the `repos` array. Write the file back. Report the removed repo.
+Read `/home/raka/.agents/develop/repo.json`, find the entry where `owner` and `name` match `<owner/repo>`, and remove it from the `repos` array. Write the file back.
+
+Remove the repository's dedicated automation:
+```bash
+AUTO_ID=$(orca automations list --json | jq -r --arg name "PR babysitter event watcher [<owner>/<repo>]" '.result.automations[] | select(.name==$name) | .id')
+[ -n "$AUTO_ID" ] && orca automations remove "$AUTO_ID"
+```
+
+Report the removed repository and deleted automation.
 
 If the repo is not found in the watchlist, report that it is not being watched and stop.

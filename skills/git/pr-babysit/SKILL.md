@@ -42,7 +42,7 @@ Watch pull requests, parse failing CI logs, push incremental fixes, configure Me
 | Grok Setup 2 | [`references/grok/setup/step-2-setup-ci.md`](references/grok/setup/step-2-setup-ci.md) | Detect language, write `.github/workflows/ci.yml` with lint-arwaky, build, test |
 | Grok Setup 3 | [`references/grok/setup/step-3-setup-mergify.md`](references/grok/setup/step-3-setup-mergify.md) | Detect Mergify, write `.github/workflows/mergify.yml` from template, commit and push branch |
 | Grok Setup 4 | [`references/grok/setup/step-4-open-pr.md`](references/grok/setup/step-4-open-pr.md) | Open configuration PR with `setup` label |
-| Grok Setup 5 | [`references/grok/setup/step-5-automation.md`](references/grok/setup/step-5-automation.md) | Register new repo in Orca event automation `in` list so PR/CI events fire |
+| Grok Setup 5 | [`references/grok/setup/step-5-automation.md`](references/grok/setup/step-5-automation.md) | Create dedicated per-repository Orca event automation for the new repo |
 | Grok Sweep 0 | [`references/grok/sweep/step-0-init-sweep.md`](references/grok/sweep/step-0-init-sweep.md) | Verify auth, read watchlist from `repo.json`, initialize sweep |
 | Grok Sweep 1 | [`references/grok/sweep/step-1-check-main-ci.md`](references/grok/sweep/step-1-check-main-ci.md) | Check latest CI run on default branch for each watched repo |
 | Grok Sweep 2 | [`references/grok/sweep/step-2-fix-main-ci.md`](references/grok/sweep/step-2-fix-main-ci.md) | Fix main CI failures via Orca worktree worker, open fix PR |

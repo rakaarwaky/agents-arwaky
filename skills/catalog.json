@@ -49,6 +49,12 @@
       "category": "automation"
     },
     {
+      "name": "bot-dream",
+      "description": "Review and consolidate bot memory from conversation history — extract facts from chats, update MEMORY.md index and memory/ files, remove stale entries.",
+      "when_to_use": "User says 'dream', 'review memory', 'consolidate memory', 'update MEMORY', or wants to process conversation history into structured memory files.",
+      "category": "autonomous-ai-agents"
+    },
+    {
       "name": "bot-manager",
       "description": "Design new bots and manage the whole bot roster — create, configure, delegate tasks, automate recurring work, and retire bots via Orca.",
       "when_to_use": "Use when the owner asks to design, create, configure, retire, or delegate a task to a bot; mentions bot roster, bot lifecycle, bot automations, or asks 'what bots exist', 'make a new bot', 'manage bots', 'bikin bot', 'buatkan bot baru', 'kelola bot', 'delegate', 'otomasi', 'retire bot'. Not for writing code itself — route code work to workers via delegation.",
@@ -266,14 +272,14 @@
     },
     {
       "name": "issue-worker",
-      "description": "issue → PR: analyzes and groups open GitHub issues, verifies claims at HEAD, asks user decisions via quiz, isolates work in Orca worktrees, delegates implementation to new Grok Build session(s) via /implement, verifies fixes, and pushes draft PRs. Unified flow for Hermes and Grok.",
-      "when_to_use": "Use when resolving open GitHub issues into PRs (/issue-worker <latest|oldest> <N> or /issue-worker <issue-numbers>), triaging and grouping issues by subsystem, verifying bug reproduction at HEAD, delegating fixes to Grok Build via /implement in Orca worktrees, or opening draft PRs. Never creates issues (handled by /issue-maker) and never auto-merges.",
+      "description": "issue → PR: analyzes and groups open GitHub issues, verifies claims at HEAD, asks user decisions via quiz, isolates work in Orca worktrees, delegates implementation to new Grok Build session(s) via /implement, verifies fixes, and pushes draft PRs. Unified flow for Hermes and Grok with work and setup lanes.",
+      "when_to_use": "Use when resolving open GitHub issues into PRs (/issue-worker work <latest|oldest> <N> or /issue-worker work <issue-numbers>), setting up a repository for issue tracking and event automations (/issue-worker setup <repo> or /issue-worker setup add|remove <repo>), triaging and grouping issues by subsystem, verifying bug reproduction at HEAD, delegating fixes to Grok Build via /implement in Orca worktrees, or opening draft PRs. Never creates issues (handled by /issue-maker) and never auto-merges.",
       "category": "git"
     },
     {
       "name": "pr-babysit",
       "description": "Watch pull requests, fix failing CI, merge via Mergify queue.",
-      "when_to_use": "Triggers on \\\"/pr-babysit\\\". Phrasing: \\\"watch PR 123 until green\\\", \\\"babysit PR 123 and merge when ready\\\", \\\"fix issue #123 and open a PR\\\", \\\"keep fixing PR 123 until it can merge\\\", \\\"pr-babysit ship 123\\\", \\\"pr-babysit setup 123\\\", \\\"pr-babysit repo add owner/repo\\\", \\\"pr-babysit repo remove owner/repo\\\", \\\"watch repo for new prs\\\".",
+      "when_to_use": "Triggers on \\\"/pr-babysit\\\". Phrasing: \\\"watch PR 123 until green\\\", \\\"babysit PR 123 and merge when ready\\\", \\\"fix issue #123 and open a PR\\\", \\\"keep fixing PR 123 until it can merge\\\", \\\"pr-babysit ship 123\\\", \\\"pr-babysit setup 123\\\", \\\"pr-babysit setup add repo\\\", \\\"pr-babysit setup remove repo\\\", \\\"pr-babysit sweep\\\".",
       "category": "git"
     },
     {

@@ -37,7 +37,7 @@ Report: "Created PR #<N> to configure Mergify merge rules. Once merged, green no
 > Setup PR: #<N> (https://github.com/<REPO_NAME>/pull/<N>)
 > Base branch: <BASE_BRANCH>
 > Label: setup
-> Config file: .github/workflows/mergify.yml
+> Config file: .github/mergify.yml
 
 ## Next
 
