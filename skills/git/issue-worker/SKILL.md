@@ -2,12 +2,12 @@
 name: issue-worker
 description: "issue → PR: analyzes and groups open GitHub issues, verifies claims at HEAD, asks user decisions via quiz, isolates work in Orca worktrees, delegates implementation to new Grok Build session(s) via /implement, verifies fixes, and pushes draft PRs. Unified flow for Hermes and Grok with work and setup lanes."
 when-to-use: "Use when resolving open GitHub issues into PRs (/issue-worker work <latest|oldest> <N> or /issue-worker work <issue-numbers>), setting up a repository for issue tracking and event automations (/issue-worker setup <repo> or /issue-worker setup add|remove <repo>), triaging and grouping issues by subsystem, verifying bug reproduction at HEAD, delegating fixes to Grok Build via /implement in Orca worktrees, or opening draft PRs. Never creates issues (handled by /issue-maker) and never auto-merges."
-argument-hint: "<work|setup> [<latest|oldest> <N> | <issue-numbers> | <repo>]"
+argument-hint: "<work|setup|sweep> [<latest|oldest> <N> | <issue-numbers> | <repo>]"
 ---
 
 # Issue Worker — issue → PR
 
-End-to-end workflow for managing repository issues and resolving open GitHub issues into draft pull requests. Operates in two distinct lanes: `work` (parse issue hints, verify claims at HEAD, group into cohorts, delegate implementation to Grok Build in isolated Orca worktrees, verify fixes, and open draft PRs) and `setup` (register repository in `repo.json`, audit issue tracking capability, configure standard triage labels, and register repository event filters in Orca automations). Never merges.
+End-to-end workflow for managing repository issues and resolving open GitHub issues into draft pull requests. Operates in three distinct lanes: `work` (parse issue hints, verify claims at HEAD, group into cohorts, delegate implementation to Grok Build in isolated Orca worktrees, verify fixes, and open draft PRs), `setup` (register repository in `repo.json`, audit issue tracking capability, configure standard triage labels, and register repository event filters in Orca automations), and `sweep` (nightly background pass that re-verifies stale issues at HEAD, groups queueable issues into /implement cohorts, and opens draft PRs). Never merges.
 
 ## Rules
 
@@ -40,3 +40,8 @@ End-to-end workflow for managing repository issues and resolving open GitHub iss
 | Setup 1 | [`references/setup/step-1-presetup.md`](references/setup/step-1-presetup.md) | Audit issue tracker settings, template availability, and collaborator permissions |
 | Setup 2 | [`references/setup/step-2-setup-labels.md`](references/setup/step-2-setup-labels.md) | Configure standard issue triage labels (`triage`, `in-progress`, `fixed-on-main`, `spec-issue`, `wontfix`) |
 | Setup 3 | [`references/setup/step-3-automation.md`](references/setup/step-3-automation.md) | Create dedicated per-repository Orca issue event automation for the new repo |
+| Sweep 0 | [`references/sweep/step-0-init-sweep.md`](references/sweep/step-0-init-sweep.md) | Verify auth, read watchlist, and initialize nightly issue sweep |
+| Sweep 1 | [`references/sweep/step-1-audit-open-issues.md`](references/sweep/step-1-audit-open-issues.md) | Fetch open issues and classify by staleness bucket |
+| Sweep 2 | [`references/sweep/step-2-reverify-and-group.md`](references/sweep/step-2-reverify-and-group.md) | Re-verify stale issues at HEAD, close fixed-on-main issues, and group queueable issues into /implement cohorts |
+| Sweep 3 | [`references/sweep/step-3-verify-cohorts.md`](references/sweep/step-3-verify-cohorts.md) | Poll /implement worktrees, independently verify, and open draft PRs |
+| Sweep 4 | [`references/sweep/step-4-report.md`](references/sweep/step-4-report.md) | Compose and report sweep summary |

@@ -4,13 +4,13 @@ Ensure the standard labels required for issue tracking, triage, and resolution e
 
 ## Required label set
 
-| Label | Color | Description |
-|---|---|---|
-| `triage` | `#FBCA04` | Unverified or freshly opened issue awaiting inspection |
-| `in-progress` | `#1D76DB` | Issue actively being investigated or worked on by an agent |
-| `fixed-on-main` | `#0E8A16` | Issue confirmed already fixed at HEAD on default branch |
-| `spec-issue` | `#5319E7` | Task mapped from architectural specification documents |
-| `wontfix` | `#FFFFFF` | Working as intended or decided not to address |
+| Label           | Color      | Description                                                |
+| --------------- | --------- | ---------------------------------------------------------- |
+| `triage`        | `#FBCA04` | Unverified or freshly opened issue awaiting inspection     |
+| `in-progress`   | `#1D76DB` | Issue actively being investigated or worked on by an agent |
+| `fixed-on-main` | `#0E8A16` | Issue confirmed already fixed at HEAD on default branch    |
+| `spec-issue`    | `#5319E7` | Task mapped from architectural specification documents     |
+| `wontfix`       | `#FFFFFF` | Working as intended or decided not to address              |
 
 ## Step 2.1 — Create missing labels
 

@@ -2,7 +2,7 @@
 name: releasing
 description: "Release, cut a release, ship a new version, publish or tag a release, recover a failed release run."
 when-to-use: 'Cut a CalVer release of any project autonomously — bump via the bump script in an Orca worktree, open and merge a release prep PR, build and publish the draft through GitHub workflows, and recover failed release runs. Triggers: "release", "cut a release", "ship a new version", "publish a release", "tag a version", "release run recovery".'
-argument-hint: "--tag <tag> --target_commitish <sha>"
+argument-hint: "<release|setup>"
 ---
 
 # Releasing — autonomous headless release agent
